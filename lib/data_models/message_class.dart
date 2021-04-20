@@ -1,3 +1,6 @@
+import 'package:audio_service/audio_service.dart';
+import 'package:voices_for_christ/database/local_db.dart';
+
 class Message {
   int id;
   int created; // timestamp when message was added to cloud database
@@ -115,5 +118,33 @@ class Message {
       'isfavorite': isfavorite,
       'isplayed': isplayed
     };
+  }
+
+  MediaItem toMediaItem() {
+    int seconds = durationinseconds?.toInt() ?? 0;
+    return MediaItem(
+      id: filepath,
+      title: title,
+      duration: Duration(seconds: seconds),
+      artist: speaker,
+      album: speaker,
+      extras: {
+        'messageId': id,
+      }
+    );
+  }
+}
+
+Future<Message> messageFromMediaItem(MediaItem mediaItem) async {
+  if (mediaItem == null || mediaItem.extras == null) {
+    return null;
+  }
+  int id = mediaItem.extras['messageId'] ?? -1;
+  if (id > -1) {
+    final db = MessageDB.instance;
+    Message result = await db.queryOne(id);
+    return result;
+  } else {
+    return null;
   }
 }

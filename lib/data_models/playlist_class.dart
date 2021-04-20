@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 
 class Playlist {
@@ -27,5 +28,9 @@ class Playlist {
       'created': created,
       'title': title
     };
+  }
+
+  List<MediaItem> toMediaItemList() {
+    return messages.map((msg) => msg.toMediaItem()).toList();
   }
 }

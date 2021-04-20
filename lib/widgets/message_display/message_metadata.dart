@@ -126,7 +126,7 @@ Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color
           child: Row(
             children: <Widget>[
               Expanded(
-                child: Text(message.speaker,//speakerReversedName(message.speaker),
+                child: Text(speakerReversedName(message.speaker),
                   overflow: truncateTitle ? TextOverflow.ellipsis : TextOverflow.visible,
                   style: TextStyle(
                     fontSize: 16.0,

@@ -26,13 +26,13 @@ class _PlayerState extends State<Player> {
 
   void _start() {
     print('start here');
-    AudioService.start(
+    /*AudioService.start(
       backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
-      androidNotificationChannelName: 'VFC Audio Player Demo',
-      androidNotificationColor: 0xFF2196f3,
+      androidNotificationChannelName: 'Voices for Christ',
+      androidNotificationColor: 0xFF002D47,
       androidNotificationIcon: 'mipmap/ic_launcher',
       androidNotificationOngoing: true,
-    );
+    );*/
   }
 
   void _stop() {
@@ -49,5 +49,5 @@ class _PlayerState extends State<Player> {
 }
 
 void _audioPlayerTaskEntryPoint() async {
-  AudioServiceBackground.run(() => AudioPlayerTask());
+  //AudioServiceBackground.run(() => AudioPlayerTask());
 }

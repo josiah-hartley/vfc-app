@@ -1,4 +1,4 @@
-/*import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 //import 'package:audio_service/audio_service.dart';
 import 'package:flutter/services.dart';
 //import 'package:just_audio/just_audio.dart';
@@ -71,6 +71,26 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _play() {
+    /*MediaItem item = MediaItem(
+      album: 'Sci Fri',
+      title: 'A Salute to Head-Scratching Science',
+      id: 'https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3',
+    );*/
+    /*MediaItem item = MediaItem(
+      album: 'Will Mac',
+      title: _defaultMessage?.title ?? 'default title',
+      id: _defaultMessage?.filepath ?? 'https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3',
+    );
+    widget.audioHandler.updateQueue([item]);
+    widget.audioHandler.skipToQueueItem(0);
+    widget.audioHandler.play();*/
+  }
+
+  void _pause() {
+    //widget.audioHandler.pause();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<PlayerModel>(
@@ -118,10 +138,102 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     );
   }
+}
+
+/*class MyAudioHandler extends BaseAudioHandler { // mix in default implementations of seek functionality
+  final _player = AudioPlayer();
+  List<MediaItem> _queue = [];
+  bool playing = false;
+  
+  play() {
+    print('playing');
+    print(_player.playerState);
+    print(_player.currentIndex);
+    print(_player.duration);
+    print(_player.hasNext);
+    print(_player.position);
+    print(_player.volume);
+    _player.play();
+    playing = true;
+    print(_player.playerState);
+  }
+  pause() {
+    print('pausing');
+    print(_player.playerState);
+    _player.pause();
+    playing = false;
+    print(_player.playerState);
+  }
+  updateQueue(List<MediaItem> newQueue) {
+    print('updating queue: $newQueue');
+    _queue = newQueue;
+  }
+  skipToQueueItem(int index) {
+    print('skipping to $index');
+    _player.setAudioSource(ConcatenatingAudioSource(
+      children: _queue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
+    ));
+    _player.seek(Duration(seconds: 0), index: index);
+    //_player.setUrl(_queue[index].id);
+    print(_player.duration);
+  }
+  seekTo(Duration position) => _player.seek(position);
+  stop() async {
+    await _player.stop();
+    playing = false;
+    await super.stop();
+  }
+
+  MyAudioHandler() {
+    // Broadcast which item is currently playing
+    _player.currentIndexStream.listen((index) {
+      print('currentIndexStream fired: $index');
+      if (index != null) {
+        mediaItem.add(_queue[index]);
+      }
+    });
+    // Broadcast the current playback state and what controls should currently
+    // be visible in the media notification
+    _player.playbackEventStream.listen((event) async {
+      print('playbackEventStream fired');
+      playbackState.add(playbackState.valueWrapper.value.copyWith(
+        controls: [
+          MediaControl.skipToPrevious,
+          _player.playing ? MediaControl.pause : MediaControl.play,
+          MediaControl.skipToNext,
+        ],
+        androidCompactActionIndices: [0, 1, 2],
+        systemActions: {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+        },
+        processingState: {
+          ProcessingState.idle: AudioProcessingState.idle,
+          ProcessingState.loading: AudioProcessingState.loading,
+          ProcessingState.buffering: AudioProcessingState.buffering,
+          ProcessingState.ready: AudioProcessingState.ready,
+          ProcessingState.completed: AudioProcessingState.completed,
+        }[_player.processingState],
+        playing: _player.playing,
+        updatePosition: _player.position,
+        bufferedPosition: _player.bufferedPosition,
+        speed: _player.speed,
+      ));
+    });
+
+    /*queue.listen((List<MediaItem> queue) { 
+      print('listening: queue updated to $queue');
+      _queue = queue;
+      _player.setAudioSource(ConcatenatingAudioSource(
+        children: _queue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
+      ));
+    });*/
+  }
 }*/
 
 
-import 'package:audio_service/audio_service.dart';
+/*import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -136,7 +248,6 @@ import 'package:voices_for_christ/player/AudioPlayerTask.dart';
 import 'package:voices_for_christ/player/player_panel_collapsed.dart';
 import 'package:voices_for_christ/player/player_panel_expanded.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
-import 'package:voices_for_christ/scoped_models/player_model.dart';
 import 'package:voices_for_christ/screens/home_screen.dart';
 import 'package:voices_for_christ/screens/search.dart';
 import 'package:voices_for_christ/ui/dark_theme.dart';
@@ -144,19 +255,33 @@ import 'package:voices_for_christ/ui/light_theme.dart';
 import 'package:voices_for_christ/ui/shared_theme.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
-  var playerModel = PlayerModel();
-  playerModel.initialize();
-
+  WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
   .then((_) async {
+    // commands here run during splash screen
+    /*if (AudioService.running == false || AudioService.running == null) {
+      print('starting');
+      await AudioService.start(
+        backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
+        androidNotificationChannelName: 'Voices for Christ',
+        androidNotificationColor: 0xFF002D47,
+        androidNotificationIcon: 'mipmap/ic_launcher',
+        androidNotificationOngoing: true,
+      );
+    }*/
+
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration.speech());
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String theme = prefs.getString('theme');
 
-    runApp(MyApp(playerModel: playerModel, initialTheme: theme));
+    var model = MainModel();
+
+    runApp(MyApp(
+      initialTheme: theme,
+      model: model,
+    ));
   });
 }
 
@@ -165,9 +290,9 @@ void main() {
 }*/
 
 class MyApp extends StatefulWidget {
-  const MyApp({ Key key, this.initialTheme, this.playerModel }) : super(key: key);
+  const MyApp({ Key key, this.initialTheme, this.model }) : super(key: key);
   final String initialTheme;
-  final PlayerModel playerModel;
+  final MainModel model;
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -195,14 +320,22 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ScopedModel<PlayerModel>(
-      model: widget.playerModel, 
+    return ScopedModel<MainModel>(
+      model: widget.model, 
       child: MaterialApp(
         title: 'Voices for Christ',
-        home: MainScaffold(
-          toggleTheme: () {
-            _toggleTheme();
-          },
+        //home: AudioServiceWidget(child: HomeScreen()),
+        /*initialRoute: '/',
+        routes: {
+          '/': (BuildContext context) => MainScaffold(pageIndex: 0),
+          '/favorites': (BuildContext context) => MainScaffold(pageIndex: 1),
+        },*/
+        home: AudioServiceWidget(
+          child: MainScaffold(
+            toggleTheme: () {
+              _toggleTheme();
+            },
+          ),
         ),
         theme: appTheme == 'light' ? lightTheme : darkTheme,
         debugShowCheckedModeBanner: false,
@@ -516,4 +649,4 @@ class _FavoritesPageState extends State<FavoritesPage> {
       ),
     );
   }
-}
+}*/
