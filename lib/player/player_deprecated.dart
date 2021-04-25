@@ -2,7 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:voices_for_christ/player/AudioPlayerTask.dart';
 
-class Player extends StatefulWidget {
+/*class Player extends StatefulWidget {
   Player({Key key}) : super(key: key);
 
   @override
@@ -50,4 +50,4 @@ class _PlayerState extends State<Player> {
 
 void _audioPlayerTaskEntryPoint() async {
   //AudioServiceBackground.run(() => AudioPlayerTask());
-}
+}*/

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
-import 'package:voices_for_christ/player/player.dart';
+import 'package:voices_for_christ/player/player_deprecated.dart';
 
-class HomeScreen extends StatefulWidget {
+/*class HomeScreen extends StatefulWidget {
   HomeScreen({Key key}) : super(key: key);
 
   @override
@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Container(
         child: Center(
-          child: Player(),
+          //child: Player(),
           /*child: ListView.builder(
             itemCount: _messages.length,
             itemBuilder: (context, index) {
@@ -86,4 +86,4 @@ class _HomeScreenState extends State<HomeScreen> {
   void _pause(Message message) {
     _player.pause();
   }
-}
+}*/

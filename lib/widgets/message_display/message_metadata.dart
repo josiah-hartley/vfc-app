@@ -1,27 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
+import 'package:voices_for_christ/helpers/duration_in_minutes.dart';
+import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 
-String messageDurationInMinutes(double durationInSeconds) {
-  if (durationInSeconds == null) {
-    return '';
-  }
-
-  String minutes = (durationInSeconds ~/ 60).toString();
-  String seconds = (durationInSeconds % 60).round().toString();
-  if (seconds.length == 1) {
-    seconds = '0' + seconds;
-  }
-  return '$minutes:$seconds';
-}
-
-String speakerReversedName(String name) {
-  if (name == null) {
-    return '';
-  }
-  return name.split(',').reversed.join(' ').trim();
-}
-
-Widget initialSticker({String name}) {
+Widget initialSticker({String name, Color borderColor}) {
   String initials = '';
   // split on a comma followed by space, comma, or space
   List<String> names = name.split(RegExp(r",\ |,|\ "));
@@ -29,7 +11,7 @@ Widget initialSticker({String name}) {
     initials = names[0][0].toUpperCase();
   }
   if (names.length >= 2) {
-    initials = names[1][0].toUpperCase() + initials;
+    initials = names[names.length - 1][0].toUpperCase() + initials;
   }
 
   if (initials.length < 1) {
@@ -40,7 +22,7 @@ Widget initialSticker({String name}) {
     child: Container(
       child: Text(initials,
         style: TextStyle(
-          fontSize: 18.0,
+          fontSize: 14.0,
           fontWeight: FontWeight.w400,
           color: initialStickerColors(initials)['textColor'] ?? Colors.white,
         )
@@ -51,6 +33,10 @@ Widget initialSticker({String name}) {
       decoration: BoxDecoration(
         color: initialStickerColors(initials)['backgroundColor'] ?? Colors.black,
         shape: BoxShape.circle,
+        border: Border.all(
+          color: borderColor,
+          width: 1.0,
+        )
       ),
     ),
   );
@@ -106,13 +92,14 @@ Map<String, Color> initialStickerColors(String initials) {
 
 Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color textColor}) {
   String _durationInMinutes = messageDurationInMinutes(message.durationinseconds);
-
+  
   return Container(
     padding: EdgeInsets.all(15.0),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(message.title ?? '',
+          maxLines: 2,
           overflow: truncateTitle ? TextOverflow.ellipsis : TextOverflow.visible,
           style: TextStyle(
             fontSize: 17.0,

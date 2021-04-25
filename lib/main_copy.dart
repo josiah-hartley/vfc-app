@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 //import 'package:audio_service/audio_service.dart';
 import 'package:flutter/services.dart';
 //import 'package:just_audio/just_audio.dart';
@@ -7,6 +7,128 @@ import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/scoped_models/player_model.dart';
 import 'package:voices_for_christ/widgets/message_display/buttons/download_button.dart';
+
+void main() async {
+  /*MyAudioHandler _audioHandler = await AudioService.init(
+    builder: () => MyAudioHandler(),
+    config: AudioServiceConfig(
+      androidNotificationChannelName: 'My Audio App',
+      androidEnableQueue: true,
+    ),
+  );
+  runApp(MyApp(audioHandler: _audioHandler,));*/
+  WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
+  var playerModel = PlayerModel();
+  playerModel.initialize();
+
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+  .then((_) {
+    runApp(MyApp(playerModel: playerModel));
+  });
+}
+
+class MyApp extends StatelessWidget {
+  MyApp({Key key, this.playerModel}) : super(key: key);
+  //final MyAudioHandler audioHandler;
+  final PlayerModel playerModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return ScopedModel<PlayerModel>(
+      model: playerModel, 
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: MyHomePage(),
+      )
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key}) : super(key: key);
+
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  Message _defaultMessage;
+  final db = MessageDB.instance;
+
+  @override
+  void initState() { 
+    super.initState();
+    loadInitialMessage();
+  }
+
+  void loadInitialMessage() async {
+    Message msg = await db.queryOne(56823);
+    setState(() {
+      _defaultMessage = msg;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScopedModelDescendant<PlayerModel>(
+      builder: (context, child, model) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Audio Service Demo'),
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(_defaultMessage?.title ?? ''),
+                Text(model.currentlyPlayingMessage?.title ?? 'no current message'),
+                Text(_defaultMessage?.filepath ?? ''),
+                StreamBuilder<Duration>(
+                  stream: model.currentPositionStream,
+                  builder: (context, snapshot) {
+                    final Duration position = snapshot.data ?? Duration(seconds:0);
+                    return Text(position.inSeconds.toString());
+                  }),
+                StreamBuilder<bool>(
+                  stream: model.playing,
+                  builder: (context, snapshot) {
+                    final bool p = snapshot.data ?? false;
+                    return Text(p.toString());
+                  }
+                ),
+                DownloadButton(message: _defaultMessage),
+                TextButton(
+                  child: Text('Play'),
+                  onPressed: () async {
+                    await model.setInitialMessage();
+                    model.play();
+                  },
+                ),
+                TextButton(
+                  child: Text('Pause'),
+                  onPressed: model.pause,
+                )
+              ],
+            ),
+          ),
+        );
+      }
+    );
+  }
+}*/
+
+/*import 'package:flutter/material.dart';
+//import 'package:audio_service/audio_service.dart';
+import 'package:flutter/services.dart';
+//import 'package:just_audio/just_audio.dart';
+import 'package:scoped_model/scoped_model.dart';
+import 'package:voices_for_christ/data_models/message_class.dart';
+import 'package:voices_for_christ/database/local_db.dart';
+import 'package:voices_for_christ/scoped_models/player_model.dart';
+import 'package:voices_for_christ/widgets/buttons/download_button.dart';
 
 void main() async {
   /*MyAudioHandler _audioHandler = await AudioService.init(
@@ -113,7 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     return Text(position.inSeconds.toString());
                   }),
                 StreamBuilder<bool>(
-                  stream: model.playing,
+                  stream: model.playingStream,
                   builder: (context, snapshot) {
                     final bool p = snapshot.data ?? false;
                     return Text(p.toString());
@@ -649,4 +771,4 @@ class _FavoritesPageState extends State<FavoritesPage> {
       ),
     );
   }
-}*/
+}*/*/

@@ -7,7 +7,8 @@ Widget searchResultsDisplay({List<Message> searchResults,
   int fullSearchCount,
   int batchSize,
   Function loadMoreResults,
-  bool reachedEndOfList}) {
+  bool reachedEndOfList,
+  Color textColor}) {
   
   return Expanded(
     child: searchResults.length == 0
@@ -16,7 +17,15 @@ Widget searchResultsDisplay({List<Message> searchResults,
         child: Column(
           children: [
             Container(
-              child: Text('$fullSearchCount results'),
+              padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 50.0),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: textColor)),
+              ),
+              child: Text('$fullSearchCount RESULTS',
+                style: TextStyle(
+                  color: textColor,
+                )
+              ),
             ),
             Expanded(
               /*child: ListView.builder(

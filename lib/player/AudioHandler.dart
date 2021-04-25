@@ -6,6 +6,9 @@ class VFCAudioHandler extends BaseAudioHandler {
   List<MediaItem> _queue = [];
   //bool playing = false;
   Stream<bool> playingStream;
+  Stream<Duration> durationStream;
+  //Stream<PlayerState> playerStateStream; // maybe don't need it
+  //Stream<SequenceState> sequenceStateStream; // TODO: implement hasNext, hasPrevious
   
   play() {
     //playing = true;
@@ -39,9 +42,15 @@ class VFCAudioHandler extends BaseAudioHandler {
     //playing = false;
     await super.stop();
   }
+  setSpeed(double speed) {
+    return _player.setSpeed(speed);
+  }
 
   VFCAudioHandler() {
     playingStream = _player.playingStream;
+    durationStream = _player.durationStream;
+    //playerStateStream = _player.playerStateStream;
+    //sequenceStateStream = _player.sequenceStateStream;
 
     // Broadcast which item is currently playing
     _player.currentIndexStream.listen((index) {

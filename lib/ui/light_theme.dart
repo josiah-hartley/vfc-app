@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:voices_for_christ/ui/shared_theme.dart';
 
-Color unselectedColor = Colors.grey[600];
+Color unselectedColor = darkBlue.withOpacity(0.75);
 Color selectedColor = darkBlue;
 
 ThemeData lightTheme = sharedTheme.copyWith(
@@ -10,8 +10,53 @@ ThemeData lightTheme = sharedTheme.copyWith(
   primaryColor: Colors.white,
   accentColor: darkBlue,
   backgroundColor: Color(0xffe5f6ff).withOpacity(0.5),
-  dialogBackgroundColor: Color(0xffe5f6ff).withOpacity(0.7),
-  bottomAppBarColor: Color(0xff002133),
+  dialogBackgroundColor: Color(0xffc5dfed),
+  //bottomAppBarColor: Color(0xff002133),
+  bottomAppBarColor: Color(0xff013857),
+  primaryTextTheme: TextTheme(
+    headline1: TextStyle(
+      color: darkBlue,
+      fontSize: 24.0,
+      fontWeight: FontWeight.w700,
+    ),
+    headline2: TextStyle(
+      color: darkBlue,
+      fontSize: 20.0,
+      fontWeight: FontWeight.w400,
+    ),
+    headline3: TextStyle(
+      color: darkBlue,
+      fontSize: 16.0,
+      fontWeight: FontWeight.w700,
+    ),
+    headline4: TextStyle(
+      color: darkBlue,
+      fontSize: 14.0,
+      fontWeight: FontWeight.w400,
+    ),
+  ),
+  accentTextTheme: TextTheme(
+    headline1: TextStyle(
+      color: Colors.white,
+      fontSize: 24.0,
+      fontWeight: FontWeight.w700,
+    ),
+    headline2: TextStyle(
+      color: Colors.white,
+      fontSize: 20.0,
+      fontWeight: FontWeight.w400,
+    ),
+    headline3: TextStyle(
+      color: Colors.white,
+      fontSize: 16.0,
+      fontWeight: FontWeight.w700,
+    ),
+    headline4: TextStyle(
+      color: Colors.white,
+      fontSize: 14.0,
+      fontWeight: FontWeight.w400,
+    ),
+  ),
   appBarTheme: AppBarTheme(
     color: Colors.transparent,
     elevation: 0.0,
