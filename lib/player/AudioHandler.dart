@@ -4,42 +4,62 @@ import 'package:just_audio/just_audio.dart';
 class VFCAudioHandler extends BaseAudioHandler {
   final _player = AudioPlayer();
   List<MediaItem> _queue = [];
-  //bool playing = false;
+  bool hasNext;
+  bool hasPrevious;
   Stream<bool> playingStream;
   Stream<Duration> durationStream;
-  //Stream<PlayerState> playerStateStream; // maybe don't need it
-  //Stream<SequenceState> sequenceStateStream; // TODO: implement hasNext, hasPrevious
   
   play() {
-    //playing = true;
     return _player.play();
   }
   pause() {
-    //playing = false;
     return _player.pause();
   }
+  removeQueueItemAt(int index) async {
+    _queue.removeAt(index);
+    broadcastQueueChanges();
+  }
+  addQueueItem(MediaItem item) async {
+    if (_queue.indexWhere((i) => i.id == item.id) < 0) {
+      _queue.add(item);
+      broadcastQueueChanges();
+    }
+  }
+  insertQueueItem(int index, MediaItem item) async {
+    if (_queue.indexWhere((i) => i.id == item.id) < 0) {
+      _queue.insert(index, item);
+      broadcastQueueChanges();
+    }
+  }
   updateQueue(List<MediaItem> newQueue) async {
-    print('updating queue: $newQueue');
     _queue = newQueue;
-    _player.setAudioSource(ConcatenatingAudioSource(
+    queue.add(_queue);
+    await _player.setAudioSource(ConcatenatingAudioSource(
       children: _queue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
     ));
+    //await broadcastQueueChanges();
+  }
+  Future<void> broadcastQueueChanges() async {
+    queue.add(_queue);
+    int currentIndex = _player.currentIndex;
+    Duration currentPosition = _player.position;
+    await _player.setAudioSource(ConcatenatingAudioSource(
+      children: _queue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
+    ));
+    seekTo(currentPosition, index: currentIndex);
+  }
+  skipToPrevious() {
+    return _player.seekToPrevious();
+  }
+  skipToNext() {
+    return _player.seekToNext();
   }
   skipToQueueItem(int index) async  {
-    print('skipping to $index');
-    /*_player.setAudioSource(ConcatenatingAudioSource(
-      children: _queue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
-    ));*/
     seekTo(Duration(seconds: 0), index: index);
-    //seekTo(Duration(seconds: 0), index: index);
-    //_player.seek(Duration(seconds: 0), index: index);
-    //_player.setUrl(_queue[index].id);
-    print('DURATION IS ${_player.duration}');
   }
   seekTo(Duration position, {int index}) => _player.seek(position, index: index);
   stop() async {
     await _player.stop();
-    //playing = false;
     await super.stop();
   }
   setSpeed(double speed) {
@@ -49,8 +69,6 @@ class VFCAudioHandler extends BaseAudioHandler {
   VFCAudioHandler() {
     playingStream = _player.playingStream;
     durationStream = _player.durationStream;
-    //playerStateStream = _player.playerStateStream;
-    //sequenceStateStream = _player.sequenceStateStream;
 
     // Broadcast which item is currently playing
     _player.currentIndexStream.listen((index) {
@@ -94,13 +112,5 @@ class VFCAudioHandler extends BaseAudioHandler {
         speed: _player.speed,
       ));
     });
-
-    /*queue.listen((List<MediaItem> queue) { 
-      print('listening: queue updated to $queue');
-      _queue = queue;
-      _player.setAudioSource(ConcatenatingAudioSource(
-        children: _queue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
-      ));
-    });*/
   }
 }

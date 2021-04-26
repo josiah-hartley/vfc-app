@@ -46,13 +46,12 @@ class _SearchWindowState extends State<SearchWindow> {
                 });
               }
             ),
-            searchResultsDisplay(
+            SearchResultsDisplay(
               searchResults: _searchResults,
               fullSearchCount: _fullSearchResultCount,
               batchSize: _messageLoadingBatchSize,
               loadMoreResults: _search,
               reachedEndOfList: _reachedEndOfList,
-              textColor: Theme.of(context).accentColor,
             ),
            ],
          ),

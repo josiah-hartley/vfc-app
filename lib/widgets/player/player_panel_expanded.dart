@@ -6,6 +6,7 @@ import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/playback_speed_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/queue_dialog.dart';
 import 'package:voices_for_christ/widgets/player/seekbar.dart';
 
 class PlayerPanelExpanded extends StatefulWidget {
@@ -58,6 +59,10 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
                 onPause: model.pause,
                 onSeekBackward: model.seekBackwardFifteenSeconds,
                 onSeekForward: model.seekForwardFifteenSeconds,
+                hasPrevious: model.queueIndex > 0,
+                hasNext: model.queue.length > 1 && model.queueIndex < (model.queue.length - 1),
+                onSkipPrevious: model.skipPrevious,
+                onSkipNext: model.skipNext,
               ),
               _extraActions(
                 playbackSpeed: model.playbackSpeed,
@@ -141,13 +146,20 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
     Function onPlay, 
     Function onPause,
     Function onSeekBackward,
-    Function onSeekForward}) {
+    Function onSeekForward,
+    bool hasPrevious,
+    bool hasNext,
+    Function onSkipPrevious,
+    Function onSkipNext}) {
       return Container(
         padding: EdgeInsets.only(bottom: 25.0, left: 15.0, right: 15.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _skipPrevious(),
+            _skipPrevious(
+              hasPrevious: hasPrevious,
+              onSkipPrevious: onSkipPrevious,
+            ),
             _seekBackward(onSeekBackward),
             _playOrPause(
               playingStream: playingStream,
@@ -155,30 +167,35 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
               onPause: onPause,
             ),
             _seekForward(onSeekForward),
-            _skipNext(),
+            _skipNext(
+              hasNext: hasNext,
+              onSkipNext: onSkipNext,
+            ),
           ],
         ),
       );
   }
 
-  Widget _skipPrevious() {
+  Widget _skipPrevious({bool hasPrevious, Function onSkipPrevious}) {
     return Expanded(
       child: IconButton(
-        icon: Icon(Icons.skip_previous, size: 32.0, color: Colors.white),
-        onPressed: () {
-          print('skip to previous track'); // TODO
-        },
+        icon: Icon(Icons.skip_previous, 
+          size: 32.0, 
+          color: hasPrevious ? Colors.white : Colors.white.withOpacity(0.5),
+        ),
+        onPressed: hasPrevious ? onSkipPrevious : null,
       ),
     );
   }
 
-  Widget _skipNext() {
+  Widget _skipNext({bool hasNext, Function onSkipNext}) {
     return Expanded(
       child: IconButton(
-        icon: Icon(Icons.skip_next, size: 32.0, color: Colors.white),
-        onPressed: () {
-          print('skip to previous track'); // TODO
-        },
+        icon: Icon(Icons.skip_next, 
+          size: 32.0, 
+          color: hasNext ? Colors.white : Colors.white.withOpacity(0.5),
+        ),
+        onPressed: hasNext ? onSkipNext : null,
       ),
     );
   }
@@ -294,7 +311,10 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
         child: Icon(CupertinoIcons.list_dash, size: 22.0, color: Colors.white),
       ),
       onTap: () {
-        print('view queue'); // TODO
+        showDialog(
+          context: context, 
+          builder: (context) => QueueDialog(),
+        );
       },
     );
   }

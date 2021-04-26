@@ -1,6 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:voices_for_christ/player/AudioPlayerTask.dart';
+import 'package:voices_for_christ/player/AudioPlayerTask_deprecated.dart';
 
 /*class Player extends StatefulWidget {
   Player({Key key}) : super(key: key);

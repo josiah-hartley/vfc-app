@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
@@ -40,11 +42,24 @@ mixin DownloadsModel on Model {
       Message result = await downloadMessageFile(message);
       message = result;
       message.iscurrentlydownloading = 0;
+
+      Fluttertoast.showToast(
+        msg: 'Finished downloading ${message.title}',
+        backgroundColor: Color(0xff002133),
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
       notifyListeners();
     }
     catch (error) {
       message.iscurrentlydownloading = 0;
       message.isdownloaded = 0;
+      Fluttertoast.showToast(
+        msg: 'Error downloading ${message.title}',
+        backgroundColor: Color(0xff002133),
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
       notifyListeners();
     }
   }
@@ -54,6 +69,12 @@ mixin DownloadsModel on Model {
     message.isdownloaded = 0;
     message.filepath = '';
     await db.update(message);
+    Fluttertoast.showToast(
+      msg: 'Download deleted: ${message.title}',
+      backgroundColor: Color(0xff002133),
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
     notifyListeners();
   }
 }

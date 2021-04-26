@@ -9,6 +9,7 @@ ThemeData darkTheme = sharedTheme.copyWith(
   brightness: Brightness.dark,
   primaryColor: Color(0xff002D47),
   accentColor: Colors.white,
+  highlightColor: Color(0xfffa7a0a),
   backgroundColor: Color(0xff002D47),
   dialogBackgroundColor: Color(0xff002133),
   bottomAppBarColor: Color(0xff002133),

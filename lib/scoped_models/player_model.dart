@@ -12,12 +12,16 @@ mixin PlayerModel on Model {
   VFCAudioHandler _audioHandler;
   SharedPreferences _prefs;
   final db = MessageDB.instance;
+  List<Message> _queue;
+  int _queueIndex;
   Message _currentlyPlayingMessage;
   Playlist _currentlyPlayingPlaylist;
   Duration _currentPosition;
   Duration _duration = Duration(seconds: 0);
   double _playbackSpeed = 1.0;
 
+  List<Message> get queue => _queue;
+  int get queueIndex => _queueIndex;
   Message get currentlyPlayingMessage => _currentlyPlayingMessage;
   Playlist get currentlyPlayingPlaylist => _currentlyPlayingPlaylist;
   Stream<Duration> get currentPositionStream => AudioService.getPositionStream();
@@ -32,8 +36,8 @@ mixin PlayerModel on Model {
       config: AudioServiceConfig(
         androidNotificationChannelName: 'Voices for Christ',
         androidEnableQueue: true,
-        notificationColor: Colors.indigo[900],
-        //notificationColor: Color(0xff002D47),
+        //notificationColor: Colors.indigo[900],
+        notificationColor: Color(0xff002D47),
         androidNotificationIcon: 'mipmap/ic_launcher',
         androidNotificationOngoing: true,
         rewindInterval: Duration(seconds: 15),
@@ -41,9 +45,27 @@ mixin PlayerModel on Model {
       ),
     );
 
+    _audioHandler.queue.listen((updatedQueue) async {
+      _queue = [];
+      for (int i = 0; i < updatedQueue.length; i++) {
+        MediaItem item = updatedQueue[i];
+        Message message = await messageFromMediaItem(item);
+        _queue.add(message);
+      }
+      notifyListeners(); // TODO: deal with lag
+    });
+
     _audioHandler.mediaItem.listen((item) async {
+      // save position on previous message
+      /*if (_currentlyPlayingMessage != null && currentPosition != null) {
+        _currentlyPlayingMessage.lastplayedposition = currentPosition.inSeconds.toDouble();
+        print('updating LAST PLAYED POSITION: $currentPosition');
+        await db.update(_currentlyPlayingMessage);
+      }*/
+
       _currentlyPlayingMessage = await messageFromMediaItem(item);
       saveLastPlayedMessage();
+      _queueIndex = _queue.indexWhere((message) => message.id == _currentlyPlayingMessage.id) ?? 0;
       notifyListeners();
     });
 
@@ -87,7 +109,8 @@ mixin PlayerModel on Model {
     int _currMessageId = _prefs.getInt('mostRecentMessageId');
     if (_currMessageId != null) {
       Message result = await db.queryOne(_currMessageId);
-      int _milliseconds = (result.lastplayedposition * 1000).round();
+      double _seconds = result?.lastplayedposition ?? 0.0;
+      int _milliseconds = (_seconds * 1000).round();
       setupPlayer(
         message: result, 
         position: Duration(milliseconds: _milliseconds),
@@ -109,14 +132,11 @@ mixin PlayerModel on Model {
       return;
     }
 
-    /*int _milliseconds = ((message?.lastplayedposition ?? 0.0) * 1000).round();
-    position ??= Duration(milliseconds: _milliseconds);*/
     // reload message in case anything has changed
-    /*Message result = await db.queryOne(message.id);
-    print('LAST PLAYED POSITION IS ${result.lastplayedposition}');
-    int _milliseconds = (result.lastplayedposition * 1000).round();
+    Message result = await db.queryOne(message.id);
+    double _seconds = result?.lastplayedposition ?? 0.0;
+    int _milliseconds = (_seconds * 1000).round();
     position ??= Duration(milliseconds: _milliseconds);
-    print('SETTING POSITION TO LAST PLAYED: ${position.inSeconds}');*/
     
     if (message?.id == _currentlyPlayingMessage?.id) {
       // message already playing
@@ -139,7 +159,7 @@ mixin PlayerModel on Model {
     if (playlist == null) {
       setQueueToSingleMessage(message, position: position);
     } else {
-      int index = playlist.messages.indexOf(message);
+      int index = playlist.messages.indexWhere((item) => item?.id == message?.id);
       setQueueToPlaylist(playlist, index: index, position: position);
     }
   }
@@ -155,9 +175,40 @@ mixin PlayerModel on Model {
   }
 
   void setupQueue({List<MediaItem> queue, Duration position, int index}) async {
-    _audioHandler.updateQueue(queue);
-    _audioHandler.skipToQueueItem(index ?? 0);
-    _audioHandler.seekTo(position ?? Duration(seconds: 0));
+    Message _previousMessage = _currentlyPlayingMessage;
+    Duration _previousPosition = _currentPosition;
+
+    await _audioHandler.updateQueue(queue);
+    await _audioHandler.seekTo(position ?? Duration(seconds: 0), index: index ?? 0);
+  
+    if (_previousMessage != null && _previousPosition != null) {
+      _previousMessage.lastplayedposition = _previousPosition.inSeconds.toDouble();
+      await db.update(_previousMessage);
+    }
+  }
+
+  void addToQueue(Message message, {int index}) {
+    if (index == null) {
+      _audioHandler.addQueueItem(message.toMediaItem());
+    } else {
+      _audioHandler.insertQueueItem(index, message.toMediaItem());
+    }
+  }
+
+  void removeFromQueue(int index) {
+    _audioHandler.removeQueueItemAt(index);
+  }
+
+  void changeQueuePosition({int oldIndex, int newIndex}) {
+    if (oldIndex == null || newIndex == null || oldIndex == newIndex) {
+      return;
+    }
+    if (oldIndex < 0 || newIndex < 0 || oldIndex >= _queue.length || newIndex >= _queue.length) {
+      return;
+    }
+    MediaItem mediaItem = _queue[oldIndex].toMediaItem();
+    _audioHandler.removeQueueItemAt(oldIndex);
+    _audioHandler.insertQueueItem(newIndex, mediaItem);
   }
 
   /*Future<void> setInitialMessage() async {
@@ -195,6 +246,14 @@ mixin PlayerModel on Model {
     }
   }
 
+  void skipPrevious() {
+    _audioHandler.skipToPrevious();
+  }
+
+  void skipNext() {
+    _audioHandler.skipToNext();
+  }
+
   void setSpeed(double speed) async {
     _audioHandler.setSpeed(speed);
     _prefs = await SharedPreferences.getInstance();
@@ -203,7 +262,7 @@ mixin PlayerModel on Model {
 
   void loadLastPlaybackSpeed() async {
     _prefs = await SharedPreferences.getInstance();
-    double speed = _prefs.getDouble('playbackSpeed');
+    double speed = _prefs.getDouble('playbackSpeed') ?? 1.0;
     setSpeed(speed);
   }
 }

@@ -1,74 +1,105 @@
+import 'dart:collection';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/widgets/message_display/message_card.dart';
 import 'package:voices_for_christ/widgets/message_display/message_metadata.dart';
+import 'package:voices_for_christ/widgets/message_display/multiselect_display.dart';
 
-Widget searchResultsDisplay({List<Message> searchResults,
-  int fullSearchCount,
-  int batchSize,
-  Function loadMoreResults,
-  bool reachedEndOfList,
-  Color textColor}) {
-  
-  return Expanded(
-    child: searchResults.length == 0
-      ? Container()
-      : Container(
-        child: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 50.0),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: textColor)),
+class SearchResultsDisplay extends StatefulWidget {
+  SearchResultsDisplay({Key key, this.searchResults, this.fullSearchCount, this.batchSize, this.loadMoreResults, this.reachedEndOfList}) : super(key: key);
+  final List<Message> searchResults;
+  final int fullSearchCount;
+  final int batchSize;
+  final Function loadMoreResults;
+  final bool reachedEndOfList;
+
+  @override
+  _SearchResultsDisplayState createState() => _SearchResultsDisplayState();
+}
+
+class _SearchResultsDisplayState extends State<SearchResultsDisplay> {
+  LinkedHashSet<Message> _selectedMessages = LinkedHashSet();
+
+  void _toggleMessageSelection(Message message) {
+    setState(() {
+      if (_selectedMessages.contains(message)) {
+        _selectedMessages.remove(message);
+      } else {
+        if (_selectedMessages.length < Constants.MESSAGE_SELECTION_LIMIT) {
+          _selectedMessages.add(message);
+        }
+      }
+    });
+  }
+
+  void _deselectAll() {
+    setState(() {
+      _selectedMessages = LinkedHashSet();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: widget.searchResults.length == 0
+        ? Container()
+        : Container(
+          child: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 50.0),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Theme.of(context).accentColor)),
+                ),
+                child: Text('${widget.fullSearchCount} RESULTS',
+                  style: TextStyle(
+                    color: Theme.of(context).accentColor,
+                  )
+                ),
               ),
-              child: Text('$fullSearchCount RESULTS',
-                style: TextStyle(
-                  color: textColor,
+              _selectedMessages.length > 0
+                ? multiselectDisplay(
+                  context: context,
+                  selectedMessages: _selectedMessages,
+                  onDeselectAll: _deselectAll,
                 )
-              ),
-            ),
-            Expanded(
-              /*child: ListView.builder(
-                itemCount: 676,
-                itemBuilder: (context, index) {
-                  String alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                  int firstIndex = index % 26;
-                  int secondIndex = index ~/ 26;
-                  String initials = alphabet[firstIndex] + ' ' + alphabet[secondIndex];
-                  return Container(
-                    child: Center(
-                      child: initialSticker(
-                        name: initials,
-                      )
-                    ),
-                  );
-                },
-              ),*/
-              child: ListView.builder(
-                //key: PageStorageKey('search-results'),
-                itemCount: searchResults.length + 1,
-                itemBuilder: (context, index) {
-                  if (index >= searchResults.length) {
-                    if (!reachedEndOfList) {
+                : SizedBox(height: 0.0),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: widget.searchResults.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index >= widget.searchResults.length) {
+                      if (!widget.reachedEndOfList) {
+                        return Container(
+                          height: 100.0,
+                          child: Center(child: Text('LOADING')),
+                        );
+                      }
                       return Container(
                         height: 100.0,
-                        child: Center(child: Text('LOADING')),
+                        child: Center(child: Text('END OF LIST')),
                       );
                     }
-                    return Container(
-                      height: 100.0,
-                      child: Center(child: Text('END OF LIST')),
+                    if (index + 1 >= widget.searchResults.length && !widget.reachedEndOfList) {
+                      widget.loadMoreResults();
+                    }
+                    Message message = widget.searchResults[index];
+                    return MessageCard(
+                      message: message,
+                      selected: _selectedMessages.contains(message),
+                      onSelect: () {
+                        _toggleMessageSelection(message);
+                      },
                     );
-                  }
-                  if (index + 1 >= searchResults.length && !reachedEndOfList) {
-                    loadMoreResults();
-                  }
-                  return MessageCard(message: searchResults[index]);
-                },
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
-      )
-  );
+            ],
+          ),
+        )
+    );
+  }
 }

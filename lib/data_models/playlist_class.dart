@@ -34,3 +34,12 @@ class Playlist {
     return messages.map((msg) => msg.toMediaItem()).toList();
   }
 }
+
+/*Future<Playlist> playlistFromMediaItemList(List<MediaItem> itemList) async {
+  List<Message> messages = [];
+  for (int i = 0; i < itemList.length; i++) {
+    Message message = await messageFromMediaItem(itemList[i]);
+    messages.add(message);
+  }
+  return Playlist(-1, 0, 'Temp', messages);
+}*/

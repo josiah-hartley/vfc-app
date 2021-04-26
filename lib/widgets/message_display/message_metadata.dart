@@ -3,9 +3,9 @@ import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/helpers/duration_in_minutes.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 
-Widget initialSticker({String name, Color borderColor}) {
+Widget initialSticker({BuildContext context, String name, Color borderColor, bool selected, Function onSelect}) {
   String initials = '';
-  // split on a comma followed by space, comma, or space
+  // split on a comma, a space, or a comma followed by a space
   List<String> names = name.split(RegExp(r",\ |,|\ "));
   if (names.length >= 1) {
     initials = names[0][0].toUpperCase();
@@ -14,29 +14,36 @@ Widget initialSticker({String name, Color borderColor}) {
     initials = names[names.length - 1][0].toUpperCase() + initials;
   }
 
-  if (initials.length < 1) {
+  /*if (initials.length < 1) {
     return Container();
-  }
-  return Container(
-    padding: EdgeInsets.only(left: 10.0),
+  }*/
+  return GestureDetector(
+    onTap: onSelect,
     child: Container(
-      child: Text(initials,
-        style: TextStyle(
-          fontSize: 14.0,
-          fontWeight: FontWeight.w400,
-          color: initialStickerColors(initials)['textColor'] ?? Colors.white,
-        )
-      ),
-      height: 40.0,
-      width: 40.0,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: initialStickerColors(initials)['backgroundColor'] ?? Colors.black,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: borderColor,
-          width: 1.0,
-        )
+      padding: EdgeInsets.only(left: 10.0),
+      child: Container(
+        child: selected ?? false
+          ? Icon(Icons.check, color: Theme.of(context).primaryColor)
+          : Text(initials,
+            style: TextStyle(
+              fontSize: 14.0,
+              fontWeight: FontWeight.w400,
+              color: initialStickerColors(initials)['textColor'] ?? Colors.white,
+            )
+        ),
+        height: 40.0,
+        width: 40.0,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ?? false
+            ? Theme.of(context).highlightColor
+            : initialStickerColors(initials)['backgroundColor'] ?? Colors.black,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: borderColor,
+            width: 1.0,
+          )
+        ),
       ),
     ),
   );

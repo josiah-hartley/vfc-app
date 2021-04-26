@@ -18,7 +18,9 @@ class _SeekBarState extends State<SeekBar> {
 
   @override
   Widget build(BuildContext context) {
-    final value = min(_dragValue ?? widget.position.inSeconds.toDouble(), widget.duration.inSeconds.toDouble());
+    final position = widget.position?.inSeconds ?? 0;
+    final duration = widget.duration?.inSeconds ?? 0;
+    final value = min(_dragValue ?? (position.toDouble()), duration.toDouble());
     if (_dragValue != null && !_dragging) {
       _dragValue = null;
     }
@@ -38,7 +40,7 @@ class _SeekBarState extends State<SeekBar> {
               ),
               child: Slider(
                 min: 0.0,
-                max: widget.duration.inSeconds.toDouble(),
+                max: duration.toDouble(),
                 //value: widget.position.inSeconds.toDouble(),
                 value: value,
                 onChanged: (double updatedValue) {
@@ -66,7 +68,7 @@ class _SeekBarState extends State<SeekBar> {
                   child: Container(
                     alignment: Alignment.centerLeft,
                     padding: EdgeInsets.only(left: 20.0),
-                    child: Text(messageDurationInMinutes(widget.position.inSeconds.toDouble()),
+                    child: Text(messageDurationInMinutes(position.toDouble()),
                       style: Theme.of(context).accentTextTheme.headline3,
                     )
                   ),
@@ -75,7 +77,7 @@ class _SeekBarState extends State<SeekBar> {
                   child: Container(
                     alignment: Alignment.centerRight,
                     padding: EdgeInsets.only(right: 20.0),
-                    child: Text(messageDurationInMinutes(widget.duration.inSeconds.toDouble()),
+                    child: Text(messageDurationInMinutes(duration.toDouble()),
                       style: Theme.of(context).accentTextTheme.headline3,
                     )
                   ),

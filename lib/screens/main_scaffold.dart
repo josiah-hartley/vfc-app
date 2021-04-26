@@ -36,6 +36,11 @@ class _MainScaffoldState extends State<MainScaffold> {
       _closeSearchDrawer();
       return Future.value(false);
     }
+    // close player panel if it's open
+    if (_playerPanelOpen) {
+      _togglePlayerPanel();
+      return Future.value(false);
+    }
     // otherwise, navigate back to last route
     if(_navigatorKey.currentState?.canPop() ?? false) {
       _navigatorKey.currentState?.pop();
@@ -70,13 +75,13 @@ class _MainScaffoldState extends State<MainScaffold> {
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.settings), 
+          icon: Icon(CupertinoIcons.gear_alt, size: 24.0), 
           onPressed: () {
             widget.toggleTheme();
           }
         ),
         IconButton(
-          icon: Icon(CupertinoIcons.search),
+          icon: Icon(CupertinoIcons.search, size: 24.0),
           onPressed: _openSearchDrawer
         ),
       ],

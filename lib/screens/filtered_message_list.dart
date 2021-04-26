@@ -1,8 +1,12 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/message_display/message_card.dart';
+import 'package:voices_for_christ/widgets/message_display/multiselect_display.dart';
 
 class FilteredMessageList extends StatefulWidget {
   FilteredMessageList({Key key, this.filterType}) : super(key: key);
@@ -14,6 +18,25 @@ class FilteredMessageList extends StatefulWidget {
 
 class _FilteredMessageListState extends State<FilteredMessageList> {
   String _filter = 'All';
+  LinkedHashSet<Message> _selectedMessages = LinkedHashSet();
+
+  void _toggleMessageSelection(Message message) {
+    setState(() {
+      if (_selectedMessages.contains(message)) {
+        _selectedMessages.remove(message);
+      } else {
+        if (_selectedMessages.length < Constants.MESSAGE_SELECTION_LIMIT) {
+          _selectedMessages.add(message);
+        }
+      }
+    });
+  }
+
+  void _deselectAll() {
+    setState(() {
+      _selectedMessages = LinkedHashSet();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +45,14 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
         return Container(
           child: Column(
             children: [
-              _filterButtonsRow(),
+              //_filterButtonsRow(),
+              _selectedMessages.length > 0
+                ? multiselectDisplay(
+                  context: context,
+                  selectedMessages: _selectedMessages,
+                  onDeselectAll: _deselectAll,
+                )
+                : _filterButtonsRow(),
               _filteredList(
                 isLoading: widget.filterType == 'favorites' ? model.favoritesLoading : model.downloadsLoading,
                 fullList: widget.filterType == 'favorites' ? model.favorites : model.downloads,
@@ -31,7 +61,7 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
                 fullEmptyMessage: widget.filterType == 'favorites' ? 'If you mark any messages as favorites, they will appear here' : 'If you download any messages, they will appear here',
                 unplayedEmptyMessage: widget.filterType == 'favorites' ? 'Any unplayed favorites will appear here' : 'Any unplayed downloads will appear here',
                 playedEmptyMessage: widget.filterType == 'favorites' ? 'Any played favorites will appear here' : 'Any played downloads will appear here',
-              ),
+              )
             ],
           ),
         );
@@ -129,9 +159,19 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
         child: Container(
           child: ListView.builder(
             padding: EdgeInsets.only(top: 0.0),
-            itemCount: messageList.length,
+            itemCount: messageList.length + 1,
             itemBuilder: (context, index) {
-              return MessageCard(message: messageList[index]);
+              if (index < messageList.length) {
+                Message message = messageList[index];
+                return MessageCard(
+                  message: message,
+                  selected: _selectedMessages.contains(message),
+                  onSelect: () {
+                    _toggleMessageSelection(message);
+                  },
+                );
+              }
+              return SizedBox(height: 250.0);
             },
           ),
         ),

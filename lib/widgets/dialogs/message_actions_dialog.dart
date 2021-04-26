@@ -1,15 +1,16 @@
 import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
-import 'package:voices_for_christ/files/downloads.dart';
+import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 
 class MessageActionsDialog extends StatefulWidget {
-  MessageActionsDialog({Key key, this.message}) : super(key: key);
+  MessageActionsDialog({Key key, this.message, this.currentPlaylist}) : super(key: key);
   final Message message;
+  final Playlist currentPlaylist;
 
   @override
   _MessageActionsDialogState createState() => _MessageActionsDialogState();
@@ -43,7 +44,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
   List<Widget> _children(MainModel model) {
     return [
       _title(),
-      //_progress(),
+      _progress(),
       _playAction(
         model: model,
         message: widget.message,
@@ -66,7 +67,13 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         iconSize: 30.0,
         text: 'Add to Queue',
         onPressed: () {
-          print('Adding to queue'); // TODO
+          model.addToQueue(widget.message);
+          Fluttertoast.showToast(
+            msg: 'Added to Queue',
+            backgroundColor: Theme.of(context).accentColor,
+            textColor: Theme.of(context).primaryColor,
+            fontSize: 16.0,
+          );
         }
       ),
       _action(
@@ -159,32 +166,37 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
   }
 
   Widget _action({IconData icon, double iconSize, Color color, String text, Function onPressed}) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 24.0),
-        child: Row(
-          children: [
-            Container(
-              width: 65.0,
-              alignment: Alignment.center,
-              margin: EdgeInsets.only(right: 12.0),
-              child: Icon(icon,
-                color: color,
-                size: iconSize ?? 34.0,
-              ),
-            ),
-            Expanded(
-              child: Text(text,
-                style: TextStyle(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        splashColor: Theme.of(context).accentColor,
+        borderRadius: BorderRadius.circular(0.0),
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 24.0),
+          child: Row(
+            children: [
+              Container(
+                width: 65.0,
+                alignment: Alignment.center,
+                margin: EdgeInsets.only(right: 12.0),
+                child: Icon(icon,
                   color: color,
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
+                  size: iconSize ?? 34.0,
                 ),
               ),
-            ),
-          ],
-        )
+              Expanded(
+                child: Text(text,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          )
+        ),
       ),
     );
   }
@@ -231,6 +243,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         //int _milliseconds = ((widget.message?.lastplayedposition ?? 0.0) * 1000).round();
         await model.setupPlayer(
           message: widget.message,
+          playlist: widget.currentPlaylist,
           //position: Duration(milliseconds: _milliseconds),
         );
         model.play();

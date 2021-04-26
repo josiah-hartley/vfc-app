@@ -42,6 +42,12 @@ class Message {
     this.isplayed,
   );
 
+  // message id's are unique; two messages are identical if they have the same id
+  @override
+  bool operator ==(o) => o is Message && o.id == id;
+  @override
+  int get hashCode => id.hashCode;
+
   Message.fromCloudMap(Map<String, dynamic> map) {
     // used when pulling message data from cloud database
 
