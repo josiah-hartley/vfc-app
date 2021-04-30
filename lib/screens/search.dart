@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/helpers/minimize_keyboard.dart';
@@ -7,7 +8,8 @@ import 'package:voices_for_christ/widgets/search/search_input.dart';
 import 'package:voices_for_christ/widgets/search/search_results.dart';
 
 class SearchWindow extends StatefulWidget {
-  SearchWindow({Key key, this.closeWindow}) : super(key: key);
+  SearchWindow({Key key, this.focusNode, this.closeWindow}) : super(key: key);
+  final FocusNode focusNode;
   final Function closeWindow;
 
   @override
@@ -20,45 +22,47 @@ class _SearchWindowState extends State<SearchWindow> {
   List<Message> _searchResults = [];
   int _fullSearchResultCount = 0;
   int _currentlyLoadedMessageCount = 0;
-  int _messageLoadingBatchSize = 50;
+  int _messageLoadingBatchSize = Constants.MESSAGE_LOADING_BATCH_SIZE;
   bool _reachedEndOfList = false;
   bool _waitingForResults = false;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-       child: Center(
-         child: Column(
-           mainAxisAlignment: MainAxisAlignment.start,
-           children: [
-            searchInput(
-              context: context,
-              closeWindow: widget.closeWindow,
-              searchController: _searchController,
-              onChanged: (String searchString) { setState(() {}); },
-              onSearch: () {
-                _onSearch(context);
-              },
-              onClearSearchString: () {
-                setState(() {
-                  _searchController.text = '';
-                  _resetSearchParameters();
-                });
-              }
-            ),
-            SearchResultsDisplay(
-              searchResults: _searchResults,
-              fullSearchCount: _fullSearchResultCount,
-              batchSize: _messageLoadingBatchSize,
-              loadMoreResults: _search,
-              reachedEndOfList: _reachedEndOfList,
-            ),
-           ],
-         ),
-       ),
-       decoration: BoxDecoration(
-         color: Theme.of(context).backgroundColor,
-       ),
+      padding: EdgeInsets.only(top: 12.0),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+          searchInput(
+            context: context,
+            focusNode: widget.focusNode,
+            closeWindow: widget.closeWindow,
+            searchController: _searchController,
+            onChanged: (String searchString) { setState(() {}); },
+            onSearch: () {
+              _onSearch(context);
+            },
+            onClearSearchString: () {
+              setState(() {
+                _searchController.text = '';
+                _resetSearchParameters();
+              });
+            }
+          ),
+          SearchResultsDisplay(
+            searchResults: _searchResults,
+            fullSearchCount: _fullSearchResultCount,
+            batchSize: _messageLoadingBatchSize,
+            loadMoreResults: _search,
+            reachedEndOfList: _reachedEndOfList,
+          ),
+          ],
+        ),
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).backgroundColor,
+      ),
     );
   }
 

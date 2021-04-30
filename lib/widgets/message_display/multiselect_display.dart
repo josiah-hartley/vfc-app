@@ -13,7 +13,7 @@ Widget multiselectDisplay({BuildContext context,
       _text += ' (max allowed)';
     }
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+      padding: EdgeInsets.only(left: 12.0, right: 12.0, top: 5.0, bottom: 6.0),
       decoration: BoxDecoration(
         color: Theme.of(context).accentColor.withOpacity(0.2),
       ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:scoped_model/scoped_model.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:voices_for_christ/helpers/minimize_keyboard.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
-import 'package:voices_for_christ/scoped_models/player_model.dart';
 import 'package:voices_for_christ/widgets/player/player_panel_collapsed.dart';
 import 'package:voices_for_christ/widgets/player/player_panel_expanded.dart';
 import 'package:voices_for_christ/screens/search.dart';
@@ -29,6 +29,19 @@ class _MainScaffoldState extends State<MainScaffold> {
   bool _searchWindowOpen = false;
   final PanelController _playerPanelController = PanelController();
   bool _playerPanelOpen = false;
+  FocusNode _searchFocusNode;
+
+  @override
+  void initState() { 
+    super.initState();
+    _searchFocusNode = FocusNode();
+  }
+
+  @override
+  void dispose() { 
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
 
   Future<bool> _handleBackButton() {
     // close window drawer if it's open
@@ -59,6 +72,10 @@ class _MainScaffoldState extends State<MainScaffold> {
     setState(() {
       _searchWindowOpen = true;
     });
+    // TODO: decide whether I want the search input to focus automatically or not
+    /*Future.delayed(Duration(milliseconds: 250), () {
+      _searchFocusNode.requestFocus();
+    });*/
   }
 
   void _closeSearchDrawer() {
@@ -94,13 +111,14 @@ class _MainScaffoldState extends State<MainScaffold> {
         return Container(
           child: SlidingUpPanel(
             controller: _playerPanelController,
-            minHeight: model.currentlyPlayingMessage == null ? 0.0 : 75.0,
-            maxHeight: model.currentlyPlayingMessage == null ? 0.0 : MediaQuery.of(context).size.height - kBottomNavigationBarHeight - 120.0,
+            minHeight: model.currentlyPlayingMessage == null ? 0.0 : Constants.COLLAPSED_PLAYBAR_HEIGHT,
+            maxHeight: model.currentlyPlayingMessage == null ? 0.0 : MediaQuery.of(context).size.height - kBottomNavigationBarHeight - Constants.EXPANDED_PLAYBAR_TOP_PADDING,
             backdropEnabled: true,
+            backdropTapClosesPanel: false,
             collapsed: PlayerPanelCollapsed(panelOpen: _playerPanelOpen, togglePanel: _togglePlayerPanel),
             panel: PlayerPanelExpanded(panelOpen: _playerPanelOpen, togglePanel: _togglePlayerPanel),
             //panel: _playerPanelController.isPanelOpen ? PlayerPanelExpanded(togglePanel: _togglePlayerPanel) : PlayerPanelCollapsed(togglePanel: _togglePlayerPanel),
-            body: _mainPageBody(context),
+            body: _mainPageBody(context, model),
             onPanelOpened: () {
               setState(() { _playerPanelOpen = true; });
             },
@@ -123,7 +141,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
   }
 
-  Widget _mainPageBody(BuildContext context) {
+  Widget _mainPageBody(BuildContext context, MainModel model) {
     return Builder(
       builder: (BuildContext context) {
         return Container(
@@ -131,7 +149,9 @@ class _MainScaffoldState extends State<MainScaffold> {
             child: Navigator(
               key: _navigatorKey,
               initialRoute: '/',
-              onGenerateRoute: _onGenerateRoute,
+              onGenerateRoute: (settings) {
+                return _onGenerateRoute(settings, model);
+              },
             ),
             decoration: BoxDecoration(
               border: Border(
@@ -231,6 +251,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       left: _searchWindowOpen ? 0.0 : MediaQuery.of(context).size.width,
       child: Scaffold(
         body: SearchWindow(
+          focusNode: _searchFocusNode,
           closeWindow: _closeSearchDrawer,
         ),
       ),
@@ -253,14 +274,14 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 
-  Route _onGenerateRoute(RouteSettings settings) {
+  Route _onGenerateRoute(RouteSettings settings, MainModel model) {
     Widget page;
     switch (settings.name) {
       case '/':
         page = HomePage();
         break;
       case '/favorites':
-        page = FavoritesPage();
+        page = FavoritesPage(model: model);
         break;
       case '/playlists':
         page = PlaylistsPage();

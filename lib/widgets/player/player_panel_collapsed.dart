@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
@@ -22,21 +23,35 @@ class _PlayerPanelCollapsedState extends State<PlayerPanelCollapsed> {
         if (model.currentlyPlayingMessage == null || widget.panelOpen) {
           return SizedBox(height: 0.0);
         }
+
         return Container(
-          child: Row(
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(color: Theme.of(context).backgroundColor.withOpacity(0.5), width: 1.0),
+            )
+          ),
+          child: Column(
             children: [
-              Container(
-                color: Theme.of(context).bottomAppBarColor,
-                child: IconButton(
-                  icon: Icon(CupertinoIcons.chevron_up, color: Colors.white),
-                  onPressed: widget.togglePanel,
-                ),
+              _minimizedProgressBar(
+                currentPositionStream: model.currentPositionStream,
+                duration: model.duration,
               ),
-              _titleAndSpeaker(model.currentlyPlayingMessage),
-              _playOrPause(
-                playingStream: model.playingStream,
-                onPlay: model.play,
-                onPause: model.pause,
+              Row(
+                children: [
+                  Container(
+                    color: Theme.of(context).bottomAppBarColor,
+                    child: IconButton(
+                      icon: Icon(CupertinoIcons.chevron_up, color: Colors.white),
+                      onPressed: widget.togglePanel,
+                    ),
+                  ),
+                  _titleAndSpeaker(model.currentlyPlayingMessage),
+                  _playOrPause(
+                    playingStream: model.playingStream,
+                    onPlay: model.play,
+                    onPause: model.pause,
+                  ),
+                ],
               ),
             ],
           ),
@@ -45,9 +60,37 @@ class _PlayerPanelCollapsedState extends State<PlayerPanelCollapsed> {
     );
   }
 
+  Widget _minimizedProgressBar({Stream<Duration> currentPositionStream, Duration duration}) {
+    return StreamBuilder(
+      stream: currentPositionStream,
+      builder: (context, snapshot) {
+        Duration currentPosition = snapshot.data ?? Duration(seconds: 0);
+        Duration totalLength = duration ?? Duration(seconds: 0);
+        double progress = totalLength.inSeconds > 0 
+          ? currentPosition.inSeconds / totalLength.inSeconds
+          : 0.0;
+        return Container(
+          height: 4.0,
+          child: Row(
+            children: [
+              Container(
+                width: progress * MediaQuery.of(context).size.width,
+                color: Colors.white,
+              ),
+              Expanded(
+                child: Container(color: Colors.white.withOpacity(0.5),),
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _titleAndSpeaker(Message message) {
     return Expanded(
       child: Container(
+        height: Constants.COLLAPSED_PLAYBAR_HEIGHT - 5.0,
         //onTap: widget.togglePanel,
         child: Container(
           color: Theme.of(context).bottomAppBarColor,

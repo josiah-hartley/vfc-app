@@ -6,7 +6,8 @@ Widget searchInput({BuildContext context,
   TextEditingController searchController,
   Function onChanged,
   Function onSearch,
-  Function onClearSearchString}) {
+  Function onClearSearchString,
+  FocusNode focusNode}) {
     return Container(
       padding: EdgeInsets.only(top: 30.0, right: 10.0),
       child: Row(
@@ -23,6 +24,8 @@ Widget searchInput({BuildContext context,
             child: Container(
               child: TextField(
                 controller: searchController,
+                //autofocus: true,
+                focusNode: focusNode,
                 onChanged: onChanged,
                 textInputAction: TextInputAction.search,
                 onEditingComplete: onSearch,
@@ -39,6 +42,8 @@ Widget searchInput({BuildContext context,
                     fontSize: 18.0,
                   ),
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                   contentPadding: EdgeInsets.only(left: 12.0, right: 12.0),
                 ),
               ),

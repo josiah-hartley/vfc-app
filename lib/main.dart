@@ -5,13 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
-import 'package:voices_for_christ/scoped_models/player_model.dart';
 import 'package:voices_for_christ/ui/dark_theme.dart';
 import 'package:voices_for_christ/ui/light_theme.dart';
 import 'package:voices_for_christ/screens/main_scaffold.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
+  
   var model = MainModel();
   model.initialize();
 

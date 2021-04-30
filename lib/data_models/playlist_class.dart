@@ -33,6 +33,10 @@ class Playlist {
   List<MediaItem> toMediaItemList() {
     return messages.map((msg) => msg.toMediaItem()).toList();
   }
+
+  String toString() {
+    return title;
+  }
 }
 
 /*Future<Playlist> playlistFromMediaItemList(List<MediaItem> itemList) async {

@@ -87,5 +87,23 @@ ThemeData darkTheme = sharedTheme.copyWith(
     unselectedIconTheme: IconThemeData(
       color: unselectedColor,
     ),
-  )
+  ),
+  inputDecorationTheme: InputDecorationTheme(
+    enabledBorder: OutlineInputBorder(
+      borderSide: BorderSide(
+        color: Colors.white,
+        width: 1.0,
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderSide: BorderSide(
+        color: Colors.white,
+        width: 1.0,
+      ),
+    ),
+    hintStyle: TextStyle(
+      color: Colors.white.withOpacity(0.6),
+      fontSize: 18.0,
+    ),
+  ),
 );

@@ -127,17 +127,22 @@ class Message {
   }
 
   MediaItem toMediaItem() {
-    int seconds = durationinseconds?.toInt() ?? 0;
+    double seconds = durationinseconds ?? 0.0;
+    int milliseconds = (seconds * 1000).round();
     return MediaItem(
       id: filepath,
       title: title,
-      duration: Duration(seconds: seconds),
+      duration: Duration(milliseconds: milliseconds),
       artist: speaker,
       album: speaker,
       extras: {
         'messageId': id,
       }
     );
+  }
+
+  String toString() {
+    return '$title, by $speaker';
   }
 }
 

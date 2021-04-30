@@ -5,7 +5,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
+import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
+import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
 
 class MessageActionsDialog extends StatefulWidget {
   MessageActionsDialog({Key key, this.message, this.currentPlaylist}) : super(key: key);
@@ -42,6 +44,8 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
   }
 
   List<Widget> _children(MainModel model) {
+    bool _isDownloaded = widget.message?.isdownloaded == 1 && widget.message?.filepath != '';
+    int _indexInQueue = model.queue.indexWhere((m) => m.id == widget.message?.id);
     return [
       _title(),
       _progress(),
@@ -58,23 +62,32 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         color: Theme.of(context).accentColor,
         text: 'Add to Playlist',
         onPressed: () {
-          print('Adding to playlist'); // TODO
+          showDialog(
+            context: context, 
+            builder: (context) {
+              return AddToPlaylistDialog(message: widget.message);
+            }
+          );
         }
       ),
       _action(
         icon: CupertinoIcons.list_dash,
-        color: Theme.of(context).accentColor,
+        color: _isDownloaded 
+          ? Theme.of(context).accentColor 
+          : Theme.of(context).accentColor.withOpacity(0.5),
         iconSize: 30.0,
-        text: 'Add to Queue',
-        onPressed: () {
-          model.addToQueue(widget.message);
-          Fluttertoast.showToast(
-            msg: 'Added to Queue',
-            backgroundColor: Theme.of(context).accentColor,
-            textColor: Theme.of(context).primaryColor,
-            fontSize: 16.0,
-          );
-        }
+        text: _indexInQueue > -1 ? 'Remove from Queue' : 'Add to Queue',
+        onPressed: _isDownloaded
+          ? () {
+            if (_indexInQueue > -1) {
+              model.removeFromQueue(_indexInQueue);
+              showToast('Removed from Queue');
+            } else {
+              model.addToQueue(widget.message);
+              showToast('Added to Queue');
+            }
+          }
+          : null,
       ),
       _action(
         icon: widget.message.isfavorite == 1 ? CupertinoIcons.star_fill : CupertinoIcons.star,
@@ -212,7 +225,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
       );
     }
 
-    if (message.id == model.currentlyPlayingMessage.id) {
+    if (message?.id == model.currentlyPlayingMessage?.id) {
       return StreamBuilder<bool>(
         stream: model.playingStream,
         builder: (context, snapshot) {
@@ -259,8 +272,12 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         iconSize: 30.0,
         text: 'Remove Download',
         onPressed: () async {
-          await model.deleteMessageDownload(message);
-          model.loadDownloads();
+          if (message?.id != model.currentlyPlayingMessage?.id) {
+            await model.deleteMessage(message);
+            model.loadDownloads();
+          } else {
+            showToast('Cannot delete while message is playing');
+          }
         }
       );
     }

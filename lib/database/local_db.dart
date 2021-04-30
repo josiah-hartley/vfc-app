@@ -477,7 +477,47 @@ class MessageDB {
       'title': title,
       'created': DateTime.now().millisecondsSinceEpoch
     };
-    return await db.insert(_playlistTable, playlistMap, conflictAlgorithm: ConflictAlgorithm.replace);
+    try {
+      int result = await db.insert(_playlistTable, playlistMap, conflictAlgorithm: ConflictAlgorithm.replace);
+      return result;
+    } catch(error) {
+      print('Error creating new playlist: $error');
+      return null;
+    }
+  }
+
+  Future<int> editPlaylistTitle(Playlist playlist, String title) async {
+    Database db = await MessageDB.instance.database;
+    /*return await db.rawUpdate('''
+      UPDATE $_playlistTable
+      SET title = ?
+      WHERE id = ?
+    ''', [title, playlist.id]);*/
+    try {
+      int result = await db.update(_playlistTable, {'title': title}, where: 'id = ?', whereArgs: [playlist.id]);
+      return result;
+    } catch(error) {
+      print('Error editing playlist title');
+      return null;
+    }
+  }
+
+  Future<List<Playlist>> getAllPlaylistsMetadata() async {
+    Database db = await instance.database;
+    
+    try {
+      var result = await db.query(_playlistTable);
+
+      if (result.isNotEmpty) {
+        List<Playlist> playlists = result.map((pMap) => Playlist.fromMap(pMap)).toList();
+            
+        return playlists;
+      }
+      return [];
+    } catch (error) {
+      print(error);
+      return [];
+    }
   }
 
   Future<List<Playlist>> getAllPlaylists() async {
@@ -510,40 +550,54 @@ class MessageDB {
     Database db = await instance.database;
     int id = playlist.id;
 
-    int highestRank = Sqflite.firstIntValue(
-      await db.rawQuery('''
-        SELECT MAX(messagerank) FROM $_messagesInPlaylist 
-        WHERE $_messagesInPlaylist.playlistid = $id
-      ''')
-    );
-    if (highestRank == null) {
-      highestRank = 0;
+    try {
+      int highestRank = Sqflite.firstIntValue(
+        await db.rawQuery('''
+          SELECT MAX(messagerank) FROM $_messagesInPlaylist 
+          WHERE $_messagesInPlaylist.playlistid = $id
+        ''')
+      );
+      if (highestRank == null) {
+        highestRank = 0;
+      }
+
+      Map<String,dynamic> messageInPlaylist = {
+        'messageid': msg.id,
+        'playlistid': playlist.id,
+        'messagerank': highestRank + 1
+      };
+
+      int result = await db.insert(_messagesInPlaylist, messageInPlaylist, conflictAlgorithm: ConflictAlgorithm.replace);
+      return result;
+    } catch(error) {
+      print('Error adding message to playlist: $error');
+      return null;
     }
-
-    Map<String,dynamic> messageInPlaylist = {
-      'messageid': msg.id,
-      'playlistid': playlist.id,
-      'messagerank': highestRank + 1
-    };
-
-    return await db.insert(_messagesInPlaylist, messageInPlaylist, conflictAlgorithm: ConflictAlgorithm.replace);
+    
   }
 
   Future<int> removeMessageFromPlaylist(Message msg, Playlist playlist) async {
     Database db = await instance.database;
 
-    List<Map<String,int>> messageInPlaylist = await db.rawQuery('''
-      SELECT messagerank from $_messagesInPlaylist
-      WHERE (playlistid = ? AND messageid = ?)
-    ''', [playlist.id, msg.id]);
+    try {
+      var result = await db.rawQuery('''
+        SELECT messagerank from $_messagesInPlaylist
+        WHERE (playlistid = ? AND messageid = ?)
+      ''', [playlist.id, msg.id]);
 
-    await db.delete(_messagesInPlaylist, where: 'messageid = ? AND playlistid = ?', whereArgs: [msg.id, playlist.id]);
+      List<Map<String, dynamic>> messageInPlaylist = result.toList();
 
-    return await db.rawUpdate('''
-      UPDATE $_messagesInPlaylist 
-      SET messagerank = messagerank - 1 
-      WHERE (playlistid = ? AND messagerank > ?)
-    ''', [playlist.id, messageInPlaylist[0]['messagerank']]);
+      await db.delete(_messagesInPlaylist, where: 'messageid = ? AND playlistid = ?', whereArgs: [msg.id, playlist.id]);
+
+      return await db.rawUpdate('''
+        UPDATE $_messagesInPlaylist 
+        SET messagerank = messagerank - 1 
+        WHERE (playlistid = ? AND messagerank > ?)
+      ''', [playlist.id, messageInPlaylist[0]['messagerank']]);
+    } catch(error) {
+      print('Error removing message from playlist');
+      return null;
+    }
   }
 
   Future<int> reorderMessageInPlaylist(Playlist playlist, Message message, int oldIndex, int newIndex) async {
@@ -611,27 +665,118 @@ class MessageDB {
 
   Future deletePlaylist(Playlist playlist) async {
     Database db = await instance.database;
-    await db.delete(_playlistTable, where: 'id = ?', whereArgs: [playlist.id]);
-    await db.delete(_messagesInPlaylist, where: 'playlistid = ?', whereArgs: [playlist.id]);
+    try {
+      await db.delete(_playlistTable, where: 'id = ?', whereArgs: [playlist.id]);
+      await db.delete(_messagesInPlaylist, where: 'playlistid = ?', whereArgs: [playlist.id]);
+    } catch(error) {
+      print('Error deleting playlist: $error');
+    }
   }
 
   Future<List<Message>> getMessagesOnPlaylist(Playlist playlist) async {
     Database db = await instance.database;
     int id = playlist.id;
 
-    var result = await db.rawQuery('''
-      SELECT * FROM $_messagesInPlaylist 
-      INNER JOIN $_messageTable 
-      ON $_messageTable.id = $_messagesInPlaylist.messageid 
-      WHERE $_messagesInPlaylist.playlistid = $id
-      ORDER BY messagerank
-    ''');
+    try {
+      var result = await db.rawQuery('''
+        SELECT * FROM $_messagesInPlaylist 
+        INNER JOIN $_messageTable 
+        ON $_messageTable.id = $_messagesInPlaylist.messageid 
+        WHERE $_messagesInPlaylist.playlistid = $id
+        ORDER BY messagerank
+      ''');
 
-    if (result.isNotEmpty) {
-      List<Message> messages = result.map((msgMap) => Message.fromMap(msgMap)).toList();
-      return messages;
+      if (result.isNotEmpty) {
+        List<Message> messages = result.map((msgMap) => Message.fromMap(msgMap)).toList();
+        return messages;
+      }
+      return [];
+    } catch(error) {
+      print('Error getting messages on playlist: $error');
+      return [];
     }
-    return [];
+  }
+
+  Future<List<Playlist>> getPlaylistsContainingMessage(Message message) async {
+    Database db = await instance.database;
+    int id = message.id;
+
+    try {
+      var result = await db.rawQuery('''
+        SELECT * from $_messagesInPlaylist
+        INNER JOIN $_playlistTable
+        ON $_playlistTable.id = $_messagesInPlaylist.playlistid
+        WHERE $_messagesInPlaylist.messageid = $id
+      ''');
+
+      if (result.isNotEmpty) {
+        List<Playlist> playlists = result.map((pMap) => Playlist.fromMap(pMap)).toList();
+        return playlists;
+      }
+      return [];
+    } catch(error) {
+      print('Error getting playlists containing message: $error');
+      return [];
+    }
+  }
+
+  Future<Map<int, int>> getMaxMessageRanks(List<Playlist> playlists) async {
+    Database db = await MessageDB.instance.database;
+
+    try {
+      Map<int, int> result = await db.transaction((txn) async {
+        Map<int, int> maxRanks = {};
+        //Batch batch = txn.batch();
+        for (Playlist playlist in playlists) {
+          maxRanks[playlist.id] = Sqflite.firstIntValue(
+            await txn.rawQuery('''
+              SELECT MAX(messagerank) FROM $_messagesInPlaylist 
+              WHERE $_messagesInPlaylist.playlistid = ${playlist.id}
+            ''')
+          );
+        }
+        return maxRanks;
+      });
+      return result;
+    } catch(error) {
+      print('Error getting max message ranks: $error');
+      return {};
+    }
+  }
+
+  Future updatePlaylistsContainingMessage(Message message, List<Playlist> updatedPlaylists) async {
+    Database db = await MessageDB.instance.database;
+
+    try {
+      List<Playlist> allPlaylists = await getAllPlaylistsMetadata();
+      List<Playlist> previousPlaylists = await getPlaylistsContainingMessage(message);
+      Map<int, int> maxMessageRanks = await getMaxMessageRanks(updatedPlaylists);
+
+      await db.transaction((txn) async {
+        Batch batch = txn.batch();
+        //batch.delete(_messagesInPlaylist, where: 'messageid = ?', whereArgs: [message.id]);
+
+        for (Playlist playlist in allPlaylists) {
+          bool shouldBeSelected = updatedPlaylists.indexWhere((p) => p.id == playlist.id) > -1;
+          bool wasOriginallySelected = previousPlaylists.indexWhere((p) => p.id == playlist.id) > -1;
+          if (shouldBeSelected && !wasOriginallySelected) {
+            // add
+            batch.insert(_messagesInPlaylist, {
+              'messageid': message.id,
+              'playlistid': playlist.id,
+              'messagerank': maxMessageRanks[playlist.id] + 1 ?? 1,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          } 
+          if (!shouldBeSelected && wasOriginallySelected) {
+            // remove
+            batch.delete(_messagesInPlaylist, where: 'messageid = ?', whereArgs: [message.id]);
+          }
+        }
+        await batch.commit();
+      });
+    } catch(error) {
+      print('Error updating playlists containing message: $error');
+    }
   }
 
   // RESETTING DATABASE

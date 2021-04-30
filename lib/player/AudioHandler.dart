@@ -4,8 +4,8 @@ import 'package:just_audio/just_audio.dart';
 class VFCAudioHandler extends BaseAudioHandler {
   final _player = AudioPlayer();
   List<MediaItem> _queue = [];
-  bool hasNext;
-  bool hasPrevious;
+  //bool hasNext;
+  //bool hasPrevious;
   Stream<bool> playingStream;
   Stream<Duration> durationStream;
   
@@ -14,6 +14,10 @@ class VFCAudioHandler extends BaseAudioHandler {
   }
   pause() {
     return _player.pause();
+  }
+  List<MediaItem> _playableQueue(List<MediaItem> rawQueue) {
+    // item.id corresponds to the filepath; if this is empty, it's not playable
+    return _queue.where((item) => item.id != null && item.id.length > 0).toList();
   }
   removeQueueItemAt(int index) async {
     _queue.removeAt(index);
@@ -33,20 +37,35 @@ class VFCAudioHandler extends BaseAudioHandler {
   }
   updateQueue(List<MediaItem> newQueue) async {
     _queue = newQueue;
-    queue.add(_queue);
-    await _player.setAudioSource(ConcatenatingAudioSource(
-      children: _queue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
-    ));
+    queue.add(_playableQueue(_queue));
+    try {
+      print('ready to set audio source');
+      await setAudioSource();
+      print('audio source has been set');
+    } catch (error) {
+      print('Error setting audio source: $error');
+    }
     //await broadcastQueueChanges();
   }
   Future<void> broadcastQueueChanges() async {
-    queue.add(_queue);
+    queue.add(_playableQueue(_queue));
     int currentIndex = _player.currentIndex;
     Duration currentPosition = _player.position;
+    try {
+      await setAudioSource();
+      seekTo(currentPosition, index: currentIndex);
+    } catch (error) {
+      print('Error setting audio source: $error');
+    }
+  }
+  Future<void> setAudioSource() async {
+    List<MediaItem> _validQueue = _playableQueue(_queue);
+    for (int i = 0; i < _validQueue.length; i++) {
+      print('MEDIAITEM IS ${_validQueue[i]}');
+    }
     await _player.setAudioSource(ConcatenatingAudioSource(
-      children: _queue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
+      children: _validQueue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
     ));
-    seekTo(currentPosition, index: currentIndex);
   }
   skipToPrevious() {
     return _player.seekToPrevious();
@@ -57,7 +76,13 @@ class VFCAudioHandler extends BaseAudioHandler {
   skipToQueueItem(int index) async  {
     seekTo(Duration(seconds: 0), index: index);
   }
-  seekTo(Duration position, {int index}) => _player.seek(position, index: index);
+  seekTo(Duration position, {int index}) {
+    try {
+      _player.seek(position, index: index);
+    } catch (error) {
+      print('Error seeking to position $position: $error');
+    }
+  }
   stop() async {
     await _player.stop();
     await super.stop();

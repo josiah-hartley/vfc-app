@@ -3,12 +3,8 @@ PODS:
     - Flutter
   - audio_session (0.0.1):
     - Flutter
-  - audioplayers (0.0.1):
-    - Flutter
   - Flutter (1.0.0)
-  - flutter_isolate (0.0.1):
-    - Flutter
-  - flutter_local_notifications (0.0.1):
+  - flutter_downloader (0.0.1):
     - Flutter
   - fluttertoast (0.0.2):
     - Flutter
@@ -20,8 +16,6 @@ PODS:
     - Flutter
   - path_provider (0.0.1):
     - Flutter
-  - phone_state_i (0.0.1):
-    - Flutter
   - shared_preferences (0.0.1):
     - Flutter
   - sqflite (0.0.2):
@@ -32,14 +26,11 @@ PODS:
 DEPENDENCIES:
   - audio_service (from `.symlinks/plugins/audio_service/ios`)
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
-  - audioplayers (from `.symlinks/plugins/audioplayers/ios`)
   - Flutter (from `Flutter`)
-  - flutter_isolate (from `.symlinks/plugins/flutter_isolate/ios`)
-  - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - flutter_downloader (from `.symlinks/plugins/flutter_downloader/ios`)
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
-  - phone_state_i (from `.symlinks/plugins/phone_state_i/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
 
@@ -53,22 +44,16 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/audio_service/ios"
   audio_session:
     :path: ".symlinks/plugins/audio_session/ios"
-  audioplayers:
-    :path: ".symlinks/plugins/audioplayers/ios"
   Flutter:
     :path: Flutter
-  flutter_isolate:
-    :path: ".symlinks/plugins/flutter_isolate/ios"
-  flutter_local_notifications:
-    :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  flutter_downloader:
+    :path: ".symlinks/plugins/flutter_downloader/ios"
   fluttertoast:
     :path: ".symlinks/plugins/fluttertoast/ios"
   just_audio:
     :path: ".symlinks/plugins/just_audio/ios"
   path_provider:
     :path: ".symlinks/plugins/path_provider/ios"
-  phone_state_i:
-    :path: ".symlinks/plugins/phone_state_i/ios"
   shared_preferences:
     :path: ".symlinks/plugins/shared_preferences/ios"
   sqflite:
@@ -77,15 +62,12 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   audio_service: f509d65da41b9521a61f1c404dd58651f265a567
   audio_session: 4f3e461722055d21515cf3261b64c973c062f345
-  audioplayers: 455322b54050b30ea4b1af7cd9e9d105f74efa8c
-  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
-  flutter_isolate: 0edf5081826d071adf21759d1eb10ff5c24503b5
-  flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
+  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
+  flutter_downloader: 058b9c41564a90500f67f3e432e3524613a7fd83
   fluttertoast: 6122fa75143e992b1d3470f61000f591a798cc58
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   just_audio: baa7252489dbcf47a4c7cc9ca663e9661c99aafa
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
-  phone_state_i: ce1e01bad2a0f9771c9919d1021b4f51a129a402
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
   sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
   Toast: 91b396c56ee72a5790816f40d3a94dd357abc196

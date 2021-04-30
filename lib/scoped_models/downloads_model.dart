@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/files/downloads.dart';
+import 'package:voices_for_christ/helpers/toasts.dart';
 
 mixin DownloadsModel on Model {
   final db = MessageDB.instance;
@@ -39,42 +38,31 @@ mixin DownloadsModel on Model {
     notifyListeners();
 
     try {
-      Message result = await downloadMessageFile(message);
-      message = result;
-      message.iscurrentlydownloading = 0;
-
-      Fluttertoast.showToast(
-        msg: 'Finished downloading ${message.title}',
-        backgroundColor: Color(0xff002133),
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
+      //Message result = await downloadMessageFile(message);
+      //message = result;
+      //message.iscurrentlydownloading = 0;
+      message = await downloadMessageFile(message);
+      showToast('Finished downloading ${message.title}');
       notifyListeners();
     }
     catch (error) {
       message.iscurrentlydownloading = 0;
       message.isdownloaded = 0;
-      Fluttertoast.showToast(
-        msg: 'Error downloading ${message.title}',
-        backgroundColor: Color(0xff002133),
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
+      showToast('Error downloading ${message.title}: check connection');
       notifyListeners();
     }
   }
 
   Future<void> deleteMessageDownload(Message message) async {
-    deleteMessageFile(message);
-    message.isdownloaded = 0;
-    message.filepath = '';
-    await db.update(message);
-    Fluttertoast.showToast(
-      msg: 'Download deleted: ${message.title}',
-      backgroundColor: Color(0xff002133),
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
-    notifyListeners();
+    try {
+      message = await deleteMessageFile(message);
+      //message.isdownloaded = 0;
+      //message.filepath = '';
+      //await db.update(message);
+      showToast('Download deleted: ${message.title}');
+      notifyListeners();
+    } catch (error) {
+      showToast('Error deleting download: ${message.title}');
+    }
   }
 }

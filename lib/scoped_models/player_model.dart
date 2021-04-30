@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
+import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/player/AudioHandler.dart';
 
 mixin PlayerModel on Model {
@@ -46,12 +47,13 @@ mixin PlayerModel on Model {
     );
 
     _audioHandler.queue.listen((updatedQueue) async {
-      _queue = [];
+      _queue = await Future.wait<Message>(updatedQueue.map((qItem) => messageFromMediaItem(qItem)).toList());
+      /*_queue = [];
       for (int i = 0; i < updatedQueue.length; i++) {
         MediaItem item = updatedQueue[i];
         Message message = await messageFromMediaItem(item);
         _queue.add(message);
-      }
+      }*/
       notifyListeners(); // TODO: deal with lag
     });
 
@@ -86,6 +88,11 @@ mixin PlayerModel on Model {
 
     _audioHandler.playbackState.listen((playbackState) async {
       _playbackSpeed = playbackState.speed;
+      bool queueFinished = playbackState?.processingState == AudioProcessingState.completed;
+      print('PLAYBACK STATE: ${playbackState.processingState}');
+      if (queueFinished) {
+        _audioHandler.pause();
+      }
       notifyListeners();
     });
 
@@ -178,12 +185,20 @@ mixin PlayerModel on Model {
     Message _previousMessage = _currentlyPlayingMessage;
     Duration _previousPosition = _currentPosition;
 
-    await _audioHandler.updateQueue(queue);
-    await _audioHandler.seekTo(position ?? Duration(seconds: 0), index: index ?? 0);
-  
-    if (_previousMessage != null && _previousPosition != null) {
-      _previousMessage.lastplayedposition = _previousPosition.inSeconds.toDouble();
-      await db.update(_previousMessage);
+    // only add downloaded items
+    List<MediaItem> playableQueue = queue.where((item) => item?.id != '').toList();
+
+    if (playableQueue.length > 0) {
+      await _audioHandler.updateQueue(queue);
+      await _audioHandler.seekTo(position ?? Duration(seconds: 0), index: index ?? 0);
+    
+      // save position on previous message
+      if (_previousMessage != null && _previousPosition != null) {
+        _previousMessage.lastplayedposition = _previousPosition.inSeconds.toDouble();
+        await db.update(_previousMessage);
+      }
+    } else {
+      showToast('No downloaded messages in playlist');
     }
   }
 

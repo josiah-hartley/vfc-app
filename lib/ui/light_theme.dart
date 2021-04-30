@@ -11,7 +11,7 @@ ThemeData lightTheme = sharedTheme.copyWith(
   accentColor: darkBlue,
   highlightColor: Color(0xfffa7a0a),
   backgroundColor: Color(0xffe5f6ff).withOpacity(0.5),
-  dialogBackgroundColor: Color(0xffc5dfed),
+  dialogBackgroundColor: Colors.white, //Color(0xffc5dfed),
   //bottomAppBarColor: Color(0xff002133),
   bottomAppBarColor: Color(0xff013857),
   primaryTextTheme: TextTheme(
@@ -89,5 +89,23 @@ ThemeData lightTheme = sharedTheme.copyWith(
     unselectedIconTheme: IconThemeData(
       color: unselectedColor,
     ),
-  )
+  ),
+  inputDecorationTheme: InputDecorationTheme(
+    enabledBorder: OutlineInputBorder(
+      borderSide: BorderSide(
+        color: darkBlue,
+        width: 1.0,
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderSide: BorderSide(
+        color: darkBlue,
+        width: 1.0,
+      ),
+    ),
+    hintStyle: TextStyle(
+      color: darkBlue.withOpacity(0.6),
+      fontSize: 18.0,
+    ),
+  ),
 );
