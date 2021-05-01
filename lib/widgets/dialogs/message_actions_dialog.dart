@@ -94,9 +94,9 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         color: Theme.of(context).accentColor,
         iconSize: 30.0,
         text: widget.message.isfavorite == 1 ? 'Favorite' : 'Add to Favorites',
-        onPressed: () {
+        onPressed: () async {
           //print(widget.message.title);
-          model.toggleFavorite(widget.message);
+          await model.toggleFavorite(widget.message);
         }
       ),
       _action(
@@ -104,11 +104,11 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         color: Theme.of(context).accentColor,
         iconSize: 30.0,
         text: widget.message.isplayed == 1 ? 'Played' : 'Mark as Played',
-        onPressed: () {
+        onPressed: () async {
           if (widget.message.isplayed == 1) {
-            model.setMessageUnplayed(widget.message);
+            await model.setMessageUnplayed(widget.message);
           } else {
-            model.setMessagePlayed(widget.message);
+            await model.setMessagePlayed(widget.message);
           }
         }
       ),
@@ -274,7 +274,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         onPressed: () async {
           if (message?.id != model.currentlyPlayingMessage?.id) {
             await model.deleteMessage(message);
-            model.loadDownloads();
+            await model.loadDownloads();
           } else {
             showToast('Cannot delete while message is playing');
           }
@@ -314,7 +314,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
       text: 'Download',
       onPressed: () async {
         await model.downloadMessage(message);
-        model.loadDownloads();
+        await model.loadDownloads();
       }
     );
   }

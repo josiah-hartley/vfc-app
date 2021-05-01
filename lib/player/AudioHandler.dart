@@ -97,7 +97,7 @@ class VFCAudioHandler extends BaseAudioHandler {
 
     // Broadcast which item is currently playing
     _player.currentIndexStream.listen((index) {
-      if (index != null) {
+      if (index != null && _queue.length > index) {
         //mediaItem.add(queue.valueWrapper.value[index]);
         mediaItem.add(_queue[index]);
       }

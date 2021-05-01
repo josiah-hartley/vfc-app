@@ -39,6 +39,7 @@ class MessageDB {
     // first time: copy initial database from assets
     bool exists = await databaseExists(path);
     if (!exists) {
+      print('loading initial database');
       //print('Copying initial data from file.');
       //int startTime = DateTime.now().millisecondsSinceEpoch;
       // Make sure the parent directory exists
@@ -53,6 +54,7 @@ class MessageDB {
       
       // Write and flush the bytes written
       await File(path).writeAsBytes(bytes, flush: true);
+      print('finished loading initial database');
       //int endTime = DateTime.now().millisecondsSinceEpoch;
       //print('done; took ' + (endTime - startTime).toString() + ' ms');
     } else {
@@ -520,7 +522,7 @@ class MessageDB {
     }
   }
 
-  Future<List<Playlist>> getAllPlaylists() async {
+  /*Future<List<Playlist>> getAllPlaylists() async {
     Database db = await instance.database;
     
     try {
@@ -544,7 +546,7 @@ class MessageDB {
       print(error);
       return [];
     }
-  }
+  }*/
 
   Future<int> addMessageToPlaylist(Message msg, Playlist playlist) async {
     Database db = await instance.database;
@@ -633,7 +635,7 @@ class MessageDB {
     }
   }
 
-  Future<int> reorderAllMessagesInPlaylist(Playlist playlist, List<Message> messages) async {
+  Future<void> reorderAllMessagesInPlaylist(Playlist playlist, List<Message> messages) async {
     Database db = await instance.database;
     int playlistId = playlist.id;
     int rank = 0;
@@ -656,10 +658,10 @@ class MessageDB {
         ''', [rank, playlistId, message.id]);*/
         rank += 1;
       }
-      return 1;
+      return;
     } catch (error) {
       print(error);
-      return 0;
+      return;
     }
   }
 
@@ -733,7 +735,7 @@ class MessageDB {
               SELECT MAX(messagerank) FROM $_messagesInPlaylist 
               WHERE $_messagesInPlaylist.playlistid = ${playlist.id}
             ''')
-          );
+          ) ?? 0;
         }
         return maxRanks;
       });
@@ -764,7 +766,7 @@ class MessageDB {
             batch.insert(_messagesInPlaylist, {
               'messageid': message.id,
               'playlistid': playlist.id,
-              'messagerank': maxMessageRanks[playlist.id] + 1 ?? 1,
+              'messagerank': maxMessageRanks == null ? 1 : maxMessageRanks[playlist.id] + 1,
             }, conflictAlgorithm: ConflictAlgorithm.replace);
           } 
           if (!shouldBeSelected && wasOriginallySelected) {

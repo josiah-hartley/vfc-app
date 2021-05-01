@@ -14,6 +14,7 @@ class PlaylistsPage extends StatefulWidget {
 }
 
 class _PlaylistsPageState extends State<PlaylistsPage> {
+  bool _loadingPlaylist = false;
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
@@ -33,13 +34,19 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           return _listOfPlaylists(
             playlists: model.playlists,
             onOpenPlaylist: (index) async {
-              model.selectPlaylist(model.playlists[index - 1]);
-              Playlist p = model.playlists[index - 1];
-              p.messages = await model.loadMessagesOnPlaylist(p);
+              if (_loadingPlaylist) {
+                return;
+              }
+              _loadingPlaylist = true;
+              print('opening playlist: ${model.playlists[index - 1].title}');
+              await model.selectPlaylist(model.playlists[index - 1]);
+              _loadingPlaylist = false;
+              //Playlist p = model.playlists[index - 1];
+              //p.messages = await model.loadMessagesOnPlaylist(p);
               await showDialog(
                 context: context, 
                 builder: (context) {
-                  return PlaylistDialog(playlist: p);
+                  return PlaylistDialog();
                 }
               );
             }

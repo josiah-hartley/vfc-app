@@ -49,26 +49,28 @@ class _SearchResultsDisplayState extends State<SearchResultsDisplay> {
         : Container(
           child: Column(
             children: [
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 50.0),
-                decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Theme.of(context).accentColor)),
-                ),
-                child: Text('${widget.fullSearchCount} RESULTS',
-                  style: TextStyle(
-                    color: Theme.of(context).accentColor,
-                  )
-                ),
-              ),
               _selectedMessages.length > 0
-                ? multiselectDisplay(
-                  context: context,
-                  selectedMessages: _selectedMessages,
-                  onDeselectAll: _deselectAll,
+                ? Container(
+                  padding: EdgeInsets.only(top: 10.0),
+                  child: MultiSelectDisplay(
+                    selectedMessages: _selectedMessages,
+                    onDeselectAll: _deselectAll,
+                  ),
                 )
-                : SizedBox(height: 0.0),
+                : Container(
+                  padding: EdgeInsets.only(top: 26.0, bottom: 26.0, left: 20.0, right: 20.0),
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: Theme.of(context).accentColor)),
+                  ),
+                  child: Text('${widget.fullSearchCount} RESULTS',
+                    style: TextStyle(
+                      color: Theme.of(context).accentColor,
+                    )
+                  ),
+                ),
               Expanded(
                 child: ListView.builder(
+                  padding: EdgeInsets.zero,
                   itemCount: widget.searchResults.length + 1,
                   itemBuilder: (context, index) {
                     if (index >= widget.searchResults.length) {

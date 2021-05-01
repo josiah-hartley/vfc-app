@@ -1,7 +1,8 @@
+import 'dart:collection';
 import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
@@ -10,10 +11,10 @@ import 'package:voices_for_christ/widgets/buttons/action_button.dart';
 import 'package:voices_for_christ/widgets/dialogs/edit_playlist_title_dialog.dart';
 import 'package:voices_for_christ/widgets/message_display/message_card.dart';
 import 'package:voices_for_christ/widgets/message_display/message_metadata.dart';
+import 'package:voices_for_christ/widgets/message_display/multiselect_display.dart';
 
 class PlaylistDialog extends StatefulWidget {
-  PlaylistDialog({Key key, this.playlist}) : super(key: key);
-  final Playlist playlist;
+  PlaylistDialog({Key key}) : super(key: key);
 
   @override
   _PlaylistDialogState createState() => _PlaylistDialogState();
@@ -21,6 +22,35 @@ class PlaylistDialog extends StatefulWidget {
 
 class _PlaylistDialogState extends State<PlaylistDialog> {
   bool _reordering = false;
+  LinkedHashSet<Message> _selectedMessages = LinkedHashSet();
+
+  void _toggleMessageSelection(Message message) {
+    setState(() {
+      if (_selectedMessages.contains(message)) {
+        _selectedMessages.remove(message);
+      } else {
+        if (_selectedMessages.length < Constants.MESSAGE_SELECTION_LIMIT) {
+          _selectedMessages.add(message);
+        }
+      }
+    });
+  }
+
+  void _selectAll(List<Message> messages) {
+    if (messages.length > Constants.MESSAGE_SELECTION_LIMIT) {
+      // max messages that can be selected
+      messages = messages.sublist(0, Constants.MESSAGE_SELECTION_LIMIT - 1);
+    }
+    setState(() {
+      _selectedMessages = LinkedHashSet.from(messages);
+    });
+  }
+
+  void _deselectAll() {
+    setState(() {
+      _selectedMessages = LinkedHashSet();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,21 +65,33 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
             child: Container(
               color: Theme.of(context).backgroundColor.withOpacity(0.7),
               padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 16.0),
-              child: _reordering
-                ? Theme(
-                  data: ThemeData(canvasColor: Colors.transparent),
-                  child: ReorderableListView(
-                    onReorder: (oldIndex, newIndex) {
-                      model.reorderPlaylist(oldIndex: oldIndex - 1, newIndex: newIndex - 1);
-                    },
-                    shrinkWrap: true,
-                    children: _reorderingAndDeletingChildren(model),
+              child: Column(
+                children: [
+                  _selectedMessages.length > 0
+                  ? MultiSelectDisplay(
+                    selectedMessages: _selectedMessages,
+                    onDeselectAll: _deselectAll,
                   )
-                )
-                : ListView(
-                  shrinkWrap: true,
-                  children: _children(model),
-                ),
+                  : _titleAndActions(model, _reordering),
+                  Expanded(
+                    child: _reordering
+                    ? Theme(
+                      data: ThemeData(canvasColor: Colors.transparent),
+                      child: ReorderableListView(
+                        onReorder: (oldIndex, newIndex) {
+                          model.reorderPlaylist(oldIndex: oldIndex, newIndex: newIndex);
+                        },
+                        shrinkWrap: true,
+                        children: _reorderingAndDeletingChildren(model),
+                      )
+                    )
+                    : ListView(
+                      shrinkWrap: true,
+                      children: _children(model),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -57,44 +99,119 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     );
   }
 
+  Widget _titleAndActions(MainModel model, bool reordering) {
+    List<Widget> _titleChildren = [
+      GestureDetector(
+        child: Container(
+          padding: EdgeInsets.only(right: 12.0),
+          child: Icon(CupertinoIcons.back, 
+            size: 32.0,
+            color: Theme.of(context).accentColor
+          ),
+        ),
+        onTap: () { Navigator.of(context).pop(); },
+      ),
+      Expanded(
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 10.0),
+          child: Text(model.selectedPlaylist?.title ?? 'Playlist',
+            overflow: reordering ? TextOverflow.ellipsis : TextOverflow.visible,
+            style: Theme.of(context).primaryTextTheme.headline1.copyWith(
+              fontSize: 20.0,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    ];
+
+    if (reordering) {
+      _titleChildren.add(TextButton(
+        onPressed: () async {
+          await model.saveReorderingChanges();
+          setState(() {
+            _reordering = false;
+          });
+        }, 
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).accentColor,
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+          child: Text('Save',
+            style: TextStyle(
+              color: Theme.of(context).primaryColor,
+              fontSize: 16.0,
+            )
+          )
+        ),
+      ));
+
+      _titleChildren.add(TextButton(
+        onPressed: () async {
+          await model.loadMessagesOnCurrentPlaylist();
+          setState(() {
+            _reordering = false;
+          });
+        }, 
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).accentColor,
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+          child: Text('Cancel',
+            style: TextStyle(
+              color: Theme.of(context).primaryColor,
+              fontSize: 16.0,
+            )
+          )
+        ),
+      ));
+    } else {
+      _titleChildren.add(_playlistActionsButton(
+        playlist: model.selectedPlaylist,
+        onDelete: model.deletePlaylist,
+        addAllToQueue: model.addMultipleMessagesToQueue,
+        setMultipleFavorites: model.setMultipleFavorites,
+      ));
+    }
+
+    return Container(
+      key: Key('0'),
+      padding: EdgeInsets.only(bottom: 14.0),
+      child: Row(
+        children: _titleChildren,
+      ),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(
+          color: Theme.of(context).accentColor
+        ))
+      ),
+    );
+
+    /*GestureDetector(
+                onTap: () {
+                  model.saveReorderingChanges();
+                  setState(() {
+                    _reordering = false;
+                  });
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+                  color: Theme.of(context).backgroundColor.withOpacity(0.01),
+                  child: Icon(CupertinoIcons.check_mark,
+                    color: Theme.of(context).accentColor,
+                    size: 24.0,
+                  ),
+                ),
+              )*/
+  }
+
   List<Widget> _children(MainModel model) {
     List<Widget> result = [
-      Container(
-        padding: EdgeInsets.only(bottom: 14.0),
-        child: Row(
-          children: [
-            GestureDetector(
-              child: Container(
-                padding: EdgeInsets.only(right: 12.0),
-                child: Icon(CupertinoIcons.back, 
-                  size: 34.0,
-                  color: Theme.of(context).accentColor
-                ),
-              ),
-              onTap: () { Navigator.of(context).pop(); },
-            ),
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 10.0),
-                child: Text(model.selectedPlaylist?.title ?? 'Playlist',
-                  style: Theme.of(context).primaryTextTheme.headline1.copyWith(
-                    fontSize: 20.0,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-            _playlistActionsButton(
-              onDelete: model.deletePlaylist,
-            ),
-          ],
-        ),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(
-            color: Theme.of(context).accentColor
-          ))
-        ),
-      )
+      //_titleAndActions(model, false),
     ];
 
     if (model.selectedPlaylist != null && model.selectedPlaylist.messages != null) {
@@ -102,6 +219,10 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
         result.add(MessageCard(
           message: msg,
           playlist: model.selectedPlaylist,
+          selected: _selectedMessages.contains(msg),
+          onSelect: () {
+            _toggleMessageSelection(msg);
+          },
         ));
       });
     }
@@ -111,56 +232,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
 
   List<Widget> _reorderingAndDeletingChildren(MainModel model) {
     List<Widget> result = [
-      Container(
-        key: Key('0'),
-        padding: EdgeInsets.only(bottom: 14.0),
-        child: Row(
-          children: [
-            GestureDetector(
-              child: Container(
-                padding: EdgeInsets.only(right: 12.0),
-                child: Icon(CupertinoIcons.back, 
-                  size: 34.0,
-                  color: Theme.of(context).accentColor
-                ),
-              ),
-              onTap: () { Navigator.of(context).pop(); },
-            ),
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 10.0),
-                child: Text(model.selectedPlaylist?.title ?? 'Playlist',
-                  style: Theme.of(context).primaryTextTheme.headline1.copyWith(
-                    fontSize: 20.0,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                model.saveReorderingChanges();
-                setState(() {
-                  _reordering = false;
-                });
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-                color: Theme.of(context).backgroundColor.withOpacity(0.01),
-                child: Icon(CupertinoIcons.check_mark,
-                  color: Theme.of(context).accentColor,
-                  size: 24.0,
-                ),
-              ),
-            ),
-          ],
-        ),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(
-            color: Theme.of(context).accentColor
-          ))
-        ),
-      )
+      //_titleAndActions(model, true),
     ];
 
     if (model.selectedPlaylist != null && model.selectedPlaylist.messages != null) {
@@ -212,6 +284,17 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
                         message: msg,
                         truncateTitle: true,
                         textColor: Theme.of(context).accentColor,
+                        showTime: false,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () { model.removeMessageFromPlaylist(i); },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
+                        child: Icon(CupertinoIcons.xmark,
+                          color: Theme.of(context).accentColor,
+                          size: 30.0,
+                        )
                       ),
                     ),
                   ],
@@ -226,26 +309,26 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     return result;
   }
 
-  void editTitle() async {
+  void editTitle(Playlist playlist) async {
     String newTitle = await showDialog(
       context: context, 
       builder: (context) => EditPlaylistTitleDialog(
-        playlist: widget.playlist,
-        originalTitle: widget.playlist?.title,
+        playlist: playlist,
+        originalTitle: playlist?.title,
       ),
     );
     if (newTitle != null) {
       setState(() {
-        widget.playlist.title = newTitle;
+        playlist.title = newTitle;
       });
     }
   }
 
-  void deletePlaylist(Function onDelete) async {
+  Future<void> deletePlaylist({Playlist playlist, Function onDelete}) async {
     bool delete = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete ${widget.playlist.title}?',
+        title: Text('Delete ${playlist.title}?',
           style: TextStyle(color: Theme.of(context).accentColor),
         ),
         content: Container(
@@ -268,7 +351,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
       ),
     );
     if (delete) {
-      onDelete(widget.playlist);
+      await onDelete(playlist);
       Navigator.of(context).pop();
     }
   }
@@ -279,29 +362,13 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     });
   }
 
-  void downloadAll() {
-
-  }
-
-  void deleteAllDownloads() {
-
-  }
-
-  void addAllToQueue() {
-
-  }
-
-  void addAllToFavorites() {
-
-  }
-
-  void removeAllFromFavorites() {
-
-  }
-
-  Widget _playlistActionsButton({Function onDelete}) {
+  Widget _playlistActionsButton({
+    Playlist playlist,
+    Function onDelete,
+    Function addAllToQueue,
+    Function setMultipleFavorites}) {
     bool active = false;
-    if (widget.playlist != null && widget.playlist.messages != null && widget.playlist.messages.length > 0) {
+    if (playlist != null && playlist.messages != null && playlist.messages.length > 0) {
       active = true;
     }
     return Material(
@@ -334,85 +401,34 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
               value: 2,
               active: active,
               icon: CupertinoIcons.line_horizontal_3,
-              text: 'Reorder',
+              text: 'Reorder and remove',
             ),
             _playlistAction(
               value: 3,
               active: active,
-              icon: Icons.download_sharp,
-              text: 'Download all',
-            ),
-            _playlistAction(
-              value: 4,
-              active: active,
-              icon: CupertinoIcons.delete,
-              text: 'Delete all downloads',
-            ),
-            _playlistAction(
-              value: 5,
-              active: active,
-              icon: CupertinoIcons.list_dash,
-              text: 'Add to queue',
-            ),
-            _playlistAction(
-              value: 6,
-              active: active,
-              icon: CupertinoIcons.star_fill,
-              text: 'Add all to favorites',
-            ),
-            _playlistAction(
-              value: 7,
-              active: active,
-              icon: CupertinoIcons.star_slash,
-              text: 'Remove all from favorites',
+              icon: Icons.check,
+              text: 'Select all',
             ),
           ];
         },
-        onSelected: (value) {
+        onSelected: (value) async {
           switch (value) {
             case 0:
-              editTitle();
+              editTitle(playlist);
               break;
             case 1:
-              deletePlaylist(onDelete);
+              await deletePlaylist(playlist: playlist, onDelete: onDelete);
               break;
             case 2:
               openReorderingList();
               break;
             case 3:
-              downloadAll();
-              break;
-            case 4:
-              deleteAllDownloads();
-              break;
-            case 5:
-              addAllToQueue();
-              break;
-            case 6:
-              addAllToFavorites();
-              break;
-            case 7:
-              removeAllFromFavorites();
+              _selectAll(playlist.messages);
               break;
           }
         },
       ),
     );
-    /*return GestureDetector(
-      onTap: () {
-        setState(() {
-          _reordering = true;
-        });
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-        color: Theme.of(context).backgroundColor.withOpacity(0.01),
-        child: Icon(CupertinoIcons.ellipsis_vertical,
-          color: Theme.of(context).accentColor,
-          size: 30.0,
-        ),
-      ),
-    );*/
   }
 
   PopupMenuItem<int> _playlistAction({bool active, int value, IconData icon, String text}) {
@@ -425,7 +441,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
             Container(
               child: Icon(icon,
                 color: active ? Theme.of(context).accentColor : Theme.of(context).accentColor.withOpacity(0.6),
-                size: 30.0,
+                size: 22.0,
               ),
             ),
             Container(
@@ -434,7 +450,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
               child: Text(text,
                 style: TextStyle(
                   color: active ? Theme.of(context).accentColor : Theme.of(context).accentColor.withOpacity(0.6),
-                  fontSize: 20.0,
+                  fontSize: 18.0,
                 )
               )
             ),

@@ -20,6 +20,15 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
   String _filter = 'All';
   LinkedHashSet<Message> _selectedMessages = LinkedHashSet();
 
+  /*void loadMessages(MainModel model) async {
+    if (widget.filterType == 'favorites') {
+      await model.loadFavorites();
+    }
+    if (widget.filterType == 'downloads') {
+      await model.loadDownloads();
+    }
+  }*/
+
   void _toggleMessageSelection(Message message) {
     setState(() {
       if (_selectedMessages.contains(message)) {
@@ -42,13 +51,13 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
       builder: (context, child, model) {
+        //loadMessages(model);
         return Container(
           child: Column(
             children: [
               //_filterButtonsRow(),
               _selectedMessages.length > 0
-                ? multiselectDisplay(
-                  context: context,
+                ? MultiSelectDisplay(
                   selectedMessages: _selectedMessages,
                   onDeselectAll: _deselectAll,
                 )

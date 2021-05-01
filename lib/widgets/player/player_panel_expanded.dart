@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
-import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
@@ -20,8 +19,6 @@ class PlayerPanelExpanded extends StatefulWidget {
 }
 
 class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
-  final db = MessageDB.instance;
-
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
@@ -41,8 +38,8 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
                   Expanded(child: Container()),
                   _favorite(
                     message: model.currentlyPlayingMessage,
-                    onPressed: () {
-                      model.toggleFavorite(model.currentlyPlayingMessage);
+                    onPressed: () async {
+                      await model.toggleFavorite(model.currentlyPlayingMessage);
                     },
                   ),
                 ],

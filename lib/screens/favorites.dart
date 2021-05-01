@@ -8,7 +8,7 @@ class FavoritesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    model.loadFavorites();
+    //model.loadFavorites();
     return FilteredMessageList(filterType: 'favorites');
   }
 }

@@ -9,11 +9,11 @@ import 'package:voices_for_christ/ui/dark_theme.dart';
 import 'package:voices_for_christ/ui/light_theme.dart';
 import 'package:voices_for_christ/screens/main_scaffold.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
   
   var model = MainModel();
-  model.initialize();
+  await model.initialize();
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
   .then((_) async {

@@ -16,7 +16,7 @@ mixin DownloadsModel on Model {
   List<Message> get playedDownloads => _playedDownloads;
   bool get downloadsLoading => _downloadsLoading;
 
-  void loadDownloads() async {
+  Future<void> loadDownloads() async {
     _downloadsLoading = true;
     notifyListeners();
 

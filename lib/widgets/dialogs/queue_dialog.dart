@@ -28,9 +28,16 @@ class _QueueDialogState extends State<QueueDialog> {
             child: Container(
               color: Theme.of(context).backgroundColor.withOpacity(0.7),
               padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 16.0),
-              child: ListView(
-                shrinkWrap: true,
-                children: _children(model),
+              child: Column(
+                children: [
+                  _titleAndActions(),
+                  Expanded(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: _children(model),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -39,42 +46,44 @@ class _QueueDialogState extends State<QueueDialog> {
     );
   }
 
+  Widget _titleAndActions() {
+    return Container(
+      padding: EdgeInsets.only(bottom: 14.0),
+      child: Row(
+        children: [
+          GestureDetector(
+            child: Container(
+              padding: EdgeInsets.only(right: 12.0),
+              child: Icon(CupertinoIcons.back, 
+                size: 34.0,
+                color: Theme.of(context).accentColor
+              ),
+            ),
+            onTap: () { Navigator.of(context).pop(); },
+          ),
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 10.0),
+              child: Text('Queue',
+                style: Theme.of(context).primaryTextTheme.headline1.copyWith(
+                  fontSize: 20.0,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      ),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(
+          color: Theme.of(context).accentColor
+        ))
+      ),
+    );
+  }
+
   List<Widget> _children(MainModel model) {
-    List<Widget> result = [
-      Container(
-        padding: EdgeInsets.only(bottom: 14.0),
-        child: Row(
-          children: [
-            GestureDetector(
-              child: Container(
-                padding: EdgeInsets.only(right: 12.0),
-                child: Icon(CupertinoIcons.back, 
-                  size: 34.0,
-                  color: Theme.of(context).accentColor
-                ),
-              ),
-              onTap: () { Navigator.of(context).pop(); },
-            ),
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 10.0),
-                child: Text('Queue',
-                  style: Theme.of(context).primaryTextTheme.headline1.copyWith(
-                    fontSize: 20.0,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ],
-        ),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(
-            color: Theme.of(context).accentColor
-          ))
-        ),
-      )
-    ];
+    List<Widget> result = [];
 
     Playlist _queueAsPlaylist = Playlist(-1, 0, 'Queue', model.queue);
 

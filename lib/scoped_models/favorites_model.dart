@@ -14,7 +14,7 @@ mixin FavoritesModel on Model {
   List<Message> get playedFavorites => _playedFavorites;
   bool get favoritesLoading => _favoritesLoading;
 
-  void loadFavorites() async {
+  Future<void> loadFavorites() async {
     _favoritesLoading = true;
     notifyListeners();
 
@@ -27,9 +27,17 @@ mixin FavoritesModel on Model {
     notifyListeners();
   }
 
-  void toggleFavorite(Message message) async {
-    print('toggling favorite');
+  Future<void> toggleFavorite(Message message) async {
     await db.toggleFavorite(message);
-    loadFavorites();
+    await loadFavorites();
+  }
+
+  Future<void> setMultipleFavorites(List<Message> messages, int value) async {
+    for (int i = 0; i < messages.length; i++) {
+      messages[i].isfavorite = value;
+      //await db.update(messages[i]);
+    }
+    await db.batchAddToDB(messages);
+    await loadFavorites();
   }
 }

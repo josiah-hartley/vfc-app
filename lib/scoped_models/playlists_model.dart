@@ -7,38 +7,48 @@ mixin PlaylistsModel on Model {
   final db = MessageDB.instance;
   List<Playlist> _playlists = [];
   Playlist _selectedPlaylist;
+  //bool _loadingSelectedPlaylist = false;
   
   List<Playlist> get playlists => _playlists;
   Playlist get selectedPlaylist => _selectedPlaylist;
+  //bool get loadingSelectedPlaylist => _loadingSelectedPlaylist;
 
-  void loadPlaylistsMetadata() async {
+  Future<void> loadPlaylistsMetadata() async {
     _playlists = await db.getAllPlaylistsMetadata();
     // by default, playlists are sorted by date added; list most recent at top
     _playlists = _playlists.reversed.toList();
     notifyListeners();
   }
 
-  void selectPlaylist(Playlist playlist) async {
+  Future<void> selectPlaylist(Playlist playlist) async {
     _selectedPlaylist = playlist;
-    _selectedPlaylist.messages = await loadMessagesOnPlaylist(_selectedPlaylist);
-    notifyListeners();
+    await loadMessagesOnCurrentPlaylist();
+    //_selectedPlaylist.messages = await loadMessagesOnPlaylist(_selectedPlaylist);
   }
 
-  Future<List<Message>> loadMessagesOnPlaylist(Playlist playlist) async {
+  /*Future<List<Message>> loadMessagesOnPlaylist(Playlist playlist) async {
     List<Message> result = await db.getMessagesOnPlaylist(playlist);
     return result;
-  }
+  }*/
 
-  void loadMessagesOnCurrentPlaylist() async {
+  Future<void> loadMessagesOnCurrentPlaylist() async {
     if (_selectedPlaylist != null) {
+      //_loadingSelectedPlaylist = true;
+      //notifyListeners();
       _selectedPlaylist.messages = await db.getMessagesOnPlaylist(_selectedPlaylist);
+      //_loadingSelectedPlaylist = false;
       notifyListeners();
     }
   }
 
-  void deletePlaylist(Playlist playlist) async {
+  Future<void> deletePlaylist(Playlist playlist) async {
     await db.deletePlaylist(playlist);
-    loadPlaylistsMetadata();
+    await loadPlaylistsMetadata();
+  }
+
+  void removeMessageFromPlaylist(int index) {
+    _selectedPlaylist.messages.removeAt(index);
+    notifyListeners();
   }
 
   void reorderPlaylist({int oldIndex, int newIndex}) {
@@ -53,9 +63,9 @@ mixin PlaylistsModel on Model {
     notifyListeners();
   }
 
-  void saveReorderingChanges() {
+  Future<void> saveReorderingChanges() async {
     if (_selectedPlaylist != null) {
-      db.reorderAllMessagesInPlaylist(_selectedPlaylist, _selectedPlaylist.messages);
+      await db.reorderAllMessagesInPlaylist(_selectedPlaylist, _selectedPlaylist.messages);
     }
   }
 }

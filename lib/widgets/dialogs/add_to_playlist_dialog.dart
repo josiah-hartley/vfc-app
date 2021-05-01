@@ -29,7 +29,7 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
     loadInitialPlaylistData();
   }
 
-  void loadInitialPlaylistData() async {
+  Future<void> loadInitialPlaylistData() async {
     setState(() {
       _loading = true;
     });
@@ -44,21 +44,7 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
   }
 
   Future<void> savePlaylistChanges(Function reloadCurrentPlaylist) async {
-    db.updatePlaylistsContainingMessage(widget.message, _playlistsContainingMessage);
-    /*List<Future<void>> _futures = [];
-    for (int i = 0; i < _allPlaylists.length; i++) {
-      bool isSelected = _playlistsContainingMessage.indexWhere((p) => p.id == _allPlaylists[i].id) > -1;
-      bool wasOriginallySelected = _playlistsOriginallyContainingMessage.indexWhere((p) => p.id == _allPlaylists[i].id) > -1;
-      if (!wasOriginallySelected && isSelected) {
-        // add message to all newly selected playlists
-        _futures.add(db.addMessageToPlaylist(widget.message, _allPlaylists[i]));
-      }
-      if (wasOriginallySelected && !isSelected) {
-        // remove message from all deselected playlists
-        _futures.add(db.removeMessageFromPlaylist(widget.message, _allPlaylists[i]));
-      }
-    }
-    await Future.wait(_futures);*/
+    await db.updatePlaylistsContainingMessage(widget.message, _playlistsContainingMessage);
     reloadCurrentPlaylist();
   }
 

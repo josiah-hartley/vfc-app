@@ -6,24 +6,24 @@ import 'package:voices_for_christ/scoped_models/player_model.dart';
 import 'package:voices_for_christ/scoped_models/playlists_model.dart';
 
 class MainModel extends Model with PlayerModel, FavoritesModel, DownloadsModel, PlaylistsModel {
-  void initialize() {
-    initializePlayer();
-    loadPlaylistsMetadata();
-    loadFavorites();
-    loadDownloads();
+  Future<void> initialize() async {
+    await initializePlayer();
+    await loadPlaylistsMetadata();
+    await loadFavorites();
+    await loadDownloads();
   }
 
-  void setMessagePlayed(Message message) async {
+  Future<void> setMessagePlayed(Message message) async {
     await db.setPlayed(message);
-    loadDownloads();
-    loadFavorites();
+    await loadDownloads();
+    await loadFavorites();
     notifyListeners();
   }
 
-  void setMessageUnplayed(Message message) async {
+  Future<void> setMessageUnplayed(Message message) async {
     await db.setUnplayed(message);
-    loadDownloads();
-    loadFavorites();
+    await loadDownloads();
+    await loadFavorites();
     notifyListeners();
   }
 

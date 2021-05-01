@@ -97,7 +97,7 @@ Map<String, Color> initialStickerColors(String initials) {
   };
 }
 
-Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color textColor}) {
+Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color textColor, bool showTime = true}) {
   String _durationInMinutes = messageDurationInMinutes(message.durationinseconds);
   
   return Container(
@@ -130,13 +130,15 @@ Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color
                   ),
                 ),
               ),
-              Text(_durationInMinutes,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontStyle: FontStyle.italic,
-                  color: message.isdownloaded == 1 ? textColor.withOpacity(0.9) : textColor.withOpacity(1.0),
-                ),
-              ),
+              showTime
+                ? Text(_durationInMinutes,
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontStyle: FontStyle.italic,
+                      color: message.isdownloaded == 1 ? textColor.withOpacity(0.9) : textColor.withOpacity(1.0),
+                    ),
+                  )
+                : Container(),
               /*Container(
                 padding: EdgeInsets.symmetric(horizontal: 6.0),
                 child: CircularPercentIndicator(

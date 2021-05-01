@@ -24,16 +24,16 @@ class _EditPlaylistTitleDialogState extends State<EditPlaylistTitleDialog> {
     loadCurrentPlaylistTitles();
   }
 
-  void loadCurrentPlaylistTitles() async {
+  Future<void> loadCurrentPlaylistTitles() async {
     List<Playlist> _existingPlaylists = await db.getAllPlaylistsMetadata();
     _existingTitles = _existingPlaylists.map((p) => p.title.toLowerCase()).toList();
   }
 
-  void save(BuildContext context) {
+  Future<void> save(BuildContext context) async {
     bool _titleAlreadyUsed = titleIsDuplicated(_title);
     setErrorMessage(_titleAlreadyUsed);
     if (!_titleAlreadyUsed) {
-      db.editPlaylistTitle(widget.playlist, _title);
+      await db.editPlaylistTitle(widget.playlist, _title);
       Navigator.of(context).pop(_title);
     }
   }
@@ -113,8 +113,8 @@ class _EditPlaylistTitleDialogState extends State<EditPlaylistTitleDialog> {
         children: [
           ActionButton(
             text: 'Save',
-            onPressed: () {
-              save(context);
+            onPressed: () async {
+              await save(context);
             },
           ),
           ActionButton(

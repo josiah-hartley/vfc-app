@@ -22,16 +22,16 @@ class _NewPlaylistDialogState extends State<NewPlaylistDialog> {
     loadCurrentPlaylistTitles();
   }
 
-  void loadCurrentPlaylistTitles() async {
+  Future<void> loadCurrentPlaylistTitles() async {
     List<Playlist> _existingPlaylists = await db.getAllPlaylistsMetadata();
     _existingTitles = _existingPlaylists.map((p) => p.title.toLowerCase()).toList();
   }
 
-  void save(BuildContext context) {
+  Future<void> save(BuildContext context) async {
     bool _titleAlreadyUsed = titleIsDuplicated(_title);
     setErrorMessage(_titleAlreadyUsed);
     if (!_titleAlreadyUsed) {
-      db.newPlaylist(_title);
+      await db.newPlaylist(_title);
       Navigator.of(context).pop();
     }
   }
@@ -110,8 +110,8 @@ class _NewPlaylistDialogState extends State<NewPlaylistDialog> {
         children: [
           ActionButton(
             text: 'Add',
-            onPressed: () {
-              save(context);
+            onPressed: () async {
+              await save(context);
             },
           ),
           ActionButton(

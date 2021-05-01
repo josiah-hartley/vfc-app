@@ -14,9 +14,9 @@ class PlayButton extends StatelessWidget {
         return Container(
           child: TextButton(
             child: Text('Play'),
-            onPressed: () {
+            onPressed: () async {
               int _milliseconds = ((message?.lastplayedposition ?? 0.0) * 1000).round();
-              model.setupPlayer(
+              await model.setupPlayer(
                 message: message,
                 position: Duration(milliseconds: _milliseconds),
               );
