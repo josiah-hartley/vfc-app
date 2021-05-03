@@ -4,54 +4,82 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
-import 'package:voices_for_christ/database/local_db.dart';
+import 'package:voices_for_christ/helpers/toasts.dart';
+//import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/buttons/action_button.dart';
 
 class AddToPlaylistDialog extends StatefulWidget {
-  AddToPlaylistDialog({Key key, this.message}) : super(key: key);
+  AddToPlaylistDialog({Key key, this.message, this.allPlaylists, this.playlistsOriginallyContainingMessage}) : super(key: key);
   final Message message;
+  final List<Playlist> allPlaylists;
+  final List<Playlist> playlistsOriginallyContainingMessage;
 
   @override
   _AddToPlaylistDialogState createState() => _AddToPlaylistDialogState();
 }
 
 class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
-  bool _loading;
-  List<Playlist> _allPlaylists = [];
-  List<Playlist> _playlistsOriginallyContainingMessage = [];
+  //bool _loading;
+  //List<Playlist> _allPlaylists = [];
+  //List<Playlist> _playlistsOriginallyContainingMessage = [];
   List<Playlist> _playlistsContainingMessage = [];
-  final db = MessageDB.instance;
+  //final db = MessageDB.instance;
 
   @override
   void initState() {
     super.initState();
-    loadInitialPlaylistData();
+    setState(() {
+      _playlistsContainingMessage = widget.playlistsOriginallyContainingMessage;
+    });
+    //loadInitialPlaylistData();
   }
 
-  Future<void> loadInitialPlaylistData() async {
-    setState(() {
+  //Future<void> loadInitialPlaylistData({List<Playlist> allPlaylists, Function getPlaylistsContainingMessage}) async {
+  Future<void> loadInitialPlaylistData(List<Playlist> allPlaylists) async {
+    /*setState(() {
       _loading = true;
-    });
-    List<Playlist> all = await db.getAllPlaylistsMetadata();
-    List<Playlist> containing = await db.getPlaylistsContainingMessage(widget.message);
+    });*/
+    //List<Playlist> all = await db.getAllPlaylistsMetadata();
+    //List<Playlist> containing = await db.getPlaylistsContainingMessage(widget.message);
+    
+    //List<Playlist> containing = await model.playlistsContainingMessage(widget.message);
     setState(() {
-      _loading = false;
-      _allPlaylists = all;
-      _playlistsOriginallyContainingMessage = containing.toList();
-      _playlistsContainingMessage = containing.toList();
+      //_loading = false;
+      //_allPlaylists = allPlaylists;
+      //_playlistsOriginallyContainingMessage = containing;
+      //_playlistsContainingMessage = containing;
+      _playlistsContainingMessage = widget.playlistsOriginallyContainingMessage;
     });
   }
 
-  Future<void> savePlaylistChanges(Function reloadCurrentPlaylist) async {
-    await db.updatePlaylistsContainingMessage(widget.message, _playlistsContainingMessage);
-    reloadCurrentPlaylist();
+  Future<void> savePlaylistChanges(MainModel model) async {
+    await model.updatePlaylistsContainingMessage(widget.message, _playlistsContainingMessage);
+    //reloadCurrentPlaylist();
+    if (model.selectedPlaylist != null) {
+      int indexOnCurrentPlaylist = model.selectedPlaylist.messages.indexWhere((m) => m.id == widget.message?.id);
+      bool wasOnCurrentPlaylist = indexOnCurrentPlaylist > -1;
+      bool isNowOnCurrentPlaylist = _playlistsContainingMessage.indexWhere((p) => p.id == model.selectedPlaylist?.id) > -1;
+      if (wasOnCurrentPlaylist && !isNowOnCurrentPlaylist) {
+        // remove from current playlist
+        model.removeMessageFromCurrentPlaylistAtIndex(indexOnCurrentPlaylist);
+      } 
+      if (!wasOnCurrentPlaylist && isNowOnCurrentPlaylist) {
+        // add to current playlist
+        model.addMessageToCurrentPlaylist(widget.message);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
       builder: (context, child, model) {
+        /*loadInitialPlaylistData(
+          allPlaylists: model.playlists,
+          getPlaylistsContainingMessage: model.playlistsContainingMessage,
+        );*/
+        //loadInitialPlaylistData(model.playlists);
         return SizedBox.expand(
           child: BackdropFilter(
             filter: ImageFilter.blur(
@@ -66,7 +94,7 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
                   _title(),
                   _playlistSelector(),
                   _actionButtonRow(
-                    reloadCurrentPlaylist: model.loadMessagesOnCurrentPlaylist,
+                    model: model,
                   ),
                 ],
               ),
@@ -98,19 +126,19 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
   }
 
   Widget _playlistSelector() {
-    if (_loading) {
+    /*if (_loading) {
       return Expanded(
         child: Center(
           child: CircularProgressIndicator(),
         ),
       );
-    }
+    }*/
     return Expanded(
       child: Container(
         child: ListView.builder(
-          itemCount: _allPlaylists.length,
+          itemCount: widget.allPlaylists?.length,
           itemBuilder: (context, index) {
-            return _playlistCheckbox(_allPlaylists[index]);
+            return _playlistCheckbox(widget.allPlaylists[index]);
           }
         )
       ),
@@ -160,7 +188,7 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
     );
   }
 
-  Widget _actionButtonRow({Function reloadCurrentPlaylist}) {
+  Widget _actionButtonRow({MainModel model}) {
     return Container(
       padding: EdgeInsets.only(top: 14.0),
       child: Row(
@@ -169,7 +197,7 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
           ActionButton(
             text: 'SAVE',
             onPressed: () async {
-              await savePlaylistChanges(reloadCurrentPlaylist);
+              await savePlaylistChanges(model);
               Navigator.of(context).pop();
             }
           ),

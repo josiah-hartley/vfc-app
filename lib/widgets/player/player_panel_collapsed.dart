@@ -89,29 +89,32 @@ class _PlayerPanelCollapsedState extends State<PlayerPanelCollapsed> {
 
   Widget _titleAndSpeaker(Message message) {
     return Expanded(
-      child: Container(
-        height: Constants.COLLAPSED_PLAYBAR_HEIGHT - 5.0,
-        //onTap: widget.togglePanel,
+      child: GestureDetector(
+        onTap: widget.togglePanel,
         child: Container(
-          color: Theme.of(context).bottomAppBarColor,
-          alignment: Alignment.centerLeft,
-          padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 0.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(message.title,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).accentTextTheme.headline3,
+          height: Constants.COLLAPSED_PLAYBAR_HEIGHT - 5.0,
+          //onTap: widget.togglePanel,
+          child: Container(
+            color: Theme.of(context).bottomAppBarColor,
+            alignment: Alignment.centerLeft,
+            padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 0.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(message.title,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).accentTextTheme.headline3,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Text(speakerReversedName(message.speaker),
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).accentTextTheme.headline4,
+                Expanded(
+                  child: Text(speakerReversedName(message.speaker),
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).accentTextTheme.headline4,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

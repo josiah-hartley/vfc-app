@@ -41,14 +41,48 @@ mixin PlaylistsModel on Model {
     }
   }
 
-  Future<void> deletePlaylist(Playlist playlist) async {
-    await db.deletePlaylist(playlist);
-    await loadPlaylistsMetadata();
+  Future<void> createPlaylist(String title) async {
+    int id = await db.newPlaylist(title);
+    _playlists.insert(0, Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
+    notifyListeners();
   }
 
-  void removeMessageFromPlaylist(int index) {
+  Future<void> deletePlaylist(Playlist playlist) async {
+    await db.deletePlaylist(playlist);
+    _playlists.removeWhere((p) => p.id == playlist.id);
+    notifyListeners();
+    //await loadPlaylistsMetadata();
+  }
+
+  Future<void> editPlaylistTitle(Playlist playlist, String title) async {
+    await db.editPlaylistTitle(playlist, title);
+    playlist.title = title;
+    int index = _playlists.indexWhere((p) => p.id == playlist.id);
+    if (index > -1) {
+      _playlists[index] = playlist;
+      notifyListeners();
+    }
+  }
+
+  void removeMessageFromCurrentPlaylistAtIndex(int index) {
     _selectedPlaylist.messages.removeAt(index);
     notifyListeners();
+  }
+
+  void addMessageToCurrentPlaylist(Message message) {
+    _selectedPlaylist.messages.add(message);
+    notifyListeners();
+  }
+
+  void updateMessageInCurrentPlaylist(Message message) {
+    if (_selectedPlaylist == null || _selectedPlaylist.messages == null) {
+      return;
+    }
+    int index = _selectedPlaylist.messages.indexWhere((m) => m.id == message.id);
+    if (index > -1) {
+      _selectedPlaylist.messages[index] = message;
+      notifyListeners();
+    }
   }
 
   void reorderPlaylist({int oldIndex, int newIndex}) {
@@ -67,5 +101,14 @@ mixin PlaylistsModel on Model {
     if (_selectedPlaylist != null) {
       await db.reorderAllMessagesInPlaylist(_selectedPlaylist, _selectedPlaylist.messages);
     }
+  }
+
+  Future<List<Playlist>> playlistsContainingMessage(Message message) async {
+    List<Playlist> containing = await db.getPlaylistsContainingMessage(message);
+    return containing;
+  }
+
+  Future<void> updatePlaylistsContainingMessage(Message message, List<Playlist> updatedPlaylists) async {
+    await db.updatePlaylistsContainingMessage(message, updatedPlaylists);
   }
 }

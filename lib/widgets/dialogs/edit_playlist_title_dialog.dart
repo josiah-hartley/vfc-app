@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
-import 'package:voices_for_christ/database/local_db.dart';
+//import 'package:voices_for_christ/database/local_db.dart';
+import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/buttons/action_button.dart';
 
 class EditPlaylistTitleDialog extends StatefulWidget {
@@ -16,24 +18,25 @@ class _EditPlaylistTitleDialogState extends State<EditPlaylistTitleDialog> {
   String _title;
   List<String> _existingTitles = [];
   String _errorMessage = '';
-  final db = MessageDB.instance;
+  //final db = MessageDB.instance;
 
   @override
   void initState() { 
     super.initState();
-    loadCurrentPlaylistTitles();
+    //loadCurrentPlaylistTitles();
   }
 
-  Future<void> loadCurrentPlaylistTitles() async {
-    List<Playlist> _existingPlaylists = await db.getAllPlaylistsMetadata();
-    _existingTitles = _existingPlaylists.map((p) => p.title.toLowerCase()).toList();
+  Future<void> loadCurrentPlaylistTitles(List<Playlist> existingPlaylists) async {
+    //List<Playlist> _existingPlaylists = await db.getAllPlaylistsMetadata();
+    _existingTitles = existingPlaylists.map((p) => p.title.toLowerCase()).toList();
   }
 
-  Future<void> save(BuildContext context) async {
+  Future<void> save({BuildContext context, Function onEdit}) async {
     bool _titleAlreadyUsed = titleIsDuplicated(_title);
     setErrorMessage(_titleAlreadyUsed);
     if (!_titleAlreadyUsed) {
-      await db.editPlaylistTitle(widget.playlist, _title);
+      //await db.editPlaylistTitle(widget.playlist, _title);
+      onEdit(widget.playlist, _title);
       Navigator.of(context).pop(_title);
     }
   }
@@ -56,17 +59,22 @@ class _EditPlaylistTitleDialogState extends State<EditPlaylistTitleDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return SimpleDialog(
-      title: Text('Edit Title',
-        style: TextStyle(
-          color: Theme.of(context).accentColor,
-        ),
-      ),
-      children: [
-        _titleInput(),
-        _errorDisplay(),
-        _actionButtonRow(),
-      ],
+    return ScopedModelDescendant<MainModel>(
+      builder: (context, child, model) {
+        loadCurrentPlaylistTitles(model.playlists);
+        return SimpleDialog(
+          title: Text('Edit Title',
+            style: TextStyle(
+              color: Theme.of(context).accentColor,
+            ),
+          ),
+          children: [
+            _titleInput(),
+            _errorDisplay(),
+            _actionButtonRow(model.editPlaylistTitle),
+          ],
+        );
+      }
     );
   }
 
@@ -105,7 +113,7 @@ class _EditPlaylistTitleDialogState extends State<EditPlaylistTitleDialog> {
     );
   }
 
-  Widget _actionButtonRow() {
+  Widget _actionButtonRow(Function onEdit) {
     return Container(
       padding: EdgeInsets.only(top: 14.0, right: 12.0, left: 12.0),
       child: Row(
@@ -114,7 +122,10 @@ class _EditPlaylistTitleDialogState extends State<EditPlaylistTitleDialog> {
           ActionButton(
             text: 'Save',
             onPressed: () async {
-              await save(context);
+              await save(
+                context: context,
+                onEdit: onEdit,
+              );
             },
           ),
           ActionButton(

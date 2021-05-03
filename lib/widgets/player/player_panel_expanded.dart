@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
+import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
@@ -62,11 +63,7 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
                 onSkipPrevious: model.skipPrevious,
                 onSkipNext: model.skipNext,
               ),
-              _extraActions(
-                message: model.currentlyPlayingMessage,
-                playbackSpeed: model.playbackSpeed,
-                onPlaybackSpeedChanged: model.setSpeed,
-              ),
+              _extraActions(model),
             ],
           ),
         );
@@ -276,7 +273,7 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
     );
   }
 
-  Widget _extraActions({Message message, double playbackSpeed, Function onPlaybackSpeedChanged}) {
+  Widget _extraActions(MainModel model) {
     return Container(
       padding: EdgeInsets.only(top: 15.0, bottom: 40.0),
       child: Row(
@@ -285,10 +282,10 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
         children: [
           _viewQueue(),
           _playbackSpeed(
-            speed: playbackSpeed,
-            onChanged: onPlaybackSpeedChanged,
+            speed: model.playbackSpeed,
+            onChanged: model.setSpeed,
           ),
-          _addToPlaylist(message: message),
+          _addToPlaylist(message: model.currentlyPlayingMessage, model: model),
         ],
       ),
     );
@@ -345,7 +342,7 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
     );
   }
 
-  Widget _addToPlaylist({Message message}) {
+  Widget _addToPlaylist({Message message, MainModel model}) {
     return GestureDetector(
       child: Container(
         decoration: BoxDecoration(
@@ -360,11 +357,16 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
         margin: EdgeInsets.only(left: 3.0),
         child: Icon(Icons.playlist_add, size: 28.0, color: Colors.white),
       ),
-      onTap: () {
+      onTap: () async {
+        List<Playlist> containing = await model.playlistsContainingMessage(message);
         showDialog(
           context: context, 
           builder: (context) {
-            return AddToPlaylistDialog(message: message);
+            return AddToPlaylistDialog(
+              message: message,
+              allPlaylists: model.playlists,
+              playlistsOriginallyContainingMessage: containing,
+            );
           }
         );
       },

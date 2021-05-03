@@ -7,24 +7,34 @@ import 'package:voices_for_christ/scoped_models/playlists_model.dart';
 
 class MainModel extends Model with PlayerModel, FavoritesModel, DownloadsModel, PlaylistsModel {
   Future<void> initialize() async {
-    await initializePlayer();
+    await initializePlayer(onChangedMessage: (Message message) {
+      updateDownloadedMessage(message);
+      updateFavoritedMessage(message);
+      updateMessageInCurrentPlaylist(message);
+    });
     await loadPlaylistsMetadata();
-    await loadFavorites();
-    await loadDownloads();
+    await loadFavoritesFromDB();
+    await loadDownloadsFromDB();
   }
 
   Future<void> setMessagePlayed(Message message) async {
     await db.setPlayed(message);
-    await loadDownloads();
-    await loadFavorites();
-    notifyListeners();
+    updateDownloadedMessage(message);
+    updateFavoritedMessage(message);
+    updateMessageInCurrentPlaylist(message);
+    //await loadDownloads();
+    //await loadFavorites();
+    //notifyListeners();
   }
 
   Future<void> setMessageUnplayed(Message message) async {
     await db.setUnplayed(message);
-    await loadDownloads();
-    await loadFavorites();
-    notifyListeners();
+    updateDownloadedMessage(message);
+    updateFavoritedMessage(message);
+    updateMessageInCurrentPlaylist(message);
+    //await loadDownloads();
+    //await loadFavorites();
+    //notifyListeners();
   }
 
   Future<void> deleteMessage(Message message) async {

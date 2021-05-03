@@ -30,15 +30,15 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           });
         }*/
         //if (model.selectedPlaylist == null) {
-        model.loadPlaylistsMetadata();
+        //model.loadPlaylistsMetadata();
           return _listOfPlaylists(
             playlists: model.playlists,
             onOpenPlaylist: (index) async {
               if (_loadingPlaylist) {
                 return;
               }
+              // avoid locking database; if one playlist is opening, can't open another
               _loadingPlaylist = true;
-              print('opening playlist: ${model.playlists[index - 1].title}');
               await model.selectPlaylist(model.playlists[index - 1]);
               _loadingPlaylist = false;
               //Playlist p = model.playlists[index - 1];

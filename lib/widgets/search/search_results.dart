@@ -1,11 +1,10 @@
 import 'dart:collection';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/widgets/message_display/message_card.dart';
-import 'package:voices_for_christ/widgets/message_display/message_metadata.dart';
+//import 'package:voices_for_christ/widgets/message_display/message_metadata.dart';
 import 'package:voices_for_christ/widgets/message_display/multiselect_display.dart';
 
 class SearchResultsDisplay extends StatefulWidget {

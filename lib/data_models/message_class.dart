@@ -1,5 +1,5 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:voices_for_christ/database/local_db.dart';
+//import 'package:voices_for_christ/database/local_db.dart';
 
 class Message {
   int id;
@@ -129,15 +129,17 @@ class Message {
   MediaItem toMediaItem() {
     double seconds = durationinseconds ?? 0.0;
     int milliseconds = (seconds * 1000).round();
+    Map<String, dynamic> _extras = toMap();
     return MediaItem(
       id: filepath,
       title: title,
       duration: Duration(milliseconds: milliseconds),
       artist: speaker,
       album: speaker,
-      extras: {
+      extras: _extras,
+      /*extras: {
         'messageId': id,
-      }
+      }*/
     );
   }
 
@@ -146,16 +148,19 @@ class Message {
   }
 }
 
-Future<Message> messageFromMediaItem(MediaItem mediaItem) async {
+Message messageFromMediaItem(MediaItem mediaItem) {
   if (mediaItem == null || mediaItem.extras == null) {
     return null;
   }
-  int id = mediaItem.extras['messageId'] ?? -1;
+  Message result = Message.fromMap(mediaItem.extras);
+  return result;
+  //int id = mediaItem.extras['messageId'] ?? -1;
+  /*int id = mediaItem.extras['id'] ?? -1;
   if (id > -1) {
     final db = MessageDB.instance;
     Message result = await db.queryOne(id);
     return result;
   } else {
     return null;
-  }
+  }*/
 }

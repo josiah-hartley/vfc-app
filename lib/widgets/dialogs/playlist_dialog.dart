@@ -288,7 +288,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () { model.removeMessageFromPlaylist(i); },
+                      onTap: () { model.removeMessageFromCurrentPlaylistAtIndex(i); },
                       child: Container(
                         padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
                         child: Icon(CupertinoIcons.xmark,

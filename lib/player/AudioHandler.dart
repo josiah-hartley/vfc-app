@@ -38,14 +38,14 @@ class VFCAudioHandler extends BaseAudioHandler {
   updateQueue(List<MediaItem> newQueue) async {
     _queue = newQueue;
     queue.add(_playableQueue(_queue));
-    try {
+    /*try {
       print('ready to set audio source');
       await setAudioSource();
       print('audio source has been set');
     } catch (error) {
       print('Error setting audio source: $error');
-    }
-    //await broadcastQueueChanges();
+    }*/
+    await broadcastQueueChanges();
   }
   Future<void> broadcastQueueChanges() async {
     queue.add(_playableQueue(_queue));
@@ -60,9 +60,6 @@ class VFCAudioHandler extends BaseAudioHandler {
   }
   Future<void> setAudioSource() async {
     List<MediaItem> _validQueue = _playableQueue(_queue);
-    for (int i = 0; i < _validQueue.length; i++) {
-      print('MEDIAITEM IS ${_validQueue[i]}');
-    }
     await _player.setAudioSource(ConcatenatingAudioSource(
       children: _validQueue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
     ));

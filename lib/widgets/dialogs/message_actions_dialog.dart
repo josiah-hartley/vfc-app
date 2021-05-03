@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+//import 'package:fluttertoast/fluttertoast.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
@@ -48,7 +48,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
     int _indexInQueue = model.queue.indexWhere((m) => m.id == widget.message?.id);
     return [
       _title(),
-      _progress(),
+      _progress(model),
       _playAction(
         model: model,
         message: widget.message,
@@ -61,11 +61,16 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         icon: Icons.playlist_add,
         color: Theme.of(context).accentColor,
         text: 'Add to Playlist',
-        onPressed: () {
+        onPressed: () async {
+          List<Playlist> containing = await model.playlistsContainingMessage(widget.message);
           showDialog(
             context: context, 
             builder: (context) {
-              return AddToPlaylistDialog(message: widget.message);
+              return AddToPlaylistDialog(
+                message: widget.message,
+                allPlaylists: model.playlists,
+                playlistsOriginallyContainingMessage: containing,
+              );
             }
           );
         }
@@ -130,7 +135,8 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
           ),*/
           GestureDetector(
             child: Container(
-              padding: EdgeInsets.only(right: 12.0),
+              color: Theme.of(context).backgroundColor.withOpacity(0.01),
+              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
               child: Icon(CupertinoIcons.back, 
                 size: 34.0,
                 color: Theme.of(context).accentColor
@@ -164,17 +170,53 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
           ),
         ],
       ),
-      decoration: BoxDecoration(
+      /*decoration: BoxDecoration(
         border: Border(bottom: BorderSide(
           color: Theme.of(context).accentColor
         ))
-      ),
+      ),*/
     );
   }
 
-  Widget _progress() {
-    return Container(
+  Widget _progress(MainModel model) {
+    if (widget.message?.id == model.currentlyPlayingMessage?.id) {
+      return StreamBuilder(
+        stream: model.currentPositionStream,
+        builder: (context, snapshot) {
+          Duration currentPosition = snapshot.data ?? Duration(seconds: 0);
+          Duration totalLength = model.duration ?? Duration(seconds: 0);
+          double progress = totalLength.inSeconds > 0 
+            ? currentPosition.inSeconds / totalLength.inSeconds
+            : 0.0;
+          return _progressBar(progress);
+        },
+      );
+    }
+    double lastPlayedSeconds = widget.message?.lastplayedposition ?? 0.0;
+    double totalSeconds = widget.message?.durationinseconds ?? 0.0;
+    double progress = totalSeconds > 0 
+      ? lastPlayedSeconds / totalSeconds
+      : 0.0;
+    return _progressBar(progress);
+    /*return Container(
       child: Text(widget.message.lastplayedposition.toString()),
+    );*/
+  }
+
+  Widget _progressBar(double progress) {
+    return Container(
+      height: 3.0,
+      child: Row(
+        children: [
+          Container(
+            width: progress * MediaQuery.of(context).size.width,
+            color: Colors.white,
+          ),
+          Expanded(
+            child: Container(color: Colors.white.withOpacity(0.5),),
+          )
+        ],
+      ),
     );
   }
 
@@ -274,7 +316,6 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         onPressed: () async {
           if (message?.id != model.currentlyPlayingMessage?.id) {
             await model.deleteMessage(message);
-            await model.loadDownloads();
           } else {
             showToast('Cannot delete while message is playing');
           }
@@ -314,7 +355,6 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
       text: 'Download',
       onPressed: () async {
         await model.downloadMessage(message);
-        await model.loadDownloads();
       }
     );
   }

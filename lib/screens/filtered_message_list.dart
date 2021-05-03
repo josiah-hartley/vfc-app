@@ -1,5 +1,4 @@
 import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:scoped_model/scoped_model.dart';
@@ -70,6 +69,8 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
                 fullEmptyMessage: widget.filterType == 'favorites' ? 'If you mark any messages as favorites, they will appear here' : 'If you download any messages, they will appear here',
                 unplayedEmptyMessage: widget.filterType == 'favorites' ? 'Any unplayed favorites will appear here' : 'Any unplayed downloads will appear here',
                 playedEmptyMessage: widget.filterType == 'favorites' ? 'Any played favorites will appear here' : 'Any played downloads will appear here',
+                reachedEndOfList: widget.filterType == 'favorites' ? model.reachedEndOFavoritesList : model.reachedEndOfDownloadsList,
+                loadMoreResults: widget.filterType == 'favorites' ? model.loadFavoritesFromDB : model.loadDownloadsFromDB,
               )
             ],
           ),
@@ -129,6 +130,8 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
       String fullEmptyMessage,
       String unplayedEmptyMessage,
       String playedEmptyMessage,
+      bool reachedEndOfList,
+      Function loadMoreResults,
     }) {
       List<Message> messageList;
       String emptyMessage = '';
@@ -170,17 +173,26 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
             padding: EdgeInsets.only(top: 0.0),
             itemCount: messageList.length + 1,
             itemBuilder: (context, index) {
-              if (index < messageList.length) {
-                Message message = messageList[index];
-                return MessageCard(
-                  message: message,
-                  selected: _selectedMessages.contains(message),
-                  onSelect: () {
-                    _toggleMessageSelection(message);
-                  },
+              if (index >= messageList.length) {
+                if (reachedEndOfList) {
+                  return SizedBox(height: 250.0); 
+                }
+                return Container(
+                  height: 250.0,
+                  child: CircularProgressIndicator(),
                 );
               }
-              return SizedBox(height: 250.0);
+              if (index + Constants.MESSAGE_LOADING_BATCH_SIZE / 2 >= messageList.length && !reachedEndOfList) {
+                loadMoreResults();
+              }
+              Message message = messageList[index];
+              return MessageCard(
+                message: message,
+                selected: _selectedMessages.contains(message),
+                onSelect: () {
+                  _toggleMessageSelection(message);
+                },
+              );
             },
           ),
         ),

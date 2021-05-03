@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
-import 'package:voices_for_christ/scoped_models/main_model.dart';
-import 'package:voices_for_christ/widgets/buttons/download_button_deprecated.dart';
-import 'package:voices_for_christ/widgets/buttons/play_button_deprecated.dart';
-import 'package:voices_for_christ/widgets/buttons/stop_button.dart';
+//import 'package:voices_for_christ/scoped_models/main_model.dart';
+//import 'package:voices_for_christ/widgets/buttons/download_button_deprecated.dart';
+//import 'package:voices_for_christ/widgets/buttons/play_button_deprecated.dart';
+//import 'package:voices_for_christ/widgets/buttons/stop_button.dart';
 import 'package:voices_for_christ/widgets/dialogs/message_actions_dialog.dart';
 import 'package:voices_for_christ/widgets/message_display/message_metadata.dart';
 

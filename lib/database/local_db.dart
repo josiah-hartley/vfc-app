@@ -227,26 +227,74 @@ class MessageDB {
     return [];
   }
 
-  Future<List<Message>> queryFavorites() async {
+  Future<List<Message>> queryFavorites({int start, int end, String orderBy, bool ascending = true}) async {
     Database db = await instance.database;
-    var result = await db.query(_messageTable, where: 'isfavorite = ?', whereArgs: [1]);
+    String query = 'SELECT * from $_messageTable WHERE isfavorite = 1';
+
+    if (orderBy != null) {
+      query += ' ORDER BY ' + orderBy;
+      ascending ? query += ' ASC' : query += ' DESC';
+    }
+
+    if (start != null && end != null) {
+      query += ' LIMIT ${(end - start).toString()} OFFSET ${start.toString()}';
+    }
+    
+    try {
+      var result = await db.rawQuery(query);
+
+      if (result.isNotEmpty) {
+        List<Message> messages = result.map((msgMap) => Message.fromMap(msgMap)).toList();
+        return messages;
+      }
+      return [];
+    } catch (error) {
+      print('Error loading favorites: $error');
+      return [];
+    }
+    /*var result = await db.query(_messageTable, where: 'isfavorite = ?', whereArgs: [1]);
 
     if (result.isNotEmpty) {
       List<Message> messages = result.map((msgMap) => Message.fromMap(msgMap)).toList();
       return messages;
     }
-    return [];
+    return [];*/
   }
 
-  Future<List<Message>> queryDownloads() async {
+  Future<List<Message>> queryDownloads({int start, int end, String orderBy, bool ascending = true}) async {
     Database db = await instance.database;
-    var result = await db.query(_messageTable, where: 'isdownloaded = ?', whereArgs: [1]);
+
+    String query = 'SELECT * from $_messageTable WHERE isdownloaded = 1';
+
+    if (orderBy != null) {
+      query += ' ORDER BY ' + orderBy;
+      ascending ? query += ' ASC' : query += ' DESC';
+    }
+
+    if (start != null && end != null) {
+      query += ' LIMIT ${(end - start).toString()} OFFSET ${start.toString()}';
+    }
+    
+    try {
+      var result = await db.rawQuery(query);
+
+      if (result.isNotEmpty) {
+        List<Message> messages = result.map((msgMap) => Message.fromMap(msgMap)).toList();
+        return messages;
+      }
+      return [];
+    } catch (error) {
+      print('Error loading downloads: $error');
+      return [];
+    }
+
+    /*var result = await db.query(_messageTable, where: 'isdownloaded = ?', whereArgs: [1]);
 
     if (result.isNotEmpty) {
       List<Message> messages = result.map((msgMap) => Message.fromMap(msgMap)).toList();
       return messages;
     }
-    return [];
+    return [];*/
   }
 
   List<String> searchArguments(String searchTerm) {
@@ -646,7 +694,22 @@ class MessageDB {
         WHERE playlistid = ?
       ''', [playlistId]);
 
-      for (Message message in messages) {
+      await db.transaction((txn) async {
+        Batch batch = txn.batch();
+
+        for (Message message in messages) {
+          batch.rawInsert('''
+            INSERT INTO $_messagesInPlaylist(messageid, playlistid, messagerank)
+            VALUES(?, ?, ?)
+          ''', [message.id, playlistId, rank]);
+          rank += 1;
+        }
+
+        await batch.commit();
+        return;
+      });
+
+      /*for (Message message in messages) {
         await db.rawInsert('''
           INSERT INTO $_messagesInPlaylist(messageid, playlistid, messagerank)
           VALUES(?, ?, ?)
@@ -658,7 +721,7 @@ class MessageDB {
         ''', [rank, playlistId, message.id]);*/
         rank += 1;
       }
-      return;
+      return;*/
     } catch (error) {
       print(error);
       return;
