@@ -7,6 +7,7 @@ import 'package:voices_for_christ/data_models/playlist_class.dart';
 //import 'package:voices_for_christ/widgets/buttons/stop_button.dart';
 import 'package:voices_for_christ/widgets/dialogs/message_actions_dialog.dart';
 import 'package:voices_for_christ/widgets/message_display/message_metadata.dart';
+import 'package:voices_for_christ/widgets/player/progress_display_bar.dart';
 
 class MessageCard extends StatelessWidget {
   const MessageCard({Key key, this.message, this.playlist, this.selected, this.onSelect}) : super(key: key);
@@ -37,8 +38,10 @@ class MessageCard extends StatelessWidget {
               children: [
                 initialSticker(
                   context: context,
-                  name: message.speaker, 
+                  name: message.speaker,
+                  isFavorite: message.isfavorite == 1, 
                   borderColor: Theme.of(context).accentColor,
+                  borderWidth: message.isdownloaded == 1 ? 2.0 : 1.0,
                   selected: selected,
                   onSelect: onSelect,
                 ),
@@ -51,6 +54,14 @@ class MessageCard extends StatelessWidget {
                 ),
               ],
             ),
+            //message.isdownloaded == 1 ? 
+            ProgressDisplayBar(
+              message: message,
+              height: 1.5,
+              color: Theme.of(context).accentColor,
+              unplayedOpacity: 0.2,
+            )
+            //: Container(),
             /*Row(
               children: [
                 DownloadButton(message: message),

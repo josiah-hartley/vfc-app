@@ -5,6 +5,7 @@ import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
+import 'package:voices_for_christ/widgets/player/progress_display_bar.dart';
 
 class PlayerPanelCollapsed extends StatefulWidget {
   PlayerPanelCollapsed({Key key, this.panelOpen, this.togglePanel}) : super(key: key);
@@ -32,9 +33,15 @@ class _PlayerPanelCollapsedState extends State<PlayerPanelCollapsed> {
           ),
           child: Column(
             children: [
-              _minimizedProgressBar(
+              /*_minimizedProgressBar(
                 currentPositionStream: model.currentPositionStream,
                 duration: model.duration,
+              ),*/
+              ProgressDisplayBar(
+                message: model.currentlyPlayingMessage,
+                height: 4.0,
+                color: Colors.white,
+                unplayedOpacity: 0.5,
               ),
               Row(
                 children: [

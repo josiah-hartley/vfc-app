@@ -8,6 +8,7 @@ import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
+import 'package:voices_for_christ/widgets/player/progress_display_bar.dart';
 
 class MessageActionsDialog extends StatefulWidget {
   MessageActionsDialog({Key key, this.message, this.currentPlaylist}) : super(key: key);
@@ -48,7 +49,13 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
     int _indexInQueue = model.queue.indexWhere((m) => m.id == widget.message?.id);
     return [
       _title(),
-      _progress(model),
+      //_progress(model),
+      ProgressDisplayBar(
+        message: widget.message,
+        height: 3.0,
+        color: Theme.of(context).accentColor,
+        unplayedOpacity: 0.3,
+      ),
       _playAction(
         model: model,
         message: widget.message,
@@ -210,10 +217,10 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         children: [
           Container(
             width: progress * MediaQuery.of(context).size.width,
-            color: Colors.white,
+            color: Theme.of(context).accentColor,
           ),
           Expanded(
-            child: Container(color: Colors.white.withOpacity(0.5),),
+            child: Container(color: Theme.of(context).accentColor.withOpacity(0.3),),
           )
         ],
       ),

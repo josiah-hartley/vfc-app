@@ -42,6 +42,9 @@ class _SearchResultsDisplayState extends State<SearchResultsDisplay> {
 
   @override
   Widget build(BuildContext context) {
+    if ((widget.searchResults?.length ?? 0) < 1) {
+      _deselectAll();
+    }
     return Expanded(
       child: widget.searchResults.length == 0
         ? Container()
@@ -76,13 +79,12 @@ class _SearchResultsDisplayState extends State<SearchResultsDisplay> {
                       if (!widget.reachedEndOfList) {
                         return Container(
                           height: 100.0,
-                          child: Center(child: Text('LOADING')),
+                          child: Center(child: Text('LOADING',
+                            style: TextStyle(color: Theme.of(context).accentColor),
+                          )),
                         );
                       }
-                      return Container(
-                        height: 100.0,
-                        child: Center(child: Text('END OF LIST')),
-                      );
+                      return SizedBox(height: 300.0);
                     }
                     if (index + 1 >= widget.searchResults.length && !widget.reachedEndOfList) {
                       widget.loadMoreResults();

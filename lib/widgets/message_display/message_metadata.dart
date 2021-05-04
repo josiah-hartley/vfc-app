@@ -1,9 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/helpers/duration_in_minutes.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 
-Widget initialSticker({BuildContext context, String name, Color borderColor, bool selected, Function onSelect}) {
+Widget initialSticker({BuildContext context, String name, bool isFavorite = false, Color borderColor, double borderWidth = 1.0, bool selected, Function onSelect}) {
   String initials = '';
   // split on a comma, a space, or a comma followed by a space
   List<String> names = name.split(RegExp(r",\ |,|\ "));
@@ -19,32 +20,61 @@ Widget initialSticker({BuildContext context, String name, Color borderColor, boo
   }*/
   return GestureDetector(
     onTap: onSelect,
-    child: Container(
-      padding: EdgeInsets.only(left: 10.0),
-      child: Container(
-        child: selected ?? false
-          ? Icon(Icons.check, color: Theme.of(context).primaryColor)
-          : Text(initials,
-            style: TextStyle(
-              fontSize: 14.0,
-              fontWeight: FontWeight.w400,
-              color: initialStickerColors(initials)['textColor'] ?? Colors.white,
+    child: Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          padding: EdgeInsets.only(left: 10.0),
+          child: Container(
+            child: selected ?? false
+              ? Icon(Icons.check, color: Theme.of(context).primaryColor)
+              : Text(initials,
+                style: TextStyle(
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.w400,
+                  color: initialStickerColors(initials)['textColor'] ?? Colors.white,
+                )
+            ),
+            height: 40.0,
+            width: 40.0,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ?? false
+                ? Theme.of(context).highlightColor
+                : initialStickerColors(initials)['backgroundColor'] ?? Colors.black,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: borderColor,
+                width: borderWidth,
+              )
+            ),
+          ),
+        ),
+        /*Positioned(
+          left: 35,
+          bottom: 25,
+          child: isFavorite
+            ? Container(
+              child: Icon(CupertinoIcons.star_fill, 
+                size: 22.0,
+                color: Theme.of(context).primaryColor,
+              ),
             )
+            : Container(),
         ),
-        height: 40.0,
-        width: 40.0,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ?? false
-            ? Theme.of(context).highlightColor
-            : initialStickerColors(initials)['backgroundColor'] ?? Colors.black,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: borderColor,
-            width: 1.0,
-          )
-        ),
-      ),
+        Positioned(
+          left: 38,
+          bottom: 28,
+          child: isFavorite
+            ? Container(
+              child: Icon(CupertinoIcons.star_fill, 
+                size: 16.0,
+                color: Theme.of(context).highlightColor,
+              ),
+            )
+            : Container(),
+        ),*/
+      ],
     ),
   );
 }
@@ -110,7 +140,7 @@ Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color
           overflow: truncateTitle ? TextOverflow.ellipsis : TextOverflow.visible,
           style: TextStyle(
             fontSize: 17.0,
-            fontWeight: message.isdownloaded == 1 ? FontWeight.w500 : FontWeight.w400,
+            fontWeight: message.isdownloaded == 1 ? FontWeight.w800 : FontWeight.w400,
             color: message.isdownloaded == 1 ? textColor : textColor.withOpacity(0.9),
             //fontWeight: FontWeight.bold,
           ),
@@ -125,8 +155,8 @@ Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color
                   style: TextStyle(
                     fontSize: 16.0,
                     //fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w500,
-                    color: message.isdownloaded == 1 ? textColor.withOpacity(0.9) : textColor.withOpacity(1.0),
+                    fontWeight: message.isdownloaded == 1 ? FontWeight.w600 : FontWeight.w400,
+                    color: message.isdownloaded == 1 ? textColor.withOpacity(1.0) : textColor.withOpacity(0.85),
                   ),
                 ),
               ),

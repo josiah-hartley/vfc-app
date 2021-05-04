@@ -1,7 +1,7 @@
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
-import 'package:voices_for_christ/files/downloads.dart';
+import 'package:voices_for_christ/files/downloads_new.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 
@@ -122,10 +122,8 @@ mixin DownloadsModel on Model {
     notifyListeners();
 
     try {
-      //Message result = await downloadMessageFile(message);
-      //message = result;
-      //message.iscurrentlydownloading = 0;
       message = await downloadMessageFile(message);
+      await db.update(message);
       showToast('Finished downloading ${message.title}');
       addMessageToDownloadedList(message);
       notifyListeners();
@@ -133,6 +131,7 @@ mixin DownloadsModel on Model {
     catch (error) {
       message.iscurrentlydownloading = 0;
       message.isdownloaded = 0;
+      await db.update(message);
       showToast('Error downloading ${message.title}: check connection');
       notifyListeners();
     }
@@ -141,10 +140,8 @@ mixin DownloadsModel on Model {
   Future<void> deleteMessageDownload(Message message) async {
     try {
       message = await deleteMessageFile(message);
-      //message.isdownloaded = 0;
-      //message.filepath = '';
-      //await db.update(message);
       removeMessageFromDownloadedList(message);
+      await db.update(message);
       showToast('Download deleted: ${message.title}');
       notifyListeners();
     } catch (error) {

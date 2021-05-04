@@ -30,16 +30,17 @@ dependencies:
       ref: 9c1dfc4
   audio_session: ^0.1.0
   cupertino_icons: ^1.0.0
-  flutter_downloader: ^1.5.2
+  dio: ^4.0.0
+  #flutter_downloader: ^1.5.2
   #flutter_local_notifications: ^4.0.1
   fluttertoast: ^8.0.6
   google_fonts: ^2.0.0
-  html: ^0.14.0+4
+  #html: ^0.14.0+4
   http: ^0.13.0
   just_audio: ^0.7.2
   path: ^1.7.0
   path_provider: ^2.0.1
-  percent_indicator: ^2.1.9+1
+  #percent_indicator: ^2.1.9+1
   #phone_state_i: ^0.0.3
   scoped_model: ^1.1.0
   shared_preferences: ^2.0.4
