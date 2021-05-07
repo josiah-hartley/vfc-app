@@ -37,12 +37,16 @@ class MainModel extends Model with PlayerModel, FavoritesModel, DownloadsModel, 
     //notifyListeners();
   }
 
-  Future<void> deleteMessage(Message message) async {
-    await deleteMessageDownload(message);
-    // if it's in the queue, remove it
-    int index = queue.indexWhere((m) => m.id == message.id);
-    if (index > -1) {
-      removeFromQueue(index);
+  Future<void> deleteMessages(List<Message> messages) async {
+    // can't delete currently playing message
+    messages.removeWhere((m) => m.id == currentlyPlayingMessage.id);
+    await deleteMessageDownloads(messages);
+    for (int i = 0; i < messages.length; i++) {
+      // if it's in the queue, remove it
+      int index = queue.indexWhere((m) => m.id == messages[i].id);
+      if (index > -1) {
+        removeFromQueue(index);
+      }
     }
   }
 }

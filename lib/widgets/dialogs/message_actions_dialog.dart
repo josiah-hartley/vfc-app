@@ -322,7 +322,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         text: 'Remove Download',
         onPressed: () async {
           if (message?.id != model.currentlyPlayingMessage?.id) {
-            await model.deleteMessage(message);
+            await model.deleteMessages([message]);
           } else {
             showToast('Cannot delete while message is playing');
           }
@@ -361,7 +361,8 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
       iconSize: 34.0,
       text: 'Download',
       onPressed: () async {
-        await model.downloadMessage(message);
+        //await model.downloadMessage(message);
+        model.addMessagesToDownloadQueue([message]);
       }
     );
   }

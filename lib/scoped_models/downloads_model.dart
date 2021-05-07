@@ -1,12 +1,19 @@
+import 'dart:collection';
+import 'package:connectivity/connectivity.dart';
+import 'package:dio/dio.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:voices_for_christ/data_models/download_class.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
-import 'package:voices_for_christ/files/downloads_new.dart';
+import 'package:voices_for_christ/files/file_downloads.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 
 mixin DownloadsModel on Model {
   final db = MessageDB.instance;
+  final dio = Dio();
+  Queue<Download> _currentlyDownloading = Queue();
+  Queue<Download> _downloadQueue = Queue();
   List<Message> _downloads = [];
   List<Message> _unplayedDownloads = [];
   List<Message> _playedDownloads = [];
@@ -15,7 +22,16 @@ mixin DownloadsModel on Model {
   int _downloadsLoadingBatchSize = Constants.MESSAGE_LOADING_BATCH_SIZE;
   bool _reachedEndOfDownloadsList = false;
 
+  Queue<Download> get currentlyDownloading => _currentlyDownloading;
+  Queue<Download> get downloadQueue => _downloadQueue;
   List<Message> get downloads => _downloads;
+  /*List<Message> get downloads {
+    List<Message> result = _currentlyDownloading.map((e) => e.message).toList();
+    List<Message> queue = _downloadQueue.map((e) => e.message).toList();
+    result.addAll(queue);
+    result.addAll(_downloads);
+    return result;
+  }*/
   List<Message> get unplayedDownloads => _unplayedDownloads;
   List<Message> get playedDownloads => _playedDownloads;
   bool get downloadsLoading => _downloadsLoading;
@@ -95,25 +111,140 @@ mixin DownloadsModel on Model {
       if (wasPreviouslyPlayed) {
         int indexInPlayedDownloads = _playedDownloads.indexWhere((m) => m.id == message.id);
         if (message.isplayed == 1) {
-          _playedDownloads[indexInPlayedDownloads] = message;
+          if (indexInPlayedDownloads > -1) {
+            _playedDownloads[indexInPlayedDownloads] = message;
+          }
         } else {
-          _playedDownloads.removeAt(indexInPlayedDownloads);
+          if (indexInPlayedDownloads > -1) {
+            _playedDownloads.removeAt(indexInPlayedDownloads);
+          }
           _unplayedDownloads.add(message);
         }
       } else {
         int indexInUnplayedDownloads = _unplayedDownloads.indexWhere((m) => m.id == message.id);
         if (message.isplayed == 1) {
-          _unplayedDownloads.removeAt(indexInUnplayedDownloads);
+          if (indexInUnplayedDownloads > -1) {
+            _unplayedDownloads.removeAt(indexInUnplayedDownloads);
+          }
           _playedDownloads.add(message);
         } else {
-          _unplayedDownloads[indexInUnplayedDownloads] = message;
+          if (indexInUnplayedDownloads > -1) {
+            _unplayedDownloads[indexInUnplayedDownloads] = message;
+          }
         }
       }
     }
     notifyListeners();
   }
 
-  Future<void> downloadMessage(Message message) async {
+  /*void addMessageToDownloadQueue(Message message) {
+    CancelToken cancelToken = CancelToken();
+    Download task = Download(
+      message: message,
+      cancelToken: cancelToken,
+    );
+
+    if (_currentlyDownloading.length <= Constants.ACTIVE_DOWNLOAD_QUEUE_SIZE) {
+      _currentlyDownloading.add(task);
+      executeDownloadTask(task);
+    } else {
+      _downloadQueue.add(task);
+    }
+  }*/
+
+  void addMessagesToDownloadQueue(List<Message> messages) {
+    List<Download> tasks = [];
+    messages.forEach((message) {
+      if (message.isdownloaded != 1) {
+        CancelToken token = CancelToken();
+        tasks.add(Download(
+          message: message,
+          cancelToken: token,
+        ));
+      }
+    });
+
+    tasks.forEach((task) {
+      if (_currentlyDownloading.length < Constants.ACTIVE_DOWNLOAD_QUEUE_SIZE) {
+        print('DOWNLOADQUEUE: adding ${task.message.title} to currently downloading');
+        _currentlyDownloading.add(task);
+        executeDownloadTask(task);
+      } else {
+        print('DOWNLOADQUEUE: adding ${task.message.title} to download queue');
+        _downloadQueue.add(task);
+      }
+    });
+  }
+
+  void advanceDownloadsQueue() {
+    print('DOWNLOADQUEUE: advancing download queue');
+    if (_downloadQueue.length < 1) {
+      return;
+    }
+    Download result = _downloadQueue.removeFirst();
+    print('DOWNLOADQUEUE: moving ${result.message.title} to active downloads');
+    _currentlyDownloading.add(result);
+    notifyListeners();
+    executeDownloadTask(result);
+  }
+
+  void executeDownloadTask(Download task) async {
+    print('DOWNLOADQUEUE: executing download task: ${task.message.title}');
+    if (task.message == null || task.message.isdownloaded == 1) {
+      return;
+    }
+
+    try {
+      task.message.iscurrentlydownloading = 1;
+      task.message = await downloadMessageFile(
+        task: task,
+        onReceiveProgress: (int current, int total) {
+          task.bytesReceived = current;
+          task.size = total;
+          notifyListeners();
+        }
+      );
+      task.message.iscurrentlydownloading = 0;
+      await db.update(task.message);
+      showToast('Finished downloading ${task.message.title}');
+      addMessageToDownloadedList(task.message);
+      _currentlyDownloading.removeWhere((t) => t.message.id == task.message.id);
+      advanceDownloadsQueue();
+    } on Exception catch(error) {
+      if (error.toString().indexOf('DioErrorType.cancel') > -1) {
+        task.message.iscurrentlydownloading = 0;
+        task.message.isdownloaded = 0;
+        await db.update(task.message);
+        showToast('Canceled download: ${task.message.title}');
+      } else {
+        showToast('Error downloading ${task.message.title}: check connection');
+      }
+    } catch(error) {
+      print('Error executing download task: $error');
+      task.message.iscurrentlydownloading = 0;
+      task.message.isdownloaded = 0;
+      await db.update(task.message);
+      showToast('Error downloading ${task.message.title}: check connection');
+      ConnectivityResult connection = await Connectivity().checkConnectivity();
+      if (connection == ConnectivityResult.none) {
+        // pause all downloads
+      } else {
+        advanceDownloadsQueue();
+      }
+    }
+  }
+
+  void cancelDownload(Download task) {
+    task.cancelToken.cancel();
+    _currentlyDownloading.removeWhere((t) => t.message?.id == task.message?.id);
+    _downloadQueue.removeWhere((t) => t.message?.id == task.message?.id);
+    if (_currentlyDownloading.length < Constants.ACTIVE_DOWNLOAD_QUEUE_SIZE) {
+      advanceDownloadsQueue();
+    }
+    notifyListeners();
+  }
+
+  /*Future<void> downloadMessage(Message message) async {
     if (message.isdownloaded == 1) {
       return;
     }
@@ -135,17 +266,26 @@ mixin DownloadsModel on Model {
       showToast('Error downloading ${message.title}: check connection');
       notifyListeners();
     }
-  }
+  }*/
 
-  Future<void> deleteMessageDownload(Message message) async {
+  Future<void> deleteMessageDownloads(List<Message> messages) async {
     try {
-      message = await deleteMessageFile(message);
-      removeMessageFromDownloadedList(message);
-      await db.update(message);
-      showToast('Download deleted: ${message.title}');
+      await deleteMessageFiles(messages);
+      for (int i = 0; i < messages.length; i++) {
+        messages[i].isdownloaded = 0;
+        messages[i].filepath = '';
+        removeMessageFromDownloadedList(messages[i]);
+      }
+      await db.batchAddToDB(messages);
+      
+      if (messages.length == 1) {
+        showToast('Removed ${messages[0].title} from downloads');
+      } else {
+        showToast('Removed ${messages.length} downloads');
+      }
       notifyListeners();
     } catch (error) {
-      showToast('Error deleting download: ${message.title}');
+      showToast('Error removing downloads');
     }
   }
 }

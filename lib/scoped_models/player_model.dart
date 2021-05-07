@@ -13,6 +13,7 @@ mixin PlayerModel on Model {
   VFCAudioHandler _audioHandler;
   SharedPreferences _prefs;
   final db = MessageDB.instance;
+  bool _playerVisible = false;
   List<Message> _queue;
   int _queueIndex;
   Message _currentlyPlayingMessage;
@@ -21,6 +22,7 @@ mixin PlayerModel on Model {
   Duration _duration = Duration(seconds: 0);
   double _playbackSpeed = 1.0;
 
+  bool get playerVisible => _playerVisible;
   List<Message> get queue => _queue;
   int get queueIndex => _queueIndex;
   Message get currentlyPlayingMessage => _currentlyPlayingMessage;
@@ -100,7 +102,8 @@ mixin PlayerModel on Model {
       bool queueFinished = playbackState?.processingState == AudioProcessingState.completed;
       print('PLAYBACK STATE: ${playbackState.processingState}');
       if (queueFinished) {
-        _audioHandler.pause();
+        //_audioHandler.pause();
+        disposePlayer();
         //_audioHandler.updateQueue([]);
       }
       notifyListeners();
@@ -179,6 +182,9 @@ mixin PlayerModel on Model {
       int index = playlist.messages.indexWhere((item) => item?.id == message?.id);
       setQueueToPlaylist(playlist, index: index, position: position);
     }
+
+    _playerVisible = true;
+    notifyListeners();
   }
 
   /*Future<void> setQueueToEmpty() async {
@@ -301,5 +307,12 @@ mixin PlayerModel on Model {
     _prefs = await SharedPreferences.getInstance();
     double speed = _prefs.getDouble('playbackSpeed') ?? 1.0;
     setSpeed(speed);
+  }
+
+  void disposePlayer() {
+    // TODO: safely quit player (when queue ends or playbar is dismissed)
+    _audioHandler.stop();
+    _playerVisible = false;
+    notifyListeners();
   }
 }

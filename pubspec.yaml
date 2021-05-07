@@ -29,6 +29,7 @@ dependencies:
       url: https://github.com/ryanheise/audio_service.git
       ref: 9c1dfc4
   audio_session: ^0.1.0
+  connectivity: ^3.0.3
   cupertino_icons: ^1.0.0
   dio: ^4.0.0
   #flutter_downloader: ^1.5.2

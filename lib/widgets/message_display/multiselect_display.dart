@@ -51,6 +51,8 @@ class MultiSelectDisplay extends StatelessWidget {
                 messages: selectedMessages.toList(),
                 addAllToQueue: model.addMultipleMessagesToQueue,
                 setMultipleFavorites: model.setMultipleFavorites,
+                downloadAll: model.addMessagesToDownloadQueue,
+                deleteAllDownloads: model.deleteMessages,
               ),
               /*IconButton(
                 icon: Icon(CupertinoIcons.ellipsis_vertical, color: Theme.of(context).accentColor), 
@@ -66,19 +68,17 @@ class MultiSelectDisplay extends StatelessWidget {
     );
   }
 
-  void downloadAll() {
+  /*void downloadAll() {
 
-  }
-
-  void deleteAllDownloads() {
-
-  }
+  }*/
 
   Widget _listActionsButton({
     BuildContext context,
     List<Message> messages,
     Function addAllToQueue,
-    Function setMultipleFavorites}) {
+    Function setMultipleFavorites,
+    Function downloadAll,
+    Function deleteAllDownloads}) {
     bool active = false;
     if (messages != null && messages.length > 0) {
       active = true;
@@ -102,14 +102,14 @@ class MultiSelectDisplay extends StatelessWidget {
               value: 0,
               active: active,
               icon: Icons.download_sharp,
-              text: 'Download',
+              text: 'Download all',
             ),
             _listAction(
               context: context,
               value: 1,
               active: active,
               icon: CupertinoIcons.delete,
-              text: 'Delete downloads',
+              text: 'Remove downloads',
             ),
             _listAction(
               context: context,
@@ -144,10 +144,11 @@ class MultiSelectDisplay extends StatelessWidget {
         onSelected: (value) async {
           switch (value) {
             case 0:
-              downloadAll();
+              downloadAll(selectedMessages.toList());
               break;
             case 1:
-              deleteAllDownloads();
+              deleteAllDownloads(selectedMessages.toList());
+              onDeselectAll();
               break;
             case 2:
               List<Message> _downloadedMessages = messages.where((m) => m.isdownloaded == 1).toList();

@@ -1,4 +1,4 @@
-import 'dart:collection';
+/*import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:scoped_model/scoped_model.dart';
@@ -50,6 +50,10 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
       builder: (context, child, model) {
+        List<Message> allDownloads = [];
+        if (widget.filterType == 'downloads') {
+
+        }
         //loadMessages(model);
         return Container(
           child: Column(
@@ -179,7 +183,12 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
                 }
                 return Container(
                   height: 250.0,
-                  child: CircularProgressIndicator(),
+                  alignment: Alignment.center,
+                  child: Container(
+                    height: 50.0,
+                    width: 50.0,
+                    child: CircularProgressIndicator(),
+                  ),
                 );
               }
               if (index + Constants.MESSAGE_LOADING_BATCH_SIZE / 2 >= messageList.length && !reachedEndOfList) {
@@ -198,4 +207,4 @@ class _FilteredMessageListState extends State<FilteredMessageList> {
         ),
       );
   }
-}
+}*/

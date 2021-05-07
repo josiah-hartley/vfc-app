@@ -111,8 +111,8 @@ class _MainScaffoldState extends State<MainScaffold> {
         return Container(
           child: SlidingUpPanel(
             controller: _playerPanelController,
-            minHeight: model.currentlyPlayingMessage == null ? 0.0 : Constants.COLLAPSED_PLAYBAR_HEIGHT,
-            maxHeight: model.currentlyPlayingMessage == null ? 0.0 : MediaQuery.of(context).size.height - kBottomNavigationBarHeight - Constants.EXPANDED_PLAYBAR_TOP_PADDING,
+            minHeight: (model.currentlyPlayingMessage == null || !model.playerVisible) ? 0.0 : Constants.COLLAPSED_PLAYBAR_HEIGHT,
+            maxHeight: (model.currentlyPlayingMessage == null || !model.playerVisible) ? 0.0 : MediaQuery.of(context).size.height - kBottomNavigationBarHeight - Constants.EXPANDED_PLAYBAR_TOP_PADDING,
             backdropEnabled: true,
             backdropTapClosesPanel: false,
             collapsed: PlayerPanelCollapsed(panelOpen: _playerPanelOpen, togglePanel: _togglePlayerPanel),
@@ -281,7 +281,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         page = HomePage();
         break;
       case '/favorites':
-        page = FavoritesPage(model: model);
+        page = FavoritesPage();
         break;
       case '/playlists':
         page = PlaylistsPage();

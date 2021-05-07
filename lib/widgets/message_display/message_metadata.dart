@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:voices_for_christ/data_models/download_class.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/helpers/duration_in_minutes.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
@@ -125,6 +126,46 @@ Map<String, Color> initialStickerColors(String initials) {
     'backgroundColor': HSLColor.fromAHSL(0.9, hue, 1.0, lightness).toColor(),
     'textColor': textColor
   };
+}
+
+Widget downloadProgress({BuildContext context, Download task, Function onCancel}) {
+  double progress = 0.0;
+  if (task == null) {
+    return Container();
+  }
+  if (task.bytesReceived != null && task.size != null && task.size != 0) {
+    progress = task.bytesReceived / task.size;
+  }
+  return Container(
+    padding: EdgeInsets.only(left: 8.0),
+    child: GestureDetector(
+      onTap: onCancel,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            height: 40.0,
+            width: 40.0,
+            alignment: Alignment.center,
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).accentColor),
+              backgroundColor: Theme.of(context).accentColor.withOpacity(0.15),
+              value: progress,
+              strokeWidth: 2.0,
+            ),
+          ),
+          Container(
+            height: 40.0,
+            width: 40.0,
+            alignment: Alignment.center,
+            child: Container(
+              child: Icon(CupertinoIcons.xmark, color: Theme.of(context).accentColor),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color textColor, bool showTime = true}) {

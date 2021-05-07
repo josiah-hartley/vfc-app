@@ -24,7 +24,7 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
       builder: (context, child, model) {
-        if (model.currentlyPlayingMessage == null) {
+        if (model.currentlyPlayingMessage == null || !model.playerVisible) {
           return SizedBox(height: 0.0);
         }
         return Container(
