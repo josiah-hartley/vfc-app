@@ -14,7 +14,8 @@ class MainModel extends Model with PlayerModel, FavoritesModel, DownloadsModel, 
     });
     await loadPlaylistsMetadata();
     await loadFavoritesFromDB();
-    await loadDownloadsFromDB();
+    await loadDownloadedMessagesFromDB();
+    await loadDownloadQueueFromDB();
   }
 
   Future<void> setMessagePlayed(Message message) async {

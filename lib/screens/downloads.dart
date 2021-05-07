@@ -201,7 +201,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                 );
               }
               if (index + Constants.MESSAGE_LOADING_BATCH_SIZE / 2 >= listItems.length && !model.reachedEndOfDownloadsList) {
-                model.loadDownloadsFromDB();
+                model.loadDownloadedMessagesFromDB();
               }
               return listItems[index];
             },
@@ -231,7 +231,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
               );
             }
             if (index + Constants.MESSAGE_LOADING_BATCH_SIZE / 2 >= messageList.length && !model.reachedEndOfDownloadsList) {
-              model.loadDownloadsFromDB();
+              model.loadDownloadedMessagesFromDB();
             }
             Message message = messageList[index];
             return MessageCard(

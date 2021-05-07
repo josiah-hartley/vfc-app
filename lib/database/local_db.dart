@@ -14,6 +14,7 @@ class MessageDB {
   static final _speakerTable = 'speakers';
   static final _playlistTable = 'playlists';
   static final _messagesInPlaylist = 'mpjunction';
+  static final _downloads = 'downloads';
 
   // make it a singleton class
   MessageDB._privateConstructor();
@@ -88,6 +89,7 @@ class MessageDB {
         lastplayedposition REAL,
         isdownloaded INTEGER,
         iscurrentlyplaying INTEGER,
+        downloadedat INTEGER,
         filepath TEXT,
         isfavorite INTEGER,
         isplayed INTEGER
@@ -108,6 +110,14 @@ class MessageDB {
         playlistid INTEGER NOT NULL REFERENCES $_playlistTable(id),
         messagerank INTEGER,
         PRIMARY KEY(messageid, playlistid)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE $_downloads (
+        messageid INTEGER NOT NULL,
+        initiated INTEGER,
+        PRIMARY KEY(messageid)
       )
     ''');
 
@@ -295,6 +305,66 @@ class MessageDB {
       return messages;
     }
     return [];*/
+  }
+
+  Future<List<Message>> getDownloadQueueFromDB() async {
+    Database db = await instance.database;
+
+    try {
+      var result = await db.rawQuery('''
+        SELECT * FROM $_messageTable
+        INNER JOIN $_downloads 
+        ON $_messageTable.id = $_downloads.messageid 
+        ORDER BY $_downloads.initiated
+      ''');
+
+      if (result.isNotEmpty) {
+        List<Message> messages = result.map((msgMap) => Message.fromMap(msgMap)).toList();
+        return messages;
+      }
+      return [];
+    } catch(error) {
+      print('Error getting messages in download queue: $error');
+      return [];
+    }
+  }
+
+  Future<void> addMessagesToDownloadQueueDB(List<Message> messages) async {
+    Database db = await instance.database;
+    int time = DateTime.now().millisecondsSinceEpoch;
+    try {
+      await db.transaction((txn) async {
+        Batch batch = txn.batch();
+
+        for (Message message in messages) {
+          batch.insert(_downloads, {
+            'messageid': message.id,
+            'initiated': time,
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+
+        await batch.commit();
+      });
+    } catch(error) {
+      print('Error adding messages to download queue in database');
+    }
+  }
+
+  Future<void> removeMessagesFromDownloadQueueDB(List<Message> messages) async {
+    Database db = await instance.database;
+    try {
+      await db.transaction((txn) async {
+        Batch batch = txn.batch();
+
+        for (Message message in messages) {
+          batch.delete(_downloads, where: "messageid = ?", whereArgs: [message.id]);
+        }
+
+        await batch.commit();
+      });
+    } catch(error) {
+      print('Error removing messages from download queue in database');
+    }
   }
 
   List<String> searchArguments(String searchTerm) {
@@ -852,6 +922,7 @@ class MessageDB {
     await db.execute('DROP TABLE IF EXISTS $_speakerTable');
     await db.execute('DROP TABLE IF EXISTS $_playlistTable');
     await db.execute('DROP TABLE IF EXISTS $_messagesInPlaylist');
+    await db.execute('DROP TABLE IF EXISTS $_downloads');
     await _onCreate(db, 1);
 
     // reset date of last update from cloud database

@@ -17,6 +17,7 @@ class Message {
   int iscurrentlydownloading;
   int iscurrentlyplaying;
   int isdownloaded;
+  int downloadedat;
   String filepath;
   int isfavorite;
   int isplayed;
@@ -37,6 +38,7 @@ class Message {
     this.iscurrentlydownloading,
     this.iscurrentlyplaying,
     this.isdownloaded,
+    this.downloadedat,
     this.filepath,
     this.isfavorite,
     this.isplayed,
@@ -76,6 +78,7 @@ class Message {
     lastplayedposition = map['lastplayedposition'] ?? 0.0;
     iscurrentlydownloading = map['iscurrentlydownloading'] ?? 0;
     isdownloaded = map['isdownloaded'] ?? 0;
+    downloadedat = map['downloadedat'] ?? 0;
     filepath = map['filepath'] ?? '';
     isfavorite = map['isfavorite'] ?? 0;
     isplayed = map['isplayed'] ?? 0;
@@ -98,6 +101,7 @@ class Message {
     lastplayedposition = map['lastplayedposition'];
     iscurrentlydownloading = map['iscurrentlydownloading'];
     isdownloaded = map['isdownloaded'];
+    downloadedat = map['downloadedat'];
     filepath = map['filepath'];
     isfavorite = map['isfavorite'];
     isplayed = map['isplayed'];
@@ -120,6 +124,7 @@ class Message {
       'lastplayedposition': lastplayedposition,
       'isdownloaded': isdownloaded,
       'iscurrentlydownloading': iscurrentlydownloading,
+      'downloadedat': downloadedat,
       'filepath': filepath,
       'isfavorite': isfavorite,
       'isplayed': isplayed

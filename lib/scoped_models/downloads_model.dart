@@ -37,7 +37,7 @@ mixin DownloadsModel on Model {
   bool get downloadsLoading => _downloadsLoading;
   bool get reachedEndOfDownloadsList => _reachedEndOfDownloadsList;
 
-  Future<void> loadDownloadsFromDB() async {
+  Future<void> loadDownloadedMessagesFromDB() async {
     _downloadsLoading = true;
     notifyListeners();
 
@@ -152,7 +152,14 @@ mixin DownloadsModel on Model {
     }
   }*/
 
+  Future<void> loadDownloadQueueFromDB() async {
+    List<Message> result = await db.getDownloadQueueFromDB();
+    print('DOWNLOAD QUEUE FROM DB: $result');
+    addMessagesToDownloadQueue(result);
+  }
+
   void addMessagesToDownloadQueue(List<Message> messages) {
+    db.addMessagesToDownloadQueueDB(messages);
     List<Download> tasks = [];
     messages.forEach((message) {
       if (message.isdownloaded != 1) {
@@ -204,34 +211,37 @@ mixin DownloadsModel on Model {
           notifyListeners();
         }
       );
-      task.message.iscurrentlydownloading = 0;
-      await db.update(task.message);
-      showToast('Finished downloading ${task.message.title}');
-      addMessageToDownloadedList(task.message);
-      _currentlyDownloading.removeWhere((t) => t.message.id == task.message.id);
-      advanceDownloadsQueue();
+      finishDownload(task);
     } on Exception catch(error) {
-      if (error.toString().indexOf('DioErrorType.cancel') > -1) {
-        task.message.iscurrentlydownloading = 0;
-        task.message.isdownloaded = 0;
-        await db.update(task.message);
-        showToast('Canceled download: ${task.message.title}');
-      } else {
-        showToast('Error downloading ${task.message.title}: check connection');
-      }
-    } catch(error) {
-      print('Error executing download task: $error');
       task.message.iscurrentlydownloading = 0;
       task.message.isdownloaded = 0;
       await db.update(task.message);
-      showToast('Error downloading ${task.message.title}: check connection');
-      ConnectivityResult connection = await Connectivity().checkConnectivity();
-      if (connection == ConnectivityResult.none) {
-        // pause all downloads
+
+      if (error.toString().indexOf('DioErrorType.cancel') > -1) {
+        
+        showToast('Canceled download: ${task.message.title}');
       } else {
-        advanceDownloadsQueue();
+        print('Error executing download task: $error');
+        showToast('Error downloading ${task.message.title}: check connection');
+        ConnectivityResult connection = await Connectivity().checkConnectivity();
+        if (connection == ConnectivityResult.none) {
+          // pause all downloads
+        } else {
+          //advanceDownloadsQueue();
+        }
       }
     }
+  }
+
+  void finishDownload(Download task) async {
+    task.message.iscurrentlydownloading = 0;
+    task.message.downloadedat = DateTime.now().millisecondsSinceEpoch;
+    await db.update(task.message);
+    showToast('Finished downloading ${task.message.title}');
+    addMessageToDownloadedList(task.message);
+    _currentlyDownloading.removeWhere((t) => t.message.id == task.message.id);
+    db.removeMessagesFromDownloadQueueDB([task.message]);
+    advanceDownloadsQueue();
   }
 
   void cancelDownload(Download task) {
@@ -241,6 +251,7 @@ mixin DownloadsModel on Model {
     if (_currentlyDownloading.length < Constants.ACTIVE_DOWNLOAD_QUEUE_SIZE) {
       advanceDownloadsQueue();
     }
+    db.removeMessagesFromDownloadQueueDB([task.message]);
     notifyListeners();
   }
 
