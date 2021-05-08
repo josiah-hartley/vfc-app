@@ -5,6 +5,7 @@ import 'package:scoped_model/scoped_model.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:voices_for_christ/helpers/minimize_keyboard.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
+import 'package:voices_for_christ/screens/settings.dart';
 import 'package:voices_for_christ/widgets/player/player_panel_collapsed.dart';
 import 'package:voices_for_christ/widgets/player/player_panel_expanded.dart';
 import 'package:voices_for_christ/screens/search.dart';
@@ -14,8 +15,7 @@ import 'package:voices_for_christ/screens/playlists.dart';
 import 'package:voices_for_christ/screens/downloads.dart';
 
 class MainScaffold extends StatefulWidget {
-  MainScaffold({Key key, this.toggleTheme}) : super(key: key);
-  final Function toggleTheme;
+  MainScaffold({Key key}) : super(key: key);
 
   @override
   _MainScaffoldState createState() => _MainScaffoldState();
@@ -23,7 +23,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   final _navigatorKey = GlobalKey<NavigatorState>();
-  List<String> _routeNames = ['Home', 'Favorites', 'Playlists', 'Downloads'];
+  List<String> _routeNames = ['Home', 'Favorites', 'Playlists', 'Downloads', 'Settings'];
   List<int> _pageRoutes = [0];
   String _currentRouteName = 'Home';
   bool _searchWindowOpen = false;
@@ -94,7 +94,12 @@ class _MainScaffoldState extends State<MainScaffold> {
         IconButton(
           icon: Icon(CupertinoIcons.gear_alt, size: 24.0), 
           onPressed: () {
-            widget.toggleTheme();
+            _navigatorKey.currentState?.pushNamed('/settings');
+            setState(() {
+              int index = _routeNames.indexOf('Settings');
+              _pageRoutes.add(index);
+              _currentRouteName = _routeNames[index];
+            });
           }
         ),
         IconButton(
@@ -195,6 +200,7 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   Widget _bottomNavigationBar() {
     return BottomNavigationBar(
+      elevation: 6.0,
       items: [
         BottomNavigationBarItem(
           icon: Icon(CupertinoIcons.house_fill, size: 20.0),
@@ -213,7 +219,7 @@ class _MainScaffoldState extends State<MainScaffold> {
           label: 'Downloads',
         ),
       ],
-      currentIndex: _pageRoutes.last,
+      currentIndex: _pageRoutes.last < 4 ? _pageRoutes.last : 0,
       onTap: (index) {
         switch (index) {
           case 0:
@@ -288,6 +294,9 @@ class _MainScaffoldState extends State<MainScaffold> {
         break;
       case '/downloads':
         page = DownloadsPage();
+        break;
+      case '/settings':
+        page = SettingsPage();
         break;
       default:
         page = HomePage();

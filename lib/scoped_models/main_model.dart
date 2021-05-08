@@ -4,8 +4,9 @@ import 'package:voices_for_christ/scoped_models/downloads_model.dart';
 import 'package:voices_for_christ/scoped_models/favorites_model.dart';
 import 'package:voices_for_christ/scoped_models/player_model.dart';
 import 'package:voices_for_christ/scoped_models/playlists_model.dart';
+import 'package:voices_for_christ/scoped_models/settings_model.dart';
 
-class MainModel extends Model with PlayerModel, FavoritesModel, DownloadsModel, PlaylistsModel {
+class MainModel extends Model with PlayerModel, FavoritesModel, DownloadsModel, PlaylistsModel, SettingsModel {
   Future<void> initialize() async {
     await initializePlayer(onChangedMessage: (Message message) {
       updateDownloadedMessage(message);
@@ -16,6 +17,8 @@ class MainModel extends Model with PlayerModel, FavoritesModel, DownloadsModel, 
     await loadFavoritesFromDB();
     await loadDownloadedMessagesFromDB();
     await loadDownloadQueueFromDB();
+    await loadStorageUsage();
+    await loadSettings();
   }
 
   Future<void> setMessagePlayed(Message message) async {

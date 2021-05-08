@@ -6,6 +6,8 @@ import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
+import 'package:voices_for_christ/database/on_create.dart';
+import 'package:voices_for_christ/database/metadata.dart' as meta;
 
 class MessageDB {
   static final _databaseName = 'message_database.db';
@@ -15,6 +17,7 @@ class MessageDB {
   static final _playlistTable = 'playlists';
   static final _messagesInPlaylist = 'mpjunction';
   static final _downloads = 'downloads';
+  static final _metaTable = 'meta';
 
   // make it a singleton class
   MessageDB._privateConstructor();
@@ -35,100 +38,28 @@ class MessageDB {
     String dbDir = await getDatabasesPath();
     String path = join(dbDir, _databaseName);
 
-    //  NEW STUFF: TRYING TO START WITH INITIAL DATA
-
     // first time: copy initial database from assets
     bool exists = await databaseExists(path);
     if (!exists) {
-      print('loading initial database');
-      //print('Copying initial data from file.');
-      //int startTime = DateTime.now().millisecondsSinceEpoch;
-      // Make sure the parent directory exists
+      // make sure the parent directory exists
       try {
         await Directory(dirname(path)).create(recursive: true);
       } catch (_) {}
         
-      // Copy from asset
+      // copy from asset
       ByteData data = await rootBundle.load(join("assets", "initial_message_database.db"));
       List<int> bytes =
       data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
       
-      // Write and flush the bytes written
+      // write and flush the bytes written
       await File(path).writeAsBytes(bytes, flush: true);
-      print('finished loading initial database');
-      //int endTime = DateTime.now().millisecondsSinceEpoch;
-      //print('done; took ' + (endTime - startTime).toString() + ' ms');
-    } else {
-      //print('Opening existing database');
     }
 
     return await openDatabase(path);
-
-    // END OF NEW STUFF
-
-    /*return await openDatabase(path,
-      version: _databaseVersion,
-      onCreate: _onCreate);*/
   }
 
   // SQL create
-  Future _onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE $_messageTable (
-        id INTEGER PRIMARY KEY,
-        created INTEGER,
-        date TEXT,
-        language TEXT,
-        location TEXT,
-        speaker TEXT,
-        speakerurl TEXT,
-        taglist TEXT,
-        title TEXT,
-        url TEXT,
-        durationinseconds REAL,
-        lastplayedposition REAL,
-        isdownloaded INTEGER,
-        iscurrentlyplaying INTEGER,
-        downloadedat INTEGER,
-        filepath TEXT,
-        isfavorite INTEGER,
-        isplayed INTEGER
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE $_playlistTable (
-        id INTEGER PRIMARY KEY,
-        created INTEGER,
-        title TEXT
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE $_messagesInPlaylist (
-        messageid INTEGER NOT NULL REFERENCES $_messageTable(id),
-        playlistid INTEGER NOT NULL REFERENCES $_playlistTable(id),
-        messagerank INTEGER,
-        PRIMARY KEY(messageid, playlistid)
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE $_downloads (
-        messageid INTEGER NOT NULL,
-        initiated INTEGER,
-        PRIMARY KEY(messageid)
-      )
-    ''');
-
-    Map<String, dynamic> savedMap = {
-      'id': 0,
-      'created': DateTime.now().millisecondsSinceEpoch,
-      'title': 'Saved for Later'
-    };
-
-    await db.insert(_playlistTable, savedMap, conflictAlgorithm: ConflictAlgorithm.replace);
-  }
+  
 
   /* Database Helper Methods */
 
@@ -136,18 +67,20 @@ class MessageDB {
 
   Future<int> getLastUpdatedDate() async {
     Database db = await instance.database;
-    List<Map<String,dynamic>> result = await db.query('meta', where: 'label = ?', whereArgs: ['cloudLastCheckedDate']);
+    return await meta.getLastUpdatedDate(db);
+    /*List<Map<String,dynamic>> result = await db.query('meta', where: 'label = ?', whereArgs: ['cloudLastCheckedDate']);
   
     if (result.length > 0) {
       return result.first['value'];
     }
-    return null;
+    return null;*/
   }
 
   Future setLastUpdatedDate(int date) async {
     Database db = await instance.database;
-    Map<String,dynamic> row = {'id': 0, 'label': 'cloudLastCheckedDate', 'value': date};
-    await db.insert('meta', row, conflictAlgorithm: ConflictAlgorithm.replace);
+    await meta.setLastUpdatedDate(db, date);
+    //Map<String,dynamic> row = {'id': 0, 'label': 'cloudLastCheckedDate', 'value': date};
+    //await db.insert('meta', row, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   // MESSAGES
@@ -364,6 +297,35 @@ class MessageDB {
       });
     } catch(error) {
       print('Error removing messages from download queue in database');
+    }
+  }
+
+  Future<int> getStorageUsed() async {
+    Database db = await instance.database;
+
+    try {
+      List<Map<String,dynamic>> result = await db.query('$_metaTable', where: 'label = ?', whereArgs: ['storageused']);
+      if (result.length > 0) {
+        return result.first['value'];
+      }
+      return 0;
+    } catch(error) {
+      print('Error getting storage used: $error');
+      return 0;
+    }
+  }
+
+  Future<void> updateStorageUsed({int bytes, bool add = true}) async {
+    Database db = await instance.database;
+    String snippet = add ? 'value + ?' : 'value - ?';
+    try {
+      await db.rawUpdate('''
+        UPDATE $_metaTable
+        SET value = $snippet
+        WHERE label = 'storageused'
+      ''', [bytes]);
+    } catch(error) {
+      print('Error adding to storage usage: $error');
     }
   }
 
@@ -923,7 +885,7 @@ class MessageDB {
     await db.execute('DROP TABLE IF EXISTS $_playlistTable');
     await db.execute('DROP TABLE IF EXISTS $_messagesInPlaylist');
     await db.execute('DROP TABLE IF EXISTS $_downloads');
-    await _onCreate(db, 1);
+    await onCreateDB(db, 1);
 
     // reset date of last update from cloud database
     SharedPreferences prefs = await SharedPreferences.getInstance();

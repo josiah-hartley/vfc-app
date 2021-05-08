@@ -5,7 +5,8 @@ import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/download_class.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
-import 'package:voices_for_christ/files/file_downloads.dart';
+import 'package:voices_for_christ/files/delete_files.dart';
+import 'package:voices_for_christ/files/download_files.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 
@@ -21,6 +22,7 @@ mixin DownloadsModel on Model {
   int _currentlyLoadedDownloadsCount = 0;
   int _downloadsLoadingBatchSize = Constants.MESSAGE_LOADING_BATCH_SIZE;
   bool _reachedEndOfDownloadsList = false;
+  int _downloadedBytes = 0;
 
   Queue<Download> get currentlyDownloading => _currentlyDownloading;
   Queue<Download> get downloadQueue => _downloadQueue;
@@ -36,6 +38,12 @@ mixin DownloadsModel on Model {
   List<Message> get playedDownloads => _playedDownloads;
   bool get downloadsLoading => _downloadsLoading;
   bool get reachedEndOfDownloadsList => _reachedEndOfDownloadsList;
+  int get downloadedBytes => _downloadedBytes;
+
+  Future<void> loadStorageUsage() async {
+    _downloadedBytes = await db.getStorageUsed();
+    notifyListeners();
+  }
 
   Future<void> loadDownloadedMessagesFromDB() async {
     _downloadsLoading = true;
@@ -237,6 +245,11 @@ mixin DownloadsModel on Model {
     task.message.iscurrentlydownloading = 0;
     task.message.downloadedat = DateTime.now().millisecondsSinceEpoch;
     await db.update(task.message);
+    _downloadedBytes += task.size;
+    await db.updateStorageUsed(
+      bytes: task.size,
+      add: true,
+    );
     showToast('Finished downloading ${task.message.title}');
     addMessageToDownloadedList(task.message);
     _currentlyDownloading.removeWhere((t) => t.message.id == task.message.id);
@@ -281,13 +294,18 @@ mixin DownloadsModel on Model {
 
   Future<void> deleteMessageDownloads(List<Message> messages) async {
     try {
-      await deleteMessageFiles(messages);
+      int totalStorage = await deleteMessageFiles(messages);
       for (int i = 0; i < messages.length; i++) {
         messages[i].isdownloaded = 0;
         messages[i].filepath = '';
         removeMessageFromDownloadedList(messages[i]);
       }
       await db.batchAddToDB(messages);
+      _downloadedBytes -= totalStorage;
+      await db.updateStorageUsed(
+        bytes: totalStorage,
+        add: false,
+      );
       
       if (messages.length == 1) {
         showToast('Removed ${messages[0].title} from downloads');
