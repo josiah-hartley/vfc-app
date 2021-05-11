@@ -169,7 +169,11 @@ Widget downloadProgress({BuildContext context, Download task, Function onCancel}
 }
 
 Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color textColor, bool showTime = true}) {
-  String _durationInMinutes = messageDurationInMinutes(message.durationinseconds);
+  String _durationInMinutes = message.durationinseconds == null
+    ? message.approximateminutes == null
+      ? ''
+      : '${message.approximateminutes} min'
+    : messageDurationInMinutes(message.durationinseconds);
   
   return Container(
     padding: EdgeInsets.all(15.0),
@@ -206,7 +210,7 @@ Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color
                     style: TextStyle(
                       fontSize: 16.0,
                       fontStyle: FontStyle.italic,
-                      color: message.isdownloaded == 1 ? textColor.withOpacity(0.9) : textColor.withOpacity(1.0),
+                      color: message.isdownloaded == 1 ? textColor.withOpacity(1.0) : textColor.withOpacity(0.85),
                     ),
                   )
                 : Container(),

@@ -61,7 +61,7 @@ class VFCAudioHandler extends BaseAudioHandler {
   Future<void> setAudioSource() async {
     List<MediaItem> _validQueue = _playableQueue(_queue);
     await _player.setAudioSource(ConcatenatingAudioSource(
-      children: _validQueue.map((item) => AudioSource.uri(Uri.parse(item.id))).toList(),
+      children: _validQueue.map((item) => AudioSource.uri(Uri.parse('file://' + item.id))).toList(),
     ));
   }
   skipToPrevious() {

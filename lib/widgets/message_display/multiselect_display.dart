@@ -51,7 +51,7 @@ class MultiSelectDisplay extends StatelessWidget {
                 messages: selectedMessages.toList(),
                 addAllToQueue: model.addMultipleMessagesToQueue,
                 setMultipleFavorites: model.setMultipleFavorites,
-                downloadAll: model.addMessagesToDownloadQueue,
+                downloadAll: model.queueDownloads,
                 deleteAllDownloads: model.deleteMessages,
               ),
               /*IconButton(
@@ -164,7 +164,7 @@ class MultiSelectDisplay extends StatelessWidget {
               //showDialog(
               //  context: context,
                 //builder: (context) => AddToPlaylistDialog(),
-                // TODO: make AddMultipleMessagesToPlaylistDialot()
+                // TODO: make AddMultipleMessagesToPlaylistDialog()
               //);
               print('Adding to playlist');
               break;

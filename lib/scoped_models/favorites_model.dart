@@ -114,7 +114,7 @@ mixin FavoritesModel on Model {
     notifyListeners();
   }
 
-  Future<void> toggleFavorite(Message message) async {
+  Future<void> handleFavoriteToggling(Message message) async {
     await db.toggleFavorite(message);
     //await loadFavorites();
     if (message.isfavorite == 1) {

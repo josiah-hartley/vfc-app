@@ -122,21 +122,6 @@ class _DownloadsPageState extends State<DownloadsPage> {
         messageList = model.downloads;
     }
 
-    if (messageList.length < 1) {
-      return Expanded(
-        child: Container(
-          alignment: Alignment.topCenter,
-          padding: EdgeInsets.only(top: 150.0),
-          child: model.downloadsLoading 
-            ? CircularProgressIndicator()
-            : Text(emptyMessage,
-              style: Theme.of(context).primaryTextTheme.headline1,
-              textAlign: TextAlign.center,
-            ),
-        ),
-      );
-    }
-
     if (_filter == 'All') {
       List<Widget> listItems = [];
       if (model.currentlyDownloading.length > 0) {
@@ -180,6 +165,21 @@ class _DownloadsPageState extends State<DownloadsPage> {
         ));
       });
 
+      if (listItems.length < 1) {
+        return Expanded(
+          child: Container(
+            alignment: Alignment.topCenter,
+            padding: EdgeInsets.only(top: 150.0),
+            child: model.downloadsLoading 
+              ? CircularProgressIndicator()
+              : Text(emptyMessage,
+                style: Theme.of(context).primaryTextTheme.headline1,
+                textAlign: TextAlign.center,
+              ),
+          ),
+        );
+      }
+
       return Expanded(
         child: Container(
           child: ListView.builder(
@@ -206,6 +206,21 @@ class _DownloadsPageState extends State<DownloadsPage> {
               return listItems[index];
             },
           ),
+        ),
+      );
+    }
+
+    if (messageList.length < 1) {
+      return Expanded(
+        child: Container(
+          alignment: Alignment.topCenter,
+          padding: EdgeInsets.only(top: 150.0),
+          child: model.downloadsLoading 
+            ? CircularProgressIndicator()
+            : Text(emptyMessage,
+              style: Theme.of(context).primaryTextTheme.headline1,
+              textAlign: TextAlign.center,
+            ),
         ),
       );
     }

@@ -13,6 +13,7 @@ class Message {
   String title;
   String url;
   num durationinseconds;
+  int approximateminutes;
   num lastplayedposition;
   int iscurrentlydownloading;
   int iscurrentlyplaying;
@@ -34,6 +35,7 @@ class Message {
     this.title,
     this.url,
     this.durationinseconds,
+    this.approximateminutes,
     this.lastplayedposition,
     this.iscurrentlydownloading,
     this.iscurrentlyplaying,
@@ -75,6 +77,7 @@ class Message {
 
     // get possibly null data
     durationinseconds = map['durationinseconds'];
+    approximateminutes = map['approximateminutes'];
     lastplayedposition = map['lastplayedposition'] ?? 0.0;
     iscurrentlydownloading = map['iscurrentlydownloading'] ?? 0;
     isdownloaded = map['isdownloaded'] ?? 0;
@@ -98,6 +101,7 @@ class Message {
     url = map['url'];
     taglist = map['taglist'];
     durationinseconds = map['durationinseconds'];
+    approximateminutes = map['approximateminutes'];
     lastplayedposition = map['lastplayedposition'];
     iscurrentlydownloading = map['iscurrentlydownloading'];
     isdownloaded = map['isdownloaded'];
@@ -121,6 +125,7 @@ class Message {
       'title': title,
       'url': url,
       'durationinseconds': durationinseconds,
+      'approximateminutes': approximateminutes,
       'lastplayedposition': lastplayedposition,
       'isdownloaded': isdownloaded,
       'iscurrentlydownloading': iscurrentlydownloading,

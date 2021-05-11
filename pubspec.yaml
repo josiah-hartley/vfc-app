@@ -32,8 +32,6 @@ dependencies:
   connectivity: ^3.0.3
   cupertino_icons: ^1.0.0
   dio: ^4.0.0
-  #flutter_downloader: ^1.5.2
-  #flutter_local_notifications: ^4.0.1
   fluttertoast: ^8.0.6
   google_fonts: ^2.0.0
   #html: ^0.14.0+4

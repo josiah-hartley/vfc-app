@@ -12,6 +12,9 @@ class ProgressDisplayBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (message == null) {
+      return Container();
+    }
     return ScopedModelDescendant<MainModel>(
       builder: (context, child, model) {
         if (message?.id == model.currentlyPlayingMessage?.id) {

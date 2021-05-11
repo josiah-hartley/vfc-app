@@ -5,3 +5,4 @@ const String playlistTable = 'playlists';
 const String messagesInPlaylist = 'mpjunction';
 const String downloads = 'downloads';
 const String metaTable = 'meta';
+const String recommendationsTable = 'recommendations';

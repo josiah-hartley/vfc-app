@@ -52,8 +52,7 @@ Future<Message> downloadMessageFile({Download task, Function onReceiveProgress})
 Future<Duration> _duration(String filepath) async {
   try {
     AudioPlayer player = AudioPlayer();
-    Duration duration = await player.setUrl(filepath);
-    print('Duration is $duration');
+    Duration duration = await player.setFilePath(filepath);
     player.dispose();
     return duration;
   } catch(error) {

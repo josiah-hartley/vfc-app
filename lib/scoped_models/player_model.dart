@@ -73,7 +73,7 @@ mixin PlayerModel on Model {
 
       _currentlyPlayingMessage = messageFromMediaItem(item);
       saveLastPlayedMessage();
-      _queueIndex = _queue.indexWhere((message) => message.id == _currentlyPlayingMessage.id) ?? 0;
+      _queueIndex = _queue.indexWhere((message) => message.id == _currentlyPlayingMessage?.id) ?? 0;
       notifyListeners();
     });
 
@@ -161,7 +161,7 @@ mixin PlayerModel on Model {
     if (message?.id == _currentlyPlayingMessage?.id) {
       // message already playing
       position ??= _currentPosition;
-    } else {
+    } /*else {
       // different message from the one currently playing
       // if another message is playing, save its position
       /*if (_currentlyPlayingMessage != null) {
@@ -174,7 +174,7 @@ mixin PlayerModel on Model {
       int _milliseconds = ((result?.lastplayedposition ?? 0.0) * 1000).round();
       position ??= Duration(milliseconds: _milliseconds);*/
       position ??= Duration(seconds: 0);
-    }
+    }*/
 
     if (playlist == null) {
       setQueueToSingleMessage(message, position: position);
@@ -230,12 +230,23 @@ mixin PlayerModel on Model {
     } else {
       _audioHandler.insertQueueItem(index, message.toMediaItem());
     }
+
+    // TODO: see if this works when starting from null _currentlyPlayingMessage (e.g. on fresh install)
+    if (!_playerVisible) {
+      _playerVisible = true;
+      notifyListeners();
+    }
   }
 
   void addMultipleMessagesToQueue(List<Message> messages) {
     List<MediaItem> _queueItems = _queue.map((m) => m.toMediaItem()).toList();
     _queueItems.addAll(messages.map((m) => m.toMediaItem()).toList());
     _audioHandler.updateQueue(_queueItems);
+
+    if (!_playerVisible) {
+      _playerVisible = true;
+      notifyListeners();
+    }
   }
 
   void removeFromQueue(int index) {
@@ -274,6 +285,9 @@ mixin PlayerModel on Model {
   }
 
   void seekForwardFifteenSeconds() {
+    if (_currentlyPlayingMessage == null) {
+      return;
+    }
     if (_currentlyPlayingMessage.durationinseconds.toInt() - currentPosition.inSeconds > 15) {
       seekToSecond(currentPosition.inSeconds.toDouble() + 15.0);
     } else {
@@ -282,6 +296,9 @@ mixin PlayerModel on Model {
   }
 
   void seekBackwardFifteenSeconds() {
+    if (_currentlyPlayingMessage == null) {
+      return;
+    }
     if (currentPosition.inSeconds >= 15) {
       seekToSecond(currentPosition.inSeconds.toDouble() - 15.0);
     } else {

@@ -27,6 +27,9 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
         if (model.currentlyPlayingMessage == null || !model.playerVisible) {
           return SizedBox(height: 0.0);
         }
+        if (!widget.panelOpen) {
+          return Container(color: Theme.of(context).bottomAppBarColor);
+        }
         return Container(
           alignment: Alignment.center,
           color: Theme.of(context).bottomAppBarColor,

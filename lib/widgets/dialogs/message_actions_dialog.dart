@@ -362,7 +362,8 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
       text: 'Download',
       onPressed: () async {
         //await model.downloadMessage(message);
-        model.addMessagesToDownloadQueue([message]);
+        
+        model.queueDownloads([message]);
       }
     );
   }
