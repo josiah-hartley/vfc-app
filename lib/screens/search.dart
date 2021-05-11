@@ -71,7 +71,9 @@ class _SearchWindowState extends State<SearchWindow> {
   }
 
   Future<void> _initializeNewSearch(BuildContext context) async {
-    minimizeKeyboard(context);
+    if (context != null) {
+      minimizeKeyboard(context);
+    }
     if (_waitingForResults) {
       return;
     }

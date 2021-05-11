@@ -231,7 +231,6 @@ mixin PlayerModel on Model {
       _audioHandler.insertQueueItem(index, message.toMediaItem());
     }
 
-    // TODO: see if this works when starting from null _currentlyPlayingMessage (e.g. on fresh install)
     if (!_playerVisible) {
       _playerVisible = true;
       notifyListeners();
@@ -327,7 +326,6 @@ mixin PlayerModel on Model {
   }
 
   void disposePlayer() {
-    // TODO: safely quit player (when queue ends or playbar is dismissed)
     _audioHandler.stop();
     _playerVisible = false;
     notifyListeners();

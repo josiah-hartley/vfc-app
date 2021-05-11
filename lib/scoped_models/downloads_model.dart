@@ -162,7 +162,6 @@ mixin DownloadsModel on Model {
 
   Future<void> loadDownloadQueueFromDB() async {
     List<Message> result = await db.getDownloadQueueFromDB();
-    print('DOWNLOAD QUEUE FROM DB: $result');
     addMessagesToDownloadQueue(result);
   }
 

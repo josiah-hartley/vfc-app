@@ -23,7 +23,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   final _navigatorKey = GlobalKey<NavigatorState>();
-  List<String> _routeNames = ['Home', 'Favorites', 'Playlists', 'Downloads', 'Settings'];
+  List<String> _routeNames = ['Home', 'Favorites', 'Playlists', 'Downloads'];
   List<int> _pageRoutes = [0];
   String _currentRouteName = 'Home';
   bool _searchWindowOpen = false;
@@ -72,10 +72,6 @@ class _MainScaffoldState extends State<MainScaffold> {
     setState(() {
       _searchWindowOpen = true;
     });
-    // TODO: decide whether I want the search input to focus automatically or not
-    /*Future.delayed(Duration(milliseconds: 250), () {
-      _searchFocusNode.requestFocus();
-    });*/
   }
 
   void _closeSearchDrawer() {
@@ -94,12 +90,10 @@ class _MainScaffoldState extends State<MainScaffold> {
         IconButton(
           icon: Icon(CupertinoIcons.gear_alt, size: 24.0), 
           onPressed: () {
-            _navigatorKey.currentState?.pushNamed('/settings');
-            setState(() {
-              int index = _routeNames.indexOf('Settings');
-              _pageRoutes.add(index);
-              _currentRouteName = _routeNames[index];
-            });
+            showDialog(
+              context: context, 
+              builder: (context) => SettingsPage()
+            );
           }
         ),
         IconButton(
@@ -294,9 +288,6 @@ class _MainScaffoldState extends State<MainScaffold> {
         break;
       case '/downloads':
         page = DownloadsPage();
-        break;
-      case '/settings':
-        page = SettingsPage();
         break;
       default:
         page = HomePage();

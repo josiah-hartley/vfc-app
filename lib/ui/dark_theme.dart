@@ -66,7 +66,9 @@ ThemeData darkTheme = sharedTheme.copyWith(
       color: Colors.white,
     ),
     textTheme: TextTheme(
-      headline1: GoogleFonts.montserrat()
+      headline1: GoogleFonts.montserrat(
+        color: Colors.white,
+      )
     ),
   ),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(

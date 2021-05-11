@@ -37,7 +37,6 @@ Future<List<Recommendation>> getRecommendations({Database db, int limit}) async 
     if (result.isNotEmpty) {
       List<Recommendation> recommendations = [];
       result.forEach((row) {
-        print(row);
         recommendations.add(Recommendation.fromMap(row));
       });
       return recommendations;
