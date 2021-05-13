@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
+import 'package:voices_for_christ/widgets/dialogs/check_database_updates_dialog.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key key}) : super(key: key);
@@ -22,11 +23,20 @@ class SettingsPage extends StatelessWidget {
                   _darkModeToggle(
                     context: context,
                     value: model.darkMode, 
-                    toggle: model.toggleDarkMode
+                    toggle: model.toggleDarkMode,
+                  ),
+                  _downloadOverDataToggle(
+                    context: context,
+                    value: model.downloadOverData, 
+                    toggle: model.toggleDownloadOverData,
                   ),
                   _storageUsage(
                     context: context, 
-                    bytes: model.downloadedBytes
+                    bytes: model.downloadedBytes,
+                  ),
+                  _checkForUpdates(
+                    context: context,
+                    lastUpdated: model.cloudLastCheckedDate,
                   ),
                 ],
               ),
@@ -79,9 +89,45 @@ class SettingsPage extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text('Dark Theme',
+            child: Text('Dark theme',
               style: Theme.of(context).primaryTextTheme.headline2,
             )
+          ),
+          Container(
+            child: Switch(
+              value: value,
+              onChanged: (val) { toggle(); },
+              activeColor: Theme.of(context).accentColor,
+              inactiveThumbColor: Theme.of(context).accentColor.withOpacity(0.8),
+              inactiveTrackColor: Theme.of(context).accentColor.withOpacity(0.25),
+            ),
+          ),
+        ],
+      )
+    );
+  }
+
+  Widget _downloadOverDataToggle({BuildContext context, bool value, Function toggle}) {
+    String text = value ? 'Messages will download over WiFi or mobile connections' : 'Messages will only download over WiFi';
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Download over data',
+                  style: Theme.of(context).primaryTextTheme.headline2,
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5.0, right: 25.0),
+                  child: Text(text,
+                    style: Theme.of(context).primaryTextTheme.headline4,
+                  ),
+                ),
+              ],
+            ),
           ),
           Container(
             child: Switch(
@@ -112,7 +158,7 @@ class SettingsPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Storage Used',
+                Text('Storage used',
                   style: Theme.of(context).primaryTextTheme.headline2,
                 ),
                 Container(
@@ -131,6 +177,37 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _checkForUpdates({BuildContext context, int lastUpdated}) {
+    DateTime d = DateTime.fromMillisecondsSinceEpoch(lastUpdated);
+    String lastUpdatedReadable = '${d.month}/${d.day}/${d.year}';
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => CheckDatabaseUpdatesDialog(lastUpdated: d),
+        );
+      },
+      child: Container(
+        color: Theme.of(context).backgroundColor.withOpacity(0.01),
+        padding: EdgeInsets.symmetric(vertical: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Check for new messages',
+              style: Theme.of(context).primaryTextTheme.headline2,
+            ),
+            Container(
+              padding: EdgeInsets.only(top: 5.0, right: 25.0),
+              child: Text('Last updated on $lastUpdatedReadable',
+                style: Theme.of(context).primaryTextTheme.headline4,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

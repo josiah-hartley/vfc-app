@@ -229,9 +229,9 @@ class MessageDB {
     return await playlists.editPlaylistTitle(db, playlist, title);
   }
 
-  Future<int> addMessageToPlaylist(Message msg, Playlist playlist) async {
+  Future<void> addMessagesToPlaylist({List<Message> messages, Playlist playlist}) async {
     Database db = await instance.database;
-    return await playlists.addMessageToPlaylist(db, msg, playlist);
+    await playlists.addMessagesToPlaylist(db: db, messages: messages, playlist: playlist);
   }
 
   Future<int> removeMessageFromPlaylist(Message msg, Playlist playlist) async {

@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/database/table_names.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 
 Future<int> newPlaylist(Database db, String title) async {
   Map<String, dynamic> playlistMap = {
@@ -20,7 +21,7 @@ Future<int> newPlaylist(Database db, String title) async {
 Future<List<Playlist>> getAllPlaylistsMetadata(Database db) async {
   try {
     // MAGIC NUMBER: the queue is a hidden playlist with id 0
-    var result = await db.query(playlistTable, where: 'id != 0');
+    var result = await db.query(playlistTable, where: 'id != ?', whereArgs: [Constants.QUEUE_PLAYLIST_ID]);
     // TODO: set up queue as playlist; save on changes, get on app reload, etc.
 
     if (result.isNotEmpty) {
@@ -111,7 +112,7 @@ Future<int> editPlaylistTitle(Database db, Playlist playlist, String title) asyn
   }
 }
 
-Future<int> addMessageToPlaylist(Database db, Message msg, Playlist playlist) async {
+Future<void> addMessagesToPlaylist({Database db, List<Message> messages, Playlist playlist}) async {
   int id = playlist.id;
 
   try {
@@ -125,17 +126,22 @@ Future<int> addMessageToPlaylist(Database db, Message msg, Playlist playlist) as
       highestRank = 0;
     }
 
-    Map<String,dynamic> messageInPlaylist = {
-      'messageid': msg.id,
-      'playlistid': playlist.id,
-      'messagerank': highestRank + 1
-    };
+    await db.transaction((txn) async {
+      Batch batch = txn.batch();
 
-    int result = await db.insert(messagesInPlaylist, messageInPlaylist, conflictAlgorithm: ConflictAlgorithm.replace);
-    return result;
+      for (Message message in messages) {
+        batch.insert(messagesInPlaylist, {
+          'messageid': message.id,
+          'playlistid': playlist.id,
+          'messagerank': highestRank + 1
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        highestRank += 1;
+      }
+
+      await batch.commit();
+    });
   } catch(error) {
-    print('Error adding message to playlist: $error');
-    return null;
+    print('Error adding messages to playlist: $error');
   } 
 }
 
@@ -210,7 +216,8 @@ Future<void> reorderAllMessagesInPlaylist(Database db, Playlist playlist, List<M
         batch.rawInsert('''
           INSERT INTO $messagesInPlaylist(messageid, playlistid, messagerank)
           VALUES(?, ?, ?)
-        ''', [message.id, playlistId, rank]);
+          ON CONFLICT(messageid, playlistid) DO UPDATE SET messagerank=?
+        ''', [message.id, playlistId, rank, rank]);
         rank += 1;
       }
 

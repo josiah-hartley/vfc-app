@@ -9,9 +9,11 @@ import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
 
 class MultiSelectDisplay extends StatelessWidget {
-  const MultiSelectDisplay({Key key, this.selectedMessages, this.onDeselectAll}) : super(key: key);
+  const MultiSelectDisplay({Key key, this.selectedMessages, this.onDeselectAll, this.showDownloadOptions = true, this.showQueueOptions = true}) : super(key: key);
   final LinkedHashSet<Message> selectedMessages;
   final Function onDeselectAll;
+  final bool showDownloadOptions;
+  final bool showQueueOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +85,57 @@ class MultiSelectDisplay extends StatelessWidget {
     if (messages != null && messages.length > 0) {
       active = true;
     }
+
+    List<PopupMenuItem<int>> _listChildren = [];
+    if (showDownloadOptions == true) {
+      _listChildren.add(_listAction(
+        context: context,
+        value: 0,
+        active: active,
+        icon: Icons.download_sharp,
+        text: 'Download all',
+      ));
+      _listChildren.add(_listAction(
+        context: context,
+        value: 1,
+        active: active,
+        icon: CupertinoIcons.delete,
+        text: 'Remove downloads',
+      ));
+    }
+    if (showQueueOptions == true) {
+      _listChildren.add(_listAction(
+        context: context,
+        value: 2,
+        active: active,
+        icon: CupertinoIcons.list_dash,
+        text: 'Add to queue (downloaded only)',
+      ));
+    }
+    _listChildren.addAll([
+      _listAction(
+        context: context,
+        value: 3,
+        active: active,
+        icon: Icons.playlist_add,
+        text: 'Add to playlist',
+      ),
+      _listAction(
+        context: context,
+        value: 4,
+        active: active,
+        icon: CupertinoIcons.star_fill,
+        text: 'Add to favorites',
+      ),
+      _listAction(
+        context: context,
+        value: 5,
+        active: active,
+        icon: CupertinoIcons.star_slash,
+        text: 'Remove from favorites',
+      ),
+    ]);
+
     return Material(
       color: Theme.of(context).backgroundColor.withOpacity(0.01),
       child: PopupMenuButton<int>(
@@ -96,50 +149,7 @@ class MultiSelectDisplay extends StatelessWidget {
         //offset: Offset(0.0, 100.0),
         elevation: 20.0,
         itemBuilder: (context) {
-          return [
-            _listAction(
-              context: context,
-              value: 0,
-              active: active,
-              icon: Icons.download_sharp,
-              text: 'Download all',
-            ),
-            _listAction(
-              context: context,
-              value: 1,
-              active: active,
-              icon: CupertinoIcons.delete,
-              text: 'Remove downloads',
-            ),
-            _listAction(
-              context: context,
-              value: 2,
-              active: active,
-              icon: CupertinoIcons.list_dash,
-              text: 'Add to queue (downloaded only)',
-            ),
-            _listAction(
-              context: context,
-              value: 3,
-              active: active,
-              icon: Icons.playlist_add,
-              text: 'Add to playlist',
-            ),
-            _listAction(
-              context: context,
-              value: 4,
-              active: active,
-              icon: CupertinoIcons.star_fill,
-              text: 'Add to favorites',
-            ),
-            _listAction(
-              context: context,
-              value: 5,
-              active: active,
-              icon: CupertinoIcons.star_slash,
-              text: 'Remove from favorites',
-            ),
-          ];
+          return _listChildren;
         },
         onSelected: (value) async {
           switch (value) {
@@ -161,12 +171,12 @@ class MultiSelectDisplay extends StatelessWidget {
               }
               break;
             case 3:
-              //showDialog(
-              //  context: context,
-                //builder: (context) => AddToPlaylistDialog(),
-                // TODO: make AddMultipleMessagesToPlaylistDialog()
-              //);
-              print('Adding to playlist');
+              showDialog(
+                context: context,
+                builder: (context) => AddToPlaylistDialog(
+                  messageList: selectedMessages.toList(),
+                ),
+              );
               break;
             case 4:
               String _m = messages.length > 1 ? 'messages' : 'message';
@@ -213,43 +223,3 @@ class MultiSelectDisplay extends StatelessWidget {
     );
   }
 }
-
-/*Widget multiselectDisplay({BuildContext context, 
-  LinkedHashSet<Message> selectedMessages,
-  Function onDeselectAll}) {
-    String _text = '${selectedMessages.length} selected';
-    if (selectedMessages.length == Constants.MESSAGE_SELECTION_LIMIT) {
-      _text += ' (max allowed)';
-    }
-    return Container(
-      padding: EdgeInsets.only(left: 12.0, right: 12.0, top: 5.0, bottom: 6.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).accentColor.withOpacity(0.2),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: Icon(CupertinoIcons.xmark, color: Theme.of(context).accentColor),
-            onPressed: onDeselectAll,
-          ),
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 14.0),
-              child: Text(_text,
-                style: TextStyle(
-                  color: Theme.of(context).accentColor,
-                  fontSize: 18.0,
-                )
-              ),
-            ),
-          ),
-          IconButton(
-            icon: Icon(CupertinoIcons.ellipsis_vertical, color: Theme.of(context).accentColor), 
-            onPressed: () {
-              selectedMessages.forEach((element) {print(element.title);});
-            },
-          )
-        ],
-      ),
-    );
-}*/

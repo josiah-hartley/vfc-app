@@ -7,6 +7,7 @@ import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:voices_for_christ/player/AudioHandler.dart';
 
 mixin PlayerModel on Model {
@@ -61,6 +62,11 @@ mixin PlayerModel on Model {
         _currentlyPlayingMessage = null;
       }*/
       notifyListeners();
+      // TODO: figure this out
+      if (_queue.length > 0) {
+        print('UPDATING QUEUE IN DB: $_queue');
+        await db.reorderAllMessagesInPlaylist(Playlist(Constants.QUEUE_PLAYLIST_ID, 0, 'Queue', []), _queue);
+      }
     });
 
     _audioHandler.mediaItem.listen((item) {
@@ -128,11 +134,15 @@ mixin PlayerModel on Model {
     _prefs = await SharedPreferences.getInstance();
     int _currMessageId = _prefs.getInt('mostRecentMessageId');
     if (_currMessageId != null) {
+      Playlist savedQueue = Playlist(Constants.QUEUE_PLAYLIST_ID, 0, 'Queue', []);
+      savedQueue.messages = await db.getMessagesOnPlaylist(savedQueue);
+      print('QUEUE: ${savedQueue.messages}');
       Message result = await db.queryOne(_currMessageId);
       double _seconds = result?.lastplayedposition ?? 0.0;
       int _milliseconds = (_seconds * 1000).round();
       await setupPlayer(
         message: result, 
+        playlist: savedQueue,
         position: Duration(milliseconds: _milliseconds),
       );
     }
@@ -180,7 +190,11 @@ mixin PlayerModel on Model {
       setQueueToSingleMessage(message, position: position);
     } else {
       int index = playlist.messages.indexWhere((item) => item?.id == message?.id);
-      setQueueToPlaylist(playlist, index: index, position: position);
+      if (index > -1) {
+        setQueueToPlaylist(playlist, index: index, position: position);
+      } else {
+        setQueueToSingleMessage(message, position: position);
+      }
     }
 
     _playerVisible = true;
@@ -224,6 +238,25 @@ mixin PlayerModel on Model {
     }
   }
 
+  void updateQueue(List<Message> messages) {
+    List<MediaItem> _queueItems = messages.map((m) => m.toMediaItem()).toList();
+    _audioHandler.updateQueue(_queueItems);
+
+    if (!_playerVisible) {
+      _playerVisible = true;
+      notifyListeners();
+    }
+  }
+
+  void updateFutureQueue(List<Message> futureQueue) {
+    // replace everything after current message with futureQueue
+    int index = _queue.indexWhere((m) => m.id == _currentlyPlayingMessage?.id);
+    if (index > -1) {
+      _queue.replaceRange(index + 1, _queue.length, futureQueue);
+      updateQueue(_queue);
+    }
+  }
+
   void addToQueue(Message message, {int index}) {
     if (index == null) {
       _audioHandler.addQueueItem(message.toMediaItem());
@@ -238,14 +271,8 @@ mixin PlayerModel on Model {
   }
 
   void addMultipleMessagesToQueue(List<Message> messages) {
-    List<MediaItem> _queueItems = _queue.map((m) => m.toMediaItem()).toList();
-    _queueItems.addAll(messages.map((m) => m.toMediaItem()).toList());
-    _audioHandler.updateQueue(_queueItems);
-
-    if (!_playerVisible) {
-      _playerVisible = true;
-      notifyListeners();
-    }
+    _queue.addAll(messages);
+    updateQueue(_queue);
   }
 
   void removeFromQueue(int index) {

@@ -75,7 +75,6 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
             builder: (context) {
               return AddToPlaylistDialog(
                 message: widget.message,
-                allPlaylists: model.playlists,
                 playlistsOriginallyContainingMessage: containing,
               );
             }

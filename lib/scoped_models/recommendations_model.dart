@@ -27,6 +27,7 @@ mixin RecommendationsModel on Model {
 
   Future<Recommendation> featuredMessages() async {
     List<Message> _featuredMessages = await db.queryMultipleMessages(featuredMessageIds);
+    _featuredMessages.shuffle();
     return Recommendation(
       label: 'Featured Messages',
       type: 'featured',

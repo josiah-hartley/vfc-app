@@ -2,17 +2,21 @@ import 'dart:collection';
 import 'package:connectivity/connectivity.dart';
 import 'package:dio/dio.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voices_for_christ/data_models/download_class.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/files/delete_files.dart';
 import 'package:voices_for_christ/files/download_files.dart';
+import 'package:voices_for_christ/helpers/pause_reason.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 
 mixin DownloadsModel on Model {
   final db = MessageDB.instance;
   final dio = Dio();
+  bool _downloadsPaused = false;
+  PauseReason _downloadPauseReason;
   Queue<Download> _currentlyDownloading = Queue();
   Queue<Download> _downloadQueue = Queue();
   List<Message> _downloads = [];
@@ -24,6 +28,8 @@ mixin DownloadsModel on Model {
   bool _reachedEndOfDownloadsList = false;
   int _downloadedBytes = 0;
 
+  bool get downloadsPaused => _downloadsPaused;
+  PauseReason get downloadPauseReason => _downloadPauseReason;
   Queue<Download> get currentlyDownloading => _currentlyDownloading;
   Queue<Download> get downloadQueue => _downloadQueue;
   List<Message> get downloads => _downloads;
@@ -160,12 +166,28 @@ mixin DownloadsModel on Model {
     }
   }*/
 
+  void pauseDownloadQueue({PauseReason reason = PauseReason.user}) {
+    _downloadsPaused = true;
+    _downloadPauseReason = reason;
+    notifyListeners();
+    moveCurrentlyDownloadingBackIntoQueue();
+  }
+
+  void unpauseDownloadQueue() {
+    _downloadsPaused = false;
+    notifyListeners();
+    fillUpCurrentlyDownloadingFromQueue();
+  }
+
   Future<void> loadDownloadQueueFromDB() async {
     List<Message> result = await db.getDownloadQueueFromDB();
     addMessagesToDownloadQueue(result);
   }
 
-  void addMessagesToDownloadQueue(List<Message> messages) {
+  void addMessagesToDownloadQueue(List<Message> messages, {bool atFront = false}) async {
+    if (atFront) {
+      messages = messages.reversed.toList();
+    }
     db.addMessagesToDownloadQueueDB(messages);
     List<Download> tasks = [];
     messages.forEach((message) {
@@ -178,21 +200,49 @@ mixin DownloadsModel on Model {
       }
     });
 
+    await checkConnection();
+
     tasks.forEach((task) {
-      if (_currentlyDownloading.length < Constants.ACTIVE_DOWNLOAD_QUEUE_SIZE) {
+      if (!_downloadsPaused && _currentlyDownloading.length < Constants.ACTIVE_DOWNLOAD_QUEUE_SIZE) {
         print('DOWNLOADQUEUE: adding ${task.message.title} to currently downloading');
         _currentlyDownloading.add(task);
         executeDownloadTask(task);
       } else {
         print('DOWNLOADQUEUE: adding ${task.message.title} to download queue');
-        _downloadQueue.add(task);
+        if (atFront) {
+          _downloadQueue.addFirst(task);
+        } else {
+          _downloadQueue.add(task);
+        }
       }
     });
   }
 
-  void advanceDownloadsQueue() {
+  void fillUpCurrentlyDownloadingFromQueue() {
+    int emptySlots = Constants.ACTIVE_DOWNLOAD_QUEUE_SIZE - _currentlyDownloading.length;
+    for (int i = 0; i < emptySlots; i++) {
+      advanceDownloadsQueue();
+    }
+  }
+
+  void moveCurrentlyDownloadingBackIntoQueue() async {
+    List<Message> _currentlyDownloadingMessages = [];
+    while (_currentlyDownloading.isNotEmpty) {
+      //Download task = _currentlyDownloading.first;
+      Download task = _currentlyDownloading.removeFirst();
+      _currentlyDownloadingMessages.add(task.message);
+      //await cancelDownload(task);
+      task.cancelToken.cancel();
+    }
+    await db.removeMessagesFromDownloadQueueDB(_currentlyDownloadingMessages);
+    addMessagesToDownloadQueue(_currentlyDownloadingMessages, atFront: true);
+    notifyListeners();
+  }
+
+  void advanceDownloadsQueue() async {
     print('DOWNLOADQUEUE: advancing download queue');
-    if (_downloadQueue.length < 1) {
+    await checkConnection();
+    if (_downloadQueue.length < 1 || _downloadsPaused) {
       return;
     }
     Download result = _downloadQueue.removeFirst();
@@ -218,29 +268,31 @@ mixin DownloadsModel on Model {
           notifyListeners();
         }
       );
-      finishDownload(task);
+      if (task.message?.isdownloaded == 1) {
+        await finishDownload(task);
+      }
     } on Exception catch(error) {
       task.message.iscurrentlydownloading = 0;
       task.message.isdownloaded = 0;
       await db.update(task.message);
 
       if (error.toString().indexOf('DioErrorType.cancel') > -1) {
-        
         showToast('Canceled download: ${task.message.title}');
       } else {
         print('Error executing download task: $error');
         showToast('Error downloading ${task.message.title}: check connection');
-        ConnectivityResult connection = await Connectivity().checkConnectivity();
+        advanceDownloadsQueue();
+        /*ConnectivityResult connection = await Connectivity().checkConnectivity();
         if (connection == ConnectivityResult.none) {
           // pause all downloads
         } else {
           //advanceDownloadsQueue();
-        }
+        }*/
       }
     }
   }
 
-  void finishDownload(Download task) async {
+  Future<void> finishDownload(Download task) async {
     task.message.iscurrentlydownloading = 0;
     task.message.downloadedat = DateTime.now().millisecondsSinceEpoch;
     await db.update(task.message);
@@ -252,44 +304,20 @@ mixin DownloadsModel on Model {
     showToast('Finished downloading ${task.message.title}');
     addMessageToDownloadedList(task.message);
     _currentlyDownloading.removeWhere((t) => t.message.id == task.message.id);
-    db.removeMessagesFromDownloadQueueDB([task.message]);
+    await db.removeMessagesFromDownloadQueueDB([task.message]);
     advanceDownloadsQueue();
   }
 
-  void cancelDownload(Download task) {
+  Future<void> cancelDownload(Download task) async {
     task.cancelToken.cancel();
     _currentlyDownloading.removeWhere((t) => t.message?.id == task.message?.id);
     _downloadQueue.removeWhere((t) => t.message?.id == task.message?.id);
     if (_currentlyDownloading.length < Constants.ACTIVE_DOWNLOAD_QUEUE_SIZE) {
       advanceDownloadsQueue();
     }
-    db.removeMessagesFromDownloadQueueDB([task.message]);
+    await db.removeMessagesFromDownloadQueueDB([task.message]);
     notifyListeners();
   }
-
-  /*Future<void> downloadMessage(Message message) async {
-    if (message.isdownloaded == 1) {
-      return;
-    }
-
-    message.iscurrentlydownloading = 1;
-    notifyListeners();
-
-    try {
-      message = await downloadMessageFile(message);
-      await db.update(message);
-      showToast('Finished downloading ${message.title}');
-      addMessageToDownloadedList(message);
-      notifyListeners();
-    }
-    catch (error) {
-      message.iscurrentlydownloading = 0;
-      message.isdownloaded = 0;
-      await db.update(message);
-      showToast('Error downloading ${message.title}: check connection');
-      notifyListeners();
-    }
-  }*/
 
   Future<void> deleteMessageDownloads(List<Message> messages) async {
     try {
@@ -314,6 +342,26 @@ mixin DownloadsModel on Model {
       notifyListeners();
     } catch (error) {
       showToast('Error removing downloads');
+    }
+  }
+
+  Future<void> checkConnection() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool downloadOverData = prefs.getBool('downloadOverData') ?? false;
+
+    ConnectivityResult connection = await Connectivity().checkConnectivity();
+    // pause all downloads if there's no connection
+    // or if on data and settings only allow download over WiFi
+    if (connection == ConnectivityResult.none) {
+      _downloadsPaused = true;
+      _downloadPauseReason = PauseReason.noConnection;
+      notifyListeners();
+    } else {
+      if (connection == ConnectivityResult.mobile && !downloadOverData) {
+        _downloadsPaused = true;
+        _downloadPauseReason = PauseReason.connectionType;
+        notifyListeners();
+      } 
     }
   }
 }

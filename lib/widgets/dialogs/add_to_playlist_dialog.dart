@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
-import 'package:voices_for_christ/helpers/toasts.dart';
+//import 'package:voices_for_christ/helpers/toasts.dart';
 //import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/buttons/action_button.dart';
+import 'package:voices_for_christ/widgets/dialogs/new_playlist_dialog.dart';
 
 class AddToPlaylistDialog extends StatefulWidget {
-  AddToPlaylistDialog({Key key, this.message, this.allPlaylists, this.playlistsOriginallyContainingMessage}) : super(key: key);
+  AddToPlaylistDialog({Key key, this.message, this.messageList, this.playlistsOriginallyContainingMessage}) : super(key: key);
   final Message message;
-  final List<Playlist> allPlaylists;
+  final List<Message> messageList;
   final List<Playlist> playlistsOriginallyContainingMessage;
 
   @override
@@ -20,42 +21,25 @@ class AddToPlaylistDialog extends StatefulWidget {
 }
 
 class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
-  //bool _loading;
-  //List<Playlist> _allPlaylists = [];
-  //List<Playlist> _playlistsOriginallyContainingMessage = [];
   List<Playlist> _playlistsContainingMessage = [];
-  //final db = MessageDB.instance;
+  Playlist _selectedPlaylist;
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      _playlistsContainingMessage = widget.playlistsOriginallyContainingMessage;
-    });
-    //loadInitialPlaylistData();
+    loadInitialPlaylistData();
   }
 
-  //Future<void> loadInitialPlaylistData({List<Playlist> allPlaylists, Function getPlaylistsContainingMessage}) async {
-  Future<void> loadInitialPlaylistData(List<Playlist> allPlaylists) async {
-    /*setState(() {
-      _loading = true;
-    });*/
-    //List<Playlist> all = await db.getAllPlaylistsMetadata();
-    //List<Playlist> containing = await db.getPlaylistsContainingMessage(widget.message);
-    
-    //List<Playlist> containing = await model.playlistsContainingMessage(widget.message);
-    setState(() {
-      //_loading = false;
-      //_allPlaylists = allPlaylists;
-      //_playlistsOriginallyContainingMessage = containing;
-      //_playlistsContainingMessage = containing;
-      _playlistsContainingMessage = widget.playlistsOriginallyContainingMessage;
-    });
+  void loadInitialPlaylistData() {
+    if (widget.message != null) {
+      setState(() {
+        _playlistsContainingMessage = widget.playlistsOriginallyContainingMessage;
+      });
+    }
   }
 
-  Future<void> savePlaylistChanges(MainModel model) async {
+  Future<void> savePlaylistChangesForSingleMessage(MainModel model) async {
     await model.updatePlaylistsContainingMessage(widget.message, _playlistsContainingMessage);
-    //reloadCurrentPlaylist();
     if (model.selectedPlaylist != null) {
       int indexOnCurrentPlaylist = model.selectedPlaylist.messages.indexWhere((m) => m.id == widget.message?.id);
       bool wasOnCurrentPlaylist = indexOnCurrentPlaylist > -1;
@@ -75,11 +59,6 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
       builder: (context, child, model) {
-        /*loadInitialPlaylistData(
-          allPlaylists: model.playlists,
-          getPlaylistsContainingMessage: model.playlistsContainingMessage,
-        );*/
-        //loadInitialPlaylistData(model.playlists);
         return SizedBox.expand(
           child: BackdropFilter(
             filter: ImageFilter.blur(
@@ -92,7 +71,8 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
               child: Column(
                 children: [
                   _title(),
-                  _playlistSelector(),
+                  _newPlaylistButton(),
+                  _playlistSelector(model.playlists),
                   _actionButtonRow(
                     model: model,
                   ),
@@ -125,20 +105,34 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
     );
   }
 
-  Widget _playlistSelector() {
-    /*if (_loading) {
-      return Expanded(
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }*/
+  Widget _newPlaylistButton() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+      child: ActionButton(
+        text: 'New Playlist',
+        onPressed: () {
+          showDialog(
+            context: context, 
+            builder: (context) => NewPlaylistDialog()
+          );
+        },
+      )
+    );
+  }
+
+  Widget _playlistSelector(List<Playlist> allPlaylists) {
     return Expanded(
       child: Container(
         child: ListView.builder(
-          itemCount: widget.allPlaylists?.length,
+          itemCount: allPlaylists?.length,
           itemBuilder: (context, index) {
-            return _playlistCheckbox(widget.allPlaylists[index]);
+            if (widget.message != null) {
+              return _playlistCheckbox(allPlaylists[index]);
+            }
+            if (widget.messageList != null) {
+              return _playlistRadioButton(allPlaylists[index]);
+            }
+            return Container();
           }
         )
       ),
@@ -159,7 +153,6 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
         });
       },
       child: Container(
-        color: Theme.of(context).backgroundColor.withOpacity(0.05),
         padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
         child: Row(
           children: [
@@ -188,6 +181,43 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
     );
   }
 
+  Widget _playlistRadioButton(Playlist playlist) {
+    bool selected = playlist?.id == _selectedPlaylist?.id;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedPlaylist = playlist;
+        });
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+        child: Row(
+          children: [
+            selected
+              ? Icon(CupertinoIcons.circle_fill,
+                color: Theme.of(context).accentColor,
+                size: 34.0,
+              )
+              : Icon(CupertinoIcons.circle,
+                color: Theme.of(context).accentColor,
+                size: 34.0,
+              ), 
+            Container(
+              width: MediaQuery.of(context).size.width - 120.0,
+              padding: EdgeInsets.only(left: 20.0),
+              child: Text(playlist?.title ?? '',
+                style: TextStyle(
+                  color: Theme.of(context).accentColor,
+                  fontSize: 20.0,
+                )
+              ),
+            ),
+          ],
+        )
+      ),
+    );
+  }
+
   Widget _actionButtonRow({MainModel model}) {
     return Container(
       padding: EdgeInsets.only(top: 14.0),
@@ -197,7 +227,15 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
           ActionButton(
             text: 'SAVE',
             onPressed: () async {
-              await savePlaylistChanges(model);
+              if (widget.message != null) {
+                await savePlaylistChangesForSingleMessage(model);
+              }
+              if (widget.messageList != null) {
+                await model.addMessagesToPlaylist(
+                  messages: widget.messageList,
+                  playlist: _selectedPlaylist,
+                );
+              }
               Navigator.of(context).pop();
             }
           ),

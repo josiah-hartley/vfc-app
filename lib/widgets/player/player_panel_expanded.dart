@@ -367,7 +367,6 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
           builder: (context) {
             return AddToPlaylistDialog(
               message: message,
-              allPlaylists: model.playlists,
               playlistsOriginallyContainingMessage: containing,
             );
           }

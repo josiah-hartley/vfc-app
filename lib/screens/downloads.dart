@@ -1,6 +1,6 @@
 import 'dart:collection';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:voices_for_christ/data_models/download_class.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
@@ -51,7 +51,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                   onDeselectAll: _deselectAll,
                 )
                 : _filterButtonsRow(),
-              _filteredList(model)
+              _filteredList(context, model)
             ],
           ),
         );
@@ -64,8 +64,8 @@ class _DownloadsPageState extends State<DownloadsPage> {
       padding: EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(3, (index) {
-          List<String> _categories = ['All', 'Unplayed', 'Played'];
+        children: List.generate(4, (index) {
+          List<String> _categories = ['All', 'Unplayed', 'Played', 'Queue'];
           return _filterButton(
             text: _categories[index],
             selected: _filter == _categories[index],
@@ -85,12 +85,12 @@ class _DownloadsPageState extends State<DownloadsPage> {
       child: Container(
         decoration: BoxDecoration(
           color: selected ? Theme.of(context).accentColor.withOpacity(1.0) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20.0),
+          borderRadius: BorderRadius.circular(5.0),
           /*border: Border.all(
             color: selected ? Theme.of(context).accentColor.withOpacity(0.15) : Colors.transparent,
           )*/
         ),
-        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
         margin: EdgeInsets.symmetric(horizontal: 0.0),
         child: Text(text,
           style: selected 
@@ -102,7 +102,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
     );
   }
 
-  Widget _filteredList(MainModel model) {
+  Widget _filteredList(BuildContext context, MainModel model) {
     List<Message> messageList;
     String emptyMessage = '';
     switch(_filter) {
@@ -118,96 +118,16 @@ class _DownloadsPageState extends State<DownloadsPage> {
         messageList = model.playedDownloads;
         emptyMessage = 'Any played downloads will appear here';
         break;
+      case 'Queue':
+        messageList = [];
+        emptyMessage = 'Download queue is empty';
+        break;
       default:
         messageList = model.downloads;
     }
 
-    if (_filter == 'All') {
-      List<Widget> listItems = [];
-      if (model.currentlyDownloading.length > 0) {
-        listItems.add(_listSectionTitle('Downloading'));
-        model.currentlyDownloading.forEach((task) {
-          listItems.add(MessageCard(
-            message: task?.message,
-            selected: false,
-            onSelect: null,
-            isDownloading: true,
-            downloadTask: task,
-            onCancelDownload: () { model.cancelDownload(task); },
-          ));
-        });
-      }
-      if (model.downloadQueue.length > 0) {
-        listItems.add(_listSectionTitle('Queue'));
-        model.downloadQueue.forEach((task) {
-          listItems.add(MessageCard(
-            message: task?.message,
-            selected: false,
-            onSelect: null,
-            isDownloading: true,
-            downloadTask: task,
-            onCancelDownload: () { model.cancelDownload(task); },
-          ));
-        });
-      }
-
-      if (model.currentlyDownloading.length > 0 || model.downloadQueue.length > 0) {
-        listItems.add(_listSectionTitle('Downloaded'));
-      }
-      
-      messageList.forEach((message) {
-        listItems.add(MessageCard(
-          message: message,
-          selected: _selectedMessages.contains(message),
-          onSelect: () {
-            _toggleMessageSelection(message);
-          },
-        ));
-      });
-
-      if (listItems.length < 1) {
-        return Expanded(
-          child: Container(
-            alignment: Alignment.topCenter,
-            padding: EdgeInsets.only(top: 150.0),
-            child: model.downloadsLoading 
-              ? CircularProgressIndicator()
-              : Text(emptyMessage,
-                style: Theme.of(context).primaryTextTheme.headline1,
-                textAlign: TextAlign.center,
-              ),
-          ),
-        );
-      }
-
-      return Expanded(
-        child: Container(
-          child: ListView.builder(
-            padding: EdgeInsets.only(top: 0.0),
-            itemCount: listItems.length + 1,
-            itemBuilder: (context, index) {
-              if (index >= listItems.length) {
-                if (model.reachedEndOfDownloadsList) {
-                  return SizedBox(height: 250.0); 
-                }
-                return Container(
-                  height: 250.0,
-                  alignment: Alignment.center,
-                  child: Container(
-                    height: 50.0,
-                    width: 50.0,
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-              if (index + Constants.MESSAGE_LOADING_BATCH_SIZE / 2 >= listItems.length && !model.reachedEndOfDownloadsList) {
-                model.loadDownloadedMessagesFromDB();
-              }
-              return listItems[index];
-            },
-          ),
-        ),
-      );
+    if (_filter == 'Queue') {
+      return _queueDisplay(context, model, emptyMessage);
     }
 
     if (messageList.length < 1) {
@@ -262,20 +182,120 @@ class _DownloadsPageState extends State<DownloadsPage> {
     );
   }
 
+  Widget _queueDisplay(BuildContext context, MainModel model, String emptyMessage) {
+    List<Widget> listItems = [];
+    if (model.currentlyDownloading.length > 0 || model.downloadQueue.length > 0) {
+      listItems.add(_downloadQueueActions(
+        context: context,
+        paused: model.downloadsPaused,
+        onPause: model.pauseDownloadQueue,
+        onResume: model.unpauseDownloadQueue,
+      ));
+    }
+    if (model.currentlyDownloading.length > 0) {
+      listItems.add(_listSectionTitle('Downloading'));
+      model.currentlyDownloading.forEach((task) {
+        listItems.add(MessageCard(
+          message: task?.message,
+          selected: false,
+          onSelect: null,
+          isDownloading: true,
+          downloadTask: task,
+          onCancelDownload: () { model.cancelDownload(task); },
+        ));
+      });
+    }
+    if (model.downloadQueue.length > 0) {
+      listItems.add(_listSectionTitle('Queue'));
+      model.downloadQueue.forEach((task) {
+        listItems.add(MessageCard(
+          message: task?.message,
+          selected: false,
+          onSelect: null,
+          isDownloading: true,
+          downloadTask: task,
+          onCancelDownload: () { model.cancelDownload(task); },
+        ));
+      });
+    }
+
+    if (listItems.length < 1) {
+      return Expanded(
+        child: Container(
+          alignment: Alignment.topCenter,
+          padding: EdgeInsets.only(top: 150.0),
+          child: model.downloadsLoading 
+            ? CircularProgressIndicator()
+            : Text(emptyMessage,
+              style: Theme.of(context).primaryTextTheme.headline1,
+              textAlign: TextAlign.center,
+            ),
+        ),
+      );
+    }
+
+    return Expanded(
+      child: Container(
+        child: ListView.builder(
+          padding: EdgeInsets.only(top: 0.0),
+          itemCount: listItems.length + 1,
+          itemBuilder: (context, index) {
+            if (index >= listItems.length) {
+              return SizedBox(height: 250.0); 
+            }
+            return listItems[index];
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _downloadQueueActions({BuildContext context, bool paused, Function onPause, Function onResume}) {
+    IconData icon = paused ? CupertinoIcons.play_arrow : CupertinoIcons.pause;
+    String text = paused ? 'Resume Downloads' : 'Pause Downloads';
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      child: TextButton(
+        onPressed: paused ? onResume : onPause,
+        child: Container(
+          alignment: Alignment.centerRight,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Icon(icon, 
+                color: Theme.of(context).accentColor,
+                size: 18.0,
+              ),
+              Container(
+                padding: EdgeInsets.only(left: 3.0, top: 2.0),
+                child: Text(text,
+                  style: TextStyle(
+                    color: Theme.of(context).accentColor,
+                    fontSize: 15.0,
+                  )
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _listSectionTitle(String title) {
     return Container(
       alignment: Alignment.center,
       padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).accentColor.withOpacity(1.0),
-            width: 1.0,
-          )
-        )
+        color: Theme.of(context).accentColor.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Text(title,
-        style: Theme.of(context).primaryTextTheme.headline2,
+        style: TextStyle(
+          color: Theme.of(context).primaryColor,
+          fontSize: 22.0,
+          fontWeight: FontWeight.w400,
+        ),
       ),
     );
   }

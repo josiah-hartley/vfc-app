@@ -74,6 +74,20 @@ mixin PlaylistsModel on Model {
     notifyListeners();
   }
 
+  Future<void> addMessagesToPlaylist({List<Message> messages, Playlist playlist}) async {
+    if (messages == null || messages.length < 1 || playlist == null) {
+      return;
+    }
+    await db.addMessagesToPlaylist(
+      messages: messages,
+      playlist: playlist,
+    );
+    if (playlist.id == _selectedPlaylist?.id) {
+      _selectedPlaylist.messages.addAll(messages);
+      notifyListeners();
+    }
+  }
+
   void updateMessageInCurrentPlaylist(Message message) {
     if (_selectedPlaylist == null || _selectedPlaylist.messages == null) {
       return;

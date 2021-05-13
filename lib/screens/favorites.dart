@@ -93,7 +93,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
       child: Container(
         decoration: BoxDecoration(
           color: selected ? Theme.of(context).accentColor.withOpacity(1.0) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20.0),
+          borderRadius: BorderRadius.circular(5.0),
           /*border: Border.all(
             color: selected ? Theme.of(context).accentColor.withOpacity(0.15) : Colors.transparent,
           )*/

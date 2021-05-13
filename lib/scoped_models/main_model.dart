@@ -1,5 +1,7 @@
+import 'package:connectivity/connectivity.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
+import 'package:voices_for_christ/helpers/pause_reason.dart';
 import 'package:voices_for_christ/scoped_models/downloads_model.dart';
 import 'package:voices_for_christ/scoped_models/favorites_model.dart';
 import 'package:voices_for_christ/scoped_models/player_model.dart';
@@ -27,6 +29,20 @@ RecommendationsModel {
     await loadStorageUsage();
     await loadSettings();
     await loadRecommendations();
+
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult connection) {
+      print('connectivity changed: $connection');
+      if (connection == ConnectivityResult.none) {
+        pauseDownloadQueue(reason: PauseReason.noConnection);
+      } else if (connection == ConnectivityResult.mobile && !downloadOverData) {
+        pauseDownloadQueue(reason: PauseReason.connectionType);
+      } else {
+        // on wifi
+        if (downloadsPaused) {
+          unpauseDownloadQueue();
+        }
+      }
+    });
   }
 
   Future<void> setMessagePlayed(Message message) async {

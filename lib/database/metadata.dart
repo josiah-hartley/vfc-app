@@ -18,6 +18,7 @@ Future<void> setLastUpdatedDate(Database db, int date) async {
 Future<int> getStorageUsed(Database db) async {
   try {
     List<Map<String,dynamic>> result = await db.query('$metaTable', where: 'label = ?', whereArgs: ['storageused']);
+    print('finding cloudlastcheckeddate: $result');
     if (result.length > 0) {
       return result.first['value'];
     }
