@@ -20,15 +20,30 @@ class SettingsPage extends StatelessWidget {
                 padding: EdgeInsets.only(top: 0.0),
                 children: [
                   _title(context),
-                  _darkModeToggle(
+                  _toggle(
                     context: context,
                     value: model.darkMode, 
+                    title: 'Dark theme',
+                    subtitle: model.darkMode ? 'On' : 'Off',
                     toggle: model.toggleDarkMode,
                   ),
-                  _downloadOverDataToggle(
+                  _toggle(
                     context: context,
                     value: model.downloadOverData, 
+                    title: 'Download over data',
+                    subtitle: model.downloadOverData 
+                      ? 'Messages will download over WiFi or mobile connections' 
+                      : 'Messages will only download over WiFi',
                     toggle: model.toggleDownloadOverData,
+                  ),
+                  _toggle(
+                    context: context,
+                    value: model.removePlayedDownloads, 
+                    title: 'Remove played downloads',
+                    subtitle: model.removePlayedDownloads 
+                      ? 'Message files will be periodically removed from your device if they have been played' 
+                      : 'Off',
+                    toggle: model.toggleRemovePlayedDownloads,
                   ),
                   _storageUsage(
                     context: context, 
@@ -83,32 +98,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _darkModeToggle({BuildContext context, bool value, Function toggle}) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 12.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text('Dark theme',
-              style: Theme.of(context).primaryTextTheme.headline2,
-            )
-          ),
-          Container(
-            child: Switch(
-              value: value,
-              onChanged: (val) { toggle(); },
-              activeColor: Theme.of(context).accentColor,
-              inactiveThumbColor: Theme.of(context).accentColor.withOpacity(0.8),
-              inactiveTrackColor: Theme.of(context).accentColor.withOpacity(0.25),
-            ),
-          ),
-        ],
-      )
-    );
-  }
-
-  Widget _downloadOverDataToggle({BuildContext context, bool value, Function toggle}) {
-    String text = value ? 'Messages will download over WiFi or mobile connections' : 'Messages will only download over WiFi';
+  Widget _toggle({BuildContext context, bool value, String title, String subtitle, Function toggle}) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
@@ -117,15 +107,17 @@ class SettingsPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Download over data',
+                Text(title,
                   style: Theme.of(context).primaryTextTheme.headline2,
                 ),
-                Container(
-                  padding: EdgeInsets.only(top: 5.0, right: 25.0),
-                  child: Text(text,
-                    style: Theme.of(context).primaryTextTheme.headline4,
-                  ),
-                ),
+                subtitle == null
+                  ? SizedBox(height: 0.0)
+                  : Container(
+                      padding: EdgeInsets.only(top: 5.0, right: 25.0),
+                      child: Text(subtitle,
+                        style: Theme.of(context).primaryTextTheme.headline4,
+                      ),
+                    ),
               ],
             ),
           ),

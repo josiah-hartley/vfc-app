@@ -7,16 +7,19 @@ mixin SettingsModel on Model {
   SharedPreferences prefs;
   bool _darkMode = false;
   bool _downloadOverData = false;
+  bool _removePlayedDownloads = false;
   int _cloudLastCheckedDate = 0;
 
   bool get darkMode => _darkMode;
   bool get downloadOverData => _downloadOverData;
+  bool get removePlayedDownloads => _removePlayedDownloads;
   int get cloudLastCheckedDate => _cloudLastCheckedDate;
 
   Future<void> loadSettings() async {
     prefs = await SharedPreferences.getInstance();
     _darkMode = prefs.getBool('darkMode') ?? false;
     _downloadOverData = prefs.getBool('downloadOverData') ?? false;
+    _removePlayedDownloads = prefs.getBool('removePlayedDownloads') ?? false;
     _cloudLastCheckedDate = await db.getLastUpdatedDate();
     notifyListeners();
   }
@@ -28,10 +31,17 @@ mixin SettingsModel on Model {
     prefs.setBool('darkMode', _darkMode);
   }
 
-  void toggleDownloadOverData() async {
+  void changeDownloadOverDataStoredSetting() async {
     _downloadOverData = !_downloadOverData;
     notifyListeners();
     prefs = await SharedPreferences.getInstance();
     prefs.setBool('downloadOverData', _downloadOverData);
+  }
+
+  void toggleRemovePlayedDownloads() async {
+    _removePlayedDownloads = !_removePlayedDownloads;
+    notifyListeners();
+    prefs = await SharedPreferences.getInstance();
+    prefs.setBool('removePlayedDownloads', _removePlayedDownloads);
   }
 }

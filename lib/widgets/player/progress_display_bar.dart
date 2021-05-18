@@ -49,15 +49,18 @@ class ProgressDisplayBar extends StatelessWidget {
   }
 
   Widget _progressBar({BuildContext context, double height, double progress}) {
+    int flexPlayed = (progress * 100).round();
+    int flexUnplayed = 100 - flexPlayed;
     return Container(
       height: height,
       child: Row(
         children: [
-          Container(
-            width: progress * MediaQuery.of(context).size.width,
-            color: color,
+          Expanded(
+            flex: flexPlayed,
+            child: Container(color: color),
           ),
           Expanded(
+            flex: flexUnplayed,
             child: Container(color: color.withOpacity(unplayedOpacity)),
           )
         ],

@@ -130,7 +130,7 @@ class MessageDB {
     return await update(msg);
   }
 
-  Future<int> setPlayed(Message msg) async {
+  /*Future<int> setPlayed(Message msg) async {
     msg.lastplayedposition = msg.durationinseconds;
     msg.isplayed = 1;
     return await update(msg);
@@ -140,7 +140,7 @@ class MessageDB {
     msg.lastplayedposition = 0.0;
     msg.isplayed = 0;
     return await update(msg);
-  }
+  }*/
 
   // FAVORITES
   Future<List<Message>> queryFavorites({int start, int end, String orderBy, bool ascending = true}) async {

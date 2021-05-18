@@ -258,11 +258,11 @@ mixin PlayerModel on Model {
   }
 
   void addToQueue(Message message, {int index}) {
-    if (index == null) {
+    //if (index == null) {
       _audioHandler.addQueueItem(message.toMediaItem());
-    } else {
-      _audioHandler.insertQueueItem(index, message.toMediaItem());
-    }
+    //} else {
+    //  _audioHandler.insertQueueItem(index, message.toMediaItem());
+    //}
 
     if (!_playerVisible) {
       _playerVisible = true;
@@ -271,6 +271,11 @@ mixin PlayerModel on Model {
   }
 
   void addMultipleMessagesToQueue(List<Message> messages) {
+    // trim played messages from the queue
+    // leave at most n messages before the current one
+    if (_queueIndex > Constants.QUEUE_BACKLOG_SIZE) {
+      _queue = _queue.sublist(_queueIndex - Constants.QUEUE_BACKLOG_SIZE);
+    }
     _queue.addAll(messages);
     updateQueue(_queue);
   }
@@ -279,7 +284,7 @@ mixin PlayerModel on Model {
     _audioHandler.removeQueueItemAt(index);
   }
 
-  void changeQueuePosition({int oldIndex, int newIndex}) {
+  /*void changeQueuePosition({int oldIndex, int newIndex}) {
     if (oldIndex == null || newIndex == null || oldIndex == newIndex) {
       return;
     }
@@ -289,7 +294,7 @@ mixin PlayerModel on Model {
     MediaItem mediaItem = _queue[oldIndex].toMediaItem();
     _audioHandler.removeQueueItemAt(oldIndex);
     _audioHandler.insertQueueItem(newIndex, mediaItem);
-  }
+  }*/
 
   /*Future<void> setInitialMessage() async {
     Message _defaultMessage = await db.queryOne(56823);

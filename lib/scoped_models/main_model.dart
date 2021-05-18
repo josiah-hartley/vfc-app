@@ -16,6 +16,10 @@ DownloadsModel,
 PlaylistsModel, 
 SettingsModel,
 RecommendationsModel {
+  ConnectivityResult _connection;
+
+  ConnectivityResult get connection => _connection;
+
   Future<void> initialize() async {
     await initializePlayer(onChangedMessage: (Message message) {
       updateDownloadedMessage(message);
@@ -29,8 +33,11 @@ RecommendationsModel {
     await loadStorageUsage();
     await loadSettings();
     await loadRecommendations();
+    await deletePlayedDownloads();
 
     Connectivity().onConnectivityChanged.listen((ConnectivityResult connection) {
+      _connection = connection;
+      notifyListeners();
       print('connectivity changed: $connection');
       if (connection == ConnectivityResult.none) {
         pauseDownloadQueue(reason: PauseReason.noConnection);
@@ -45,8 +52,21 @@ RecommendationsModel {
     });
   }
 
+  void toggleDownloadOverData() {
+    changeDownloadOverDataStoredSetting();
+    if (!downloadOverData && _connection != ConnectivityResult.wifi) {
+      pauseDownloadQueue(reason: PauseReason.connectionType);
+    }
+    if (downloadOverData && (_connection == ConnectivityResult.wifi || _connection == ConnectivityResult.mobile)) {
+      unpauseDownloadQueue();
+    }
+  }
+
   Future<void> setMessagePlayed(Message message) async {
-    await db.setPlayed(message);
+    message.isplayed = 1;
+    //message.lastplayedposition = message.durationinseconds;
+    await db.update(message);
+    //await db.setPlayed(message);
     updateDownloadedMessage(message);
     updateFavoritedMessage(message);
     updateMessageInCurrentPlaylist(message);
@@ -56,7 +76,10 @@ RecommendationsModel {
   }
 
   Future<void> setMessageUnplayed(Message message) async {
-    await db.setUnplayed(message);
+    message.isplayed = 0;
+    //message.lastplayedposition = 0.0;
+    await db.update(message);
+    //await db.setUnplayed(message);
     updateDownloadedMessage(message);
     updateFavoritedMessage(message);
     updateMessageInCurrentPlaylist(message);
@@ -79,13 +102,32 @@ RecommendationsModel {
   Future<void> deleteMessages(List<Message> messages) async {
     // can't delete currently playing message
     messages.removeWhere((m) => m?.id == currentlyPlayingMessage?.id);
-    await deleteMessageDownloads(messages);
-    for (int i = 0; i < messages.length; i++) {
+    // can't delete any messages in the queue
+    messages.removeWhere((m) => queue.indexWhere((message) => message.id == m.id) > -1);
+    
+    print('REMOVING DOWNLOADS: $messages');
+    messages = await deleteMessageDownloads(messages);
+    for (Message message in messages) {
+      print('UPDATING $message');
+      updateDownloadedMessage(message);
+      updateFavoritedMessage(message);
+      updateMessageInCurrentPlaylist(message);
+    }
+    /*for (int i = 0; i < messages.length; i++) {
       // if it's in the queue, remove it
       int index = queue.indexWhere((m) => m.id == messages[i].id);
       if (index > -1) {
         removeFromQueue(index);
       }
+    }*/
+  }
+
+  Future<void> deletePlayedDownloads() async {
+    if (removePlayedDownloads) {
+      List<Message> downloads = await db.queryDownloads();
+      List<Message> playedDownloads = downloads.where((m) => m.isplayed == 1).toList();
+      print('REMOVING DOWNLOADS: $playedDownloads');
+      await deleteMessages(playedDownloads);
     }
   }
 }

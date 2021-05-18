@@ -26,8 +26,8 @@ mixin FavoritesModel on Model {
     List<Message> result = await db.queryFavorites(
       start: _currentlyLoadedFavoritesCount,
       end: _currentlyLoadedFavoritesCount + _favoritesLoadingBatchSize,
-      //orderBy: 'speaker',
-      //ascending: true,
+      orderBy: 'speaker',
+      ascending: true,
     );
 
     if (result.length < _favoritesLoadingBatchSize) {
@@ -89,27 +89,75 @@ mixin FavoritesModel on Model {
   void updateFavoritedMessage(Message message) {
     int indexInFavorites = _favorites.indexWhere((m) => m.id == message.id);
     if (indexInFavorites > -1) {
-      bool wasPreviouslyPlayed = _favorites[indexInFavorites].isplayed == 1;
-      _favorites[indexInFavorites] = message;
-
-      // classify updated download as played or unplayed;
-      if (wasPreviouslyPlayed) {
-        int indexInPlayedFavorites = _playedFavorites.indexWhere((m) => m.id == message.id);
-        if (message.isplayed == 1) {
+      bool shouldBePlayed = message.isplayed == 1;
+      int indexInPlayedFavorites = _playedFavorites.indexWhere((m) => m.id == message.id);
+      int indexInUnplayedFavorites = _unplayedFavorites.indexWhere((m) => m.id == message.id);
+      if (indexInPlayedFavorites > -1) {
+        if (shouldBePlayed) {
           _playedFavorites[indexInPlayedFavorites] = message;
         } else {
           _playedFavorites.removeAt(indexInPlayedFavorites);
           _unplayedFavorites.add(message);
         }
-      } else {
-        int indexInUnplayedFavorites = _unplayedFavorites.indexWhere((m) => m.id == message.id);
-        if (message.isplayed == 1) {
+      } else if (indexInUnplayedFavorites > -1) {
+        if (shouldBePlayed) {
           _unplayedFavorites.removeAt(indexInUnplayedFavorites);
           _playedFavorites.add(message);
         } else {
           _unplayedFavorites[indexInUnplayedFavorites] = message;
         }
       }
+      /*bool wasPreviouslyPlayed = _favorites[indexInFavorites].isplayed == 1;
+      _favorites[indexInFavorites] = message;
+
+      // classify updated download as played or unplayed;
+      if (wasPreviouslyPlayed) {
+        int indexInPlayedFavorites = _playedFavorites.indexWhere((m) => m.id == message.id);
+        print('TEST 3b: $indexInPlayedFavorites');
+        if (message.isplayed == 1) {
+          if (indexInPlayedFavorites > -1) {
+            _playedFavorites[indexInPlayedFavorites] = message;
+          }
+        } else {
+          if (indexInPlayedFavorites > -1) {
+            _playedFavorites.removeAt(indexInPlayedFavorites);
+          }
+          _unplayedFavorites.add(message);
+        }
+      } else {
+        int indexInUnplayedFavorites = _unplayedFavorites.indexWhere((m) => m.id == message.id);
+        print('TEST 3c: $indexInUnplayedFavorites');
+        if (message.isplayed == 1) {
+          if (indexInUnplayedFavorites > -1) {
+            _unplayedFavorites.removeAt(indexInUnplayedFavorites);
+          }
+          _playedFavorites.add(message);
+        } else {
+          if (indexInUnplayedFavorites > -1) {
+            _unplayedFavorites[indexInUnplayedFavorites] = message;
+          }
+        }
+      }*/
+    }
+    notifyListeners();
+  }
+
+  void sortFavorites({String orderBy, bool ascending = true}) {
+    switch (orderBy.toLowerCase()) {
+      case 'speaker':
+        ascending
+          ? _favorites.sort((a,b) => a.speaker.compareTo(b.speaker))
+          : _favorites.sort((a,b) => -a.speaker.compareTo(b.speaker));
+        break;
+      case 'title':
+        ascending
+          ? _favorites.sort((a,b) => a.title.compareTo(b.title))
+          : _favorites.sort((a,b) => -a.title.compareTo(b.title));
+        break;
+    }
+    if (['speaker', 'title'].contains(orderBy.toLowerCase())) {
+      _playedFavorites = _favorites.where((m) => m.isplayed == 1).toList();
+      _unplayedFavorites = _favorites.where((m) => m.isplayed != 1).toList();
     }
     notifyListeners();
   }

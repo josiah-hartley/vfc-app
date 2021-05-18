@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/recommendation_class.dart';
+import 'package:voices_for_christ/helpers/duration_in_minutes.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/message_actions_dialog.dart';
@@ -32,8 +33,8 @@ class HomePage extends StatelessWidget {
 
   Widget _recommendationCategory(BuildContext context, Recommendation recommendation) {
     return Container(
-      height: 215.0,
-      padding: EdgeInsets.only(top: 14.0, bottom: 14.0, left: 14.0),
+      height: 255.0,
+      padding: EdgeInsets.only(top: 30.0, bottom: 30.0, left: 14.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -41,7 +42,7 @@ class HomePage extends StatelessWidget {
           Container(
             padding: EdgeInsets.only(bottom: 10.0),
             child: Text(recommendation.getHeader(), 
-              style: Theme.of(context).primaryTextTheme.headline2.copyWith(fontWeight: FontWeight.w400),
+              style: Theme.of(context).primaryTextTheme.headline2.copyWith(fontWeight: FontWeight.w300, fontSize: 24.0),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -75,10 +76,20 @@ class HomePage extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 4.0),
         child: Card(
-          color: Theme.of(context).cardColor,
+          //color: Theme.of(context).cardColor,
           margin: EdgeInsets.only(right: 14.0),
           elevation: 2.0,
           child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).cardColor,
+                  Theme.of(context).backgroundColor.withOpacity(0.7),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
             padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
             width: MediaQuery.of(context).size.width * 0.7,
             child: Column(
@@ -93,7 +104,15 @@ class HomePage extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 0.0),
                   child: Text(speakerReversedName(message.speaker), 
                     style: Theme.of(context).primaryTextTheme.headline4.copyWith(fontSize: 18.0),
-                    maxLines: 2,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  alignment: Alignment.centerRight,
+                  child: Text(message.durationinseconds == null ? '${message.approximateminutes} min' : messageDurationInMinutes(message.durationinseconds), 
+                    style: Theme.of(context).primaryTextTheme.headline4.copyWith(fontSize: 18.0),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

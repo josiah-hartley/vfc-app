@@ -8,6 +8,7 @@ import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/more_message_details_dialog.dart';
 import 'package:voices_for_christ/widgets/player/progress_display_bar.dart';
 
 class MessageActionsDialog extends StatefulWidget {
@@ -121,6 +122,18 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
           } else {
             await model.setMessagePlayed(widget.message);
           }
+        }
+      ),
+      _action(
+        icon: CupertinoIcons.info,
+        color: Theme.of(context).accentColor,
+        iconSize: 30.0,
+        text: 'More Details',
+        onPressed: () {
+          showDialog(
+            context: context, 
+            builder: (context) => MoreMessageDetailsDialog(message: widget.message),
+          );
         }
       ),
     ];

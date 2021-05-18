@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:scoped_model/scoped_model.dart';
@@ -48,7 +49,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   selectedMessages: _selectedMessages,
                   onDeselectAll: _deselectAll,
                 )
-                : _filterButtonsRow(),
+                : _filterButtonsRow(model.sortFavorites),
               _filteredList(
                 isLoading: model.favoritesLoading,
                 fullList: model.favorites,
@@ -67,23 +68,30 @@ class _FavoritesPageState extends State<FavoritesPage> {
     );
   }
 
-  Widget _filterButtonsRow() {
+  Widget _filterButtonsRow(Function sortFavorites) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 10.0),
+      padding: EdgeInsets.only(top: 6.0, bottom: 5.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(3, (index) {
-          List<String> _categories = ['All', 'Unplayed', 'Played'];
-          return _filterButton(
-            text: _categories[index],
-            selected: _filter == _categories[index],
-            onPressed: () {
-              setState(() {
-                _filter = _categories[index];
-              });
-            }
-          );
-        }),
+        children: [
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(3, (index) {
+                List<String> _categories = ['All', 'Unplayed', 'Played'];
+                return _filterButton(
+                  text: _categories[index],
+                  selected: _filter == _categories[index],
+                  onPressed: () {
+                    setState(() {
+                      _filter = _categories[index];
+                    });
+                  }
+                );
+              }),
+            ),
+          ),
+          _sortActions(sortFavorites),
+        ],
       ),
     );
   }
@@ -107,6 +115,99 @@ class _FavoritesPageState extends State<FavoritesPage> {
         ),
       ),
       onTap: onPressed,
+    );
+  }
+
+  Widget _sortActions(Function sortFavorites) {
+    return Container(
+      color: Theme.of(context).backgroundColor.withOpacity(0.01),
+      child: PopupMenuButton<int>(
+        icon: Icon(CupertinoIcons.ellipsis_vertical,
+          color: Theme.of(context).accentColor,
+          size: 24.0,
+        ),
+        color: Theme.of(context).primaryColor,
+        shape: Border.all(color: Theme.of(context).accentColor.withOpacity(0.4)),
+        elevation: 20.0,
+        itemBuilder: (context) {
+          return [
+            _listAction(
+              value: 0,
+              text: 'Sort by Speaker A-Z',
+            ),
+            _listAction(
+              value: 1,
+              text: 'Sort by Speaker Z-A',
+            ),
+            _listAction(
+              value: 2,
+              text: 'Sort by Title A-Z',
+            ),
+            _listAction(
+              value: 3,
+              text: 'Sort by Title Z-A',
+            ),
+          ];
+        },
+        onSelected: (value) {
+          switch(value) {
+            case 0:
+              sortFavorites(
+                orderBy: 'speaker',
+                ascending: true,
+              );
+              break;
+            case 1:
+              sortFavorites(
+                orderBy: 'speaker',
+                ascending: false,
+              );
+              break;
+            case 2:
+              sortFavorites(
+                orderBy: 'title',
+                ascending: true,
+              );
+              break;
+            case 3:
+              sortFavorites(
+                orderBy: 'title',
+                ascending: false,
+              );
+              break;
+          }
+        },
+      ),
+    );
+  }
+
+  PopupMenuItem<int> _listAction({int value, IconData icon, String text}) {
+    return PopupMenuItem<int>(
+      value: value,
+      child: Container(
+        child: Row(
+          children: [
+            icon == null
+              ? Container()
+              : Container(
+                child: Icon(icon,
+                  color: Theme.of(context).accentColor,
+                  size: 22.0,
+                ),
+              ),
+            Container(
+              width: MediaQuery.of(context).size.width / 2,
+              padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 14.0),
+              child: Text(text,
+                style: TextStyle(
+                  color: Theme.of(context).accentColor,
+                  fontSize: 18.0,
+                )
+              )
+            ),
+          ],
+        )
+      ),
     );
   }
 

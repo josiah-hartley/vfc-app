@@ -21,6 +21,20 @@ class _CheckDatabaseUpdatesDialogState extends State<CheckDatabaseUpdatesDialog>
     });
   }
 
+  void _checkForUpdates() {
+    showDialog(
+      context: context, 
+      builder: (context) => AlertDialog(
+        title: Text('Coming Soon',
+          style: TextStyle(color: Theme.of(context).accentColor),
+        ),
+        content: Text('This feature is not available in the beta version',
+          style: TextStyle(color: Theme.of(context).accentColor),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     int staleDays = Constants.DAYS_TO_MANUALLY_CHECK_CLOUD;
@@ -44,7 +58,7 @@ class _CheckDatabaseUpdatesDialogState extends State<CheckDatabaseUpdatesDialog>
           padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 20.0),
           child: TextButton(
             onPressed: difference.inDays > staleDays
-              ? () { print('update'); }
+              ? _checkForUpdates
               : null,
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),

@@ -58,8 +58,8 @@ mixin DownloadsModel on Model {
     List<Message> result = await db.queryDownloads(
       start: _currentlyLoadedDownloadsCount,
       end: _currentlyLoadedDownloadsCount + _downloadsLoadingBatchSize,
-      //orderBy: 'speaker',
-      //ascending: true,
+      orderBy: 'downloadedat',
+      ascending: false,
     );
 
     if (result.length < _downloadsLoadingBatchSize) {
@@ -118,12 +118,32 @@ mixin DownloadsModel on Model {
   void updateDownloadedMessage(Message message) {
     int indexInDownloads = _downloads.indexWhere((m) => m.id == message.id);
     if (indexInDownloads > -1) {
-      bool wasPreviouslyPlayed = _downloads[indexInDownloads].isplayed == 1;
+      _downloads[indexInDownloads] = message;
+      bool shouldBePlayed = message.isplayed == 1;
+      int indexInPlayedDownloads = _playedDownloads.indexWhere((m) => m.id == message.id);
+      int indexInUnplayedDownloads = _unplayedDownloads.indexWhere((m) => m.id == message.id);
+      if (indexInPlayedDownloads > -1) {
+        if (shouldBePlayed) {
+          _playedDownloads[indexInPlayedDownloads] = message;
+        } else {
+          _playedDownloads.removeAt(indexInPlayedDownloads);
+          _unplayedDownloads.add(message);
+        }
+      } else if (indexInUnplayedDownloads > -1) {
+        if (shouldBePlayed) {
+          _unplayedDownloads.removeAt(indexInUnplayedDownloads);
+          _playedDownloads.add(message);
+        } else {
+          _unplayedDownloads[indexInUnplayedDownloads] = message;
+        }
+      }
+      /*bool wasPreviouslyPlayed = _downloads[indexInDownloads].isplayed == 1;
       _downloads[indexInDownloads] = message;
 
       // classify updated download as played or unplayed;
       if (wasPreviouslyPlayed) {
         int indexInPlayedDownloads = _playedDownloads.indexWhere((m) => m.id == message.id);
+        print('TEST 2b: $indexInPlayedDownloads');
         if (message.isplayed == 1) {
           if (indexInPlayedDownloads > -1) {
             _playedDownloads[indexInPlayedDownloads] = message;
@@ -136,6 +156,7 @@ mixin DownloadsModel on Model {
         }
       } else {
         int indexInUnplayedDownloads = _unplayedDownloads.indexWhere((m) => m.id == message.id);
+        print('TEST 2c: $indexInUnplayedDownloads');
         if (message.isplayed == 1) {
           if (indexInUnplayedDownloads > -1) {
             _unplayedDownloads.removeAt(indexInUnplayedDownloads);
@@ -146,7 +167,32 @@ mixin DownloadsModel on Model {
             _unplayedDownloads[indexInUnplayedDownloads] = message;
           }
         }
-      }
+      }*/
+    }
+    notifyListeners();
+  }
+
+  void sortDownloads({String orderBy, bool ascending = true}) {
+    switch (orderBy.toLowerCase()) {
+      case 'speaker':
+        ascending
+          ? _downloads.sort((a,b) => a.speaker.compareTo(b.speaker))
+          : _downloads.sort((a,b) => -a.speaker.compareTo(b.speaker));
+        break;
+      case 'title':
+        ascending
+          ? _downloads.sort((a,b) => a.title.compareTo(b.title))
+          : _downloads.sort((a,b) => -a.title.compareTo(b.title));
+        break;
+      case 'downloadedat':
+        ascending
+          ? _downloads.sort((a,b) => a.downloadedat.compareTo(b.downloadedat))
+          : _downloads.sort((a,b) => -a.downloadedat.compareTo(b.downloadedat));
+        break;
+    }
+    if (['speaker', 'title', 'downloadedat'].contains(orderBy.toLowerCase())) {
+      _playedDownloads = _downloads.where((m) => m.isplayed == 1).toList();
+      _unplayedDownloads = _downloads.where((m) => m.isplayed != 1).toList();
     }
     notifyListeners();
   }
@@ -167,6 +213,11 @@ mixin DownloadsModel on Model {
   }*/
 
   void pauseDownloadQueue({PauseReason reason = PauseReason.user}) {
+    if (_downloadsPaused) {
+      _downloadPauseReason = reason;
+      notifyListeners();
+      return;
+    }
     _downloadsPaused = true;
     _downloadPauseReason = reason;
     notifyListeners();
@@ -174,6 +225,9 @@ mixin DownloadsModel on Model {
   }
 
   void unpauseDownloadQueue() {
+    if (!_downloadsPaused) {
+      return;
+    }
     _downloadsPaused = false;
     notifyListeners();
     fillUpCurrentlyDownloadingFromQueue();
@@ -319,7 +373,7 @@ mixin DownloadsModel on Model {
     notifyListeners();
   }
 
-  Future<void> deleteMessageDownloads(List<Message> messages) async {
+  Future<List<Message>> deleteMessageDownloads(List<Message> messages) async {
     try {
       int totalStorage = await deleteMessageFiles(messages);
       for (int i = 0; i < messages.length; i++) {
@@ -340,8 +394,10 @@ mixin DownloadsModel on Model {
         showToast('Removed ${messages.length} downloads');
       }
       notifyListeners();
+      return messages;
     } catch (error) {
       showToast('Error removing downloads');
+      return messages;
     }
   }
 
