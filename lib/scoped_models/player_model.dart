@@ -40,9 +40,8 @@ mixin PlayerModel on Model {
       config: AudioServiceConfig(
         androidNotificationChannelName: 'Voices for Christ',
         androidEnableQueue: true,
-        //notificationColor: Colors.indigo[900],
         notificationColor: Color(0xff002D47),
-        androidNotificationIcon: 'mipmap/ic_launcher',
+        androidNotificationIcon: 'mipmap/ic_launcher_notification',
         androidNotificationOngoing: true,
         rewindInterval: Duration(seconds: 15),
         fastForwardInterval: Duration(seconds: 15),
@@ -331,22 +330,24 @@ mixin PlayerModel on Model {
     if (_currentlyPlayingMessage == null) {
       return;
     }
-    if (_currentlyPlayingMessage.durationinseconds.toInt() - currentPosition.inSeconds > 15) {
+    _audioHandler.fastForward();
+    /*if (_currentlyPlayingMessage.durationinseconds.toInt() - currentPosition.inSeconds > 15) {
       seekToSecond(currentPosition.inSeconds.toDouble() + 15.0);
     } else {
       seekToSecond(_currentlyPlayingMessage.durationinseconds.toDouble());
-    }
+    }*/
   }
 
   void seekBackwardFifteenSeconds() {
     if (_currentlyPlayingMessage == null) {
       return;
     }
-    if (currentPosition.inSeconds >= 15) {
+    _audioHandler.rewind();
+    /*if (currentPosition.inSeconds >= 15) {
       seekToSecond(currentPosition.inSeconds.toDouble() - 15.0);
     } else {
       seekToSecond(0.0);
-    }
+    }*/
   }
 
   void skipPrevious() {

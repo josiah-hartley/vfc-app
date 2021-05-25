@@ -93,6 +93,23 @@ class VFCAudioHandler extends BaseAudioHandler {
   skipToNext() {
     return _player.seekToNext();
   }
+  fastForward() async {
+    if (_player.duration.inSeconds - _player.position.inSeconds > 15) {
+      seekTo(Duration(seconds: _player.position.inSeconds + 15));
+    } else {
+      seekTo(Duration(seconds: _player.duration.inSeconds - 1));
+    }
+  }
+  rewind() async {
+    if (_player.position.inSeconds >= 15) {
+      seekTo(Duration(seconds: _player.position.inSeconds - 15));
+    } else {
+      seekTo(Duration(seconds: 0));
+    }
+  }
+  seek(Duration position) async {
+    seekTo(position);
+  }
   skipToQueueItem(int index) async  {
     seekTo(Duration(seconds: 0), index: index);
   }
@@ -132,17 +149,40 @@ class VFCAudioHandler extends BaseAudioHandler {
 
       playbackState.add(playbackState.valueWrapper.value.copyWith(
         controls: [
-          MediaControl.rewind,
-          //MediaControl.skipToPrevious,
-          _player.playing ? MediaControl.pause : MediaControl.play,
+          MediaControl(
+            androidIcon: 'drawable/ic_action_seek_backward',
+            label: 'Seek Backward',
+            action: MediaAction.rewind,
+          ),
+          _player.playing
+            ? MediaControl(
+              androidIcon: 'drawable/ic_action_pause',
+              label: 'Pause',
+              action: MediaAction.pause,
+            )
+            : MediaControl(
+              androidIcon: 'drawable/ic_action_play',
+              label: 'Play',
+              action: MediaAction.play,
+            ),
+          //_player.playing ? MediaControl.pause : MediaControl.play,
+          MediaControl(
+            androidIcon: 'drawable/ic_action_seek_forward',
+            label: 'Seek Forward',
+            action: MediaAction.fastForward,
+          ),
+          MediaControl(
+            androidIcon: 'drawable/ic_action_skip_forward',
+            label: 'Skip to Next',
+            action: MediaAction.skipToNext,
+          ),
           //MediaControl.skipToNext,
-          MediaControl.fastForward,
         ],
         androidCompactActionIndices: [0, 1, 2],
         systemActions: {
           MediaAction.seek,
-          MediaAction.seekForward,
-          MediaAction.seekBackward,
+          //MediaAction.seekForward,
+          //MediaAction.seekBackward,
         },
         processingState: {
           ProcessingState.idle: AudioProcessingState.idle,

@@ -356,7 +356,9 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
     if (message?.isdownloaded == 1) {
       return _action(
         icon: CupertinoIcons.delete,
-        color: Theme.of(context).accentColor,
+        color: message?.id == model.currentlyPlayingMessage?.id || model.queue.indexWhere((m) => message?.id == m?.id) > -1
+          ? Theme.of(context).accentColor.withOpacity(0.5)
+          : Theme.of(context).accentColor,
         iconSize: 30.0,
         text: 'Remove Download',
         onPressed: () {
