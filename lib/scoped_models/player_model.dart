@@ -69,7 +69,7 @@ mixin PlayerModel on Model {
       }
     });
 
-    _audioHandler.mediaItem.listen((item) {
+    _audioHandler.mediaItem.listen((item) async {
       // save position on previous message
       /*if (_currentlyPlayingMessage != null && currentPosition != null) {
         _currentlyPlayingMessage.lastplayedposition = currentPosition.inSeconds.toDouble();
@@ -78,6 +78,10 @@ mixin PlayerModel on Model {
       }*/
 
       _currentlyPlayingMessage = messageFromMediaItem(item);
+      if (_currentlyPlayingMessage != null) {
+        _currentlyPlayingMessage.lastplayeddate = DateTime.now().millisecondsSinceEpoch;
+        await db.update(_currentlyPlayingMessage);
+      }
       saveLastPlayedMessage();
       _queueIndex = _queue.indexWhere((message) => message.id == _currentlyPlayingMessage?.id) ?? 0;
       notifyListeners();

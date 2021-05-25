@@ -9,3 +9,4 @@ const int ACTIVE_DOWNLOAD_QUEUE_SIZE = 5;
 const String CLOUD_DATABASE_BASE_URL = 'https://us-central1-voices-for-christ.cloudfunctions.net/getMessagesSinceDate';
 const int DAYS_TO_MANUALLY_CHECK_CLOUD = 7; // only let manual updates happen once a week
 const int DAYS_TO_AUTOMATICALLY_CHECK_CLOUD = 30; // do automatic checks monthly
+const int LOGS_TO_KEEP_IN_DB = 250;

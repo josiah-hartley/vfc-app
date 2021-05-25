@@ -48,25 +48,33 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
                   ),
                 ],
               ),
-              _messageTitle(model.currentlyPlayingMessage.title),
-              _speakerName(model.currentlyPlayingMessage.speaker),
+              Expanded(
+                child: _messageTitle(model.currentlyPlayingMessage.title),
+              ),
+              Expanded(
+                child: _speakerName(model.currentlyPlayingMessage.speaker),
+              ),
               _slider(
                 duration: model.duration,
                 currentPositionStream: model.currentPositionStream,
                 updatePosition: model.seekToSecond,
               ),
-              _mainActions(
-                playingStream: model.playingStream,
-                onPlay: model.play,
-                onPause: model.pause,
-                onSeekBackward: model.seekBackwardFifteenSeconds,
-                onSeekForward: model.seekForwardFifteenSeconds,
-                hasPrevious: model.queueIndex > 0,
-                hasNext: model.queue.length > 1 && model.queueIndex < (model.queue.length - 1),
-                onSkipPrevious: model.skipPrevious,
-                onSkipNext: model.skipNext,
+              Expanded(
+                child: _mainActions(
+                  playingStream: model.playingStream,
+                  onPlay: model.play,
+                  onPause: model.pause,
+                  onSeekBackward: model.seekBackwardFifteenSeconds,
+                  onSeekForward: model.seekForwardFifteenSeconds,
+                  hasPrevious: model.queueIndex > 0,
+                  hasNext: model.queue.length > 1 && model.queueIndex < (model.queue.length - 1),
+                  onSkipPrevious: model.skipPrevious,
+                  onSkipNext: model.skipNext,
+                ),
               ),
-              _extraActions(model),
+              Expanded(
+                child: _extraActions(model),
+              ),
             ],
           ),
         );

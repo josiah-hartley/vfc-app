@@ -22,7 +22,7 @@ class MoreMessageDetailsDialog extends StatelessWidget {
             children: [
               Expanded(
                 child: Container(
-                  alignment: Alignment.center,
+                  alignment: Alignment.centerLeft,
                   child: Text(speakerReversedName(message?.speaker),
                     style: Theme.of(context).primaryTextTheme.headline1.copyWith(fontSize: 16.0),
                   ),
@@ -30,7 +30,7 @@ class MoreMessageDetailsDialog extends StatelessWidget {
               ),
               Expanded(
                 child: Container(
-                  alignment: Alignment.center,
+                  alignment: Alignment.centerRight,
                   child: Text(message?.durationinseconds == null
                     ? '${message?.approximateminutes} min'
                     : messageDurationInMinutes(message?.durationinseconds),

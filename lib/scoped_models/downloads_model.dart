@@ -19,6 +19,7 @@ mixin DownloadsModel on Model {
   PauseReason _downloadPauseReason;
   Queue<Download> _currentlyDownloading = Queue();
   Queue<Download> _downloadQueue = Queue();
+  //int _totalDownloadsCount = 0;
   List<Message> _downloads = [];
   List<Message> _unplayedDownloads = [];
   List<Message> _playedDownloads = [];
@@ -32,6 +33,7 @@ mixin DownloadsModel on Model {
   PauseReason get downloadPauseReason => _downloadPauseReason;
   Queue<Download> get currentlyDownloading => _currentlyDownloading;
   Queue<Download> get downloadQueue => _downloadQueue;
+  //int get totalDownloadsCount => _totalDownloadsCount;
   List<Message> get downloads => _downloads;
   /*List<Message> get downloads {
     List<Message> result = _currentlyDownloading.map((e) => e.message).toList();
@@ -50,6 +52,11 @@ mixin DownloadsModel on Model {
     _downloadedBytes = await db.getStorageUsed();
     notifyListeners();
   }
+
+  /*Future<void> getTotalDownloadsCountFromDB() async {
+    _totalDownloadsCount = await db.getDownloadsCount();
+    notifyListeners();
+  }*/
 
   Future<void> loadDownloadedMessagesFromDB() async {
     _downloadsLoading = true;
@@ -238,14 +245,22 @@ mixin DownloadsModel on Model {
     addMessagesToDownloadQueue(result);
   }
 
+  bool _messageIsBeingDownloaded(Message message) {
+    List<Download> _currentlyDownloadingList = _currentlyDownloading.toList();
+    _currentlyDownloadingList.addAll(_downloadQueue.toList());
+    return _currentlyDownloadingList.indexWhere((download) => download?.message?.id == message?.id) > -1;
+  }
+
   void addMessagesToDownloadQueue(List<Message> messages, {bool atFront = false}) async {
+    String _messages = messages.length > 1 ? 'messages' : 'message';
+    showToast('Added ${messages.length} $_messages to download queue');
     if (atFront) {
       messages = messages.reversed.toList();
     }
     db.addMessagesToDownloadQueueDB(messages);
     List<Download> tasks = [];
     messages.forEach((message) {
-      if (message.isdownloaded != 1) {
+      if (message.isdownloaded != 1 && !_messageIsBeingDownloaded(message)) {
         CancelToken token = CancelToken();
         tasks.add(Download(
           message: message,

@@ -61,33 +61,37 @@ Widget searchInput({BuildContext context,
           ),
           searchController.text.length > 0
             ? Container(
-              child: FlatButton(
-                minWidth: 1.0,
+              child: GestureDetector(
+                child: Container(
+                  //minWidth: 1.0,
+                  child: Icon(
+                    CupertinoIcons.xmark_circle, 
+                    color: Theme.of(context).accentColor,
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    vertical: 12.0,
+                    horizontal: 12.0
+                  ),
+                  color: Theme.of(context).accentColor.withOpacity(0.2),
+                ),
+                onTap: onClearSearchString,
+              ),
+            ) : Container(),
+          Container(
+            child: GestureDetector(
+              //minWidth: 1.0,
+              child: Container(
                 child: Icon(
-                  CupertinoIcons.xmark_circle, 
+                  CupertinoIcons.search, 
                   color: Theme.of(context).accentColor,
                 ),
                 padding: EdgeInsets.symmetric(
                   vertical: 12.0,
                   horizontal: 12.0
                 ),
-                color: Theme.of(context).accentColor.withOpacity(0.2),
-                onPressed: onClearSearchString,
+                color: Theme.of(context).accentColor.withOpacity(0.3),
               ),
-            ) : Container(),
-          Container(
-            child: FlatButton(
-              minWidth: 1.0,
-              child: Icon(
-                CupertinoIcons.search, 
-                color: Theme.of(context).accentColor,
-              ),
-              padding: EdgeInsets.symmetric(
-                vertical: 12.0,
-                horizontal: 12.0
-              ),
-              color: Theme.of(context).accentColor.withOpacity(0.3),
-              onPressed: onSearch,
+              onTap: onSearch,
             ),
           ),
         ],

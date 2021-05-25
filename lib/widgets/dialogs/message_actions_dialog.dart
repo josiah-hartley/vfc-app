@@ -8,6 +8,7 @@ import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/download_before_playing_dialog.dart';
 import 'package:voices_for_christ/widgets/dialogs/more_message_details_dialog.dart';
 import 'package:voices_for_christ/widgets/player/progress_display_bar.dart';
 
@@ -33,7 +34,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
             ),
             child: Container(
               color: Theme.of(context).backgroundColor.withOpacity(0.7),
-              padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 16.0),
+              padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 0.0),
               child: ListView(
                 shrinkWrap: true,
                 children: _children(model),
@@ -51,11 +52,14 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
     return [
       _title(),
       //_progress(model),
-      ProgressDisplayBar(
-        message: widget.message,
-        height: 3.0,
-        color: Theme.of(context).accentColor,
-        unplayedOpacity: 0.3,
+      Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
+        child: ProgressDisplayBar(
+          message: widget.message,
+          height: 3.0,
+          color: Theme.of(context).accentColor,
+          unplayedOpacity: 0.3,
+        ),
       ),
       _playAction(
         model: model,
@@ -155,7 +159,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
           GestureDetector(
             child: Container(
               color: Theme.of(context).backgroundColor.withOpacity(0.01),
-              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+              padding: EdgeInsets.only(left: 28.0, right: 28.0, top: 24.0, bottom: 24.0),
               child: Icon(CupertinoIcons.back, 
                 size: 34.0,
                 color: Theme.of(context).accentColor
@@ -164,27 +168,30 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
             onTap: () { Navigator.of(context).pop(); },
           ),
           Expanded(
-            child: Column(
-              children: [
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 10.0),
-                  child: Text(widget.message.title,
-                    style: Theme.of(context).primaryTextTheme.headline1.copyWith(
-                      fontSize: 20.0,
+            child: Container(
+              padding: EdgeInsets.only(right: 16.0),
+              child: Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 10.0),
+                    child: Text(widget.message.title,
+                      style: Theme.of(context).primaryTextTheme.headline1.copyWith(
+                        fontSize: 20.0,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 10.0),
-                  child: Text(widget.message.speaker,
-                    style: Theme.of(context).primaryTextTheme.headline2.copyWith(
-                      fontSize: 18.0,
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 10.0),
+                    child: Text(widget.message.speaker,
+                      style: Theme.of(context).primaryTextTheme.headline2.copyWith(
+                        fontSize: 18.0,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
           ),
         ],
@@ -197,7 +204,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
     );
   }
 
-  Widget _progress(MainModel model) {
+  /*Widget _progress(MainModel model) {
     if (widget.message?.id == model.currentlyPlayingMessage?.id) {
       return StreamBuilder(
         stream: model.currentPositionStream,
@@ -220,9 +227,9 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
     /*return Container(
       child: Text(widget.message.lastplayedposition.toString()),
     );*/
-  }
+  }*/
 
-  Widget _progressBar(double progress) {
+  /*Widget _progressBar(double progress) {
     return Container(
       height: 3.0,
       child: Row(
@@ -237,7 +244,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         ],
       ),
     );
-  }
+  }*/
 
   Widget _action({IconData icon, double iconSize, Color color, String text, Function onPressed}) {
     return Material(
@@ -247,7 +254,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         splashColor: Theme.of(context).accentColor,
         borderRadius: BorderRadius.circular(0.0),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 24.0),
+          padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
           child: Row(
             children: [
               Container(
@@ -263,7 +270,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
                 child: Text(text,
                   style: TextStyle(
                     color: color,
-                    fontSize: 20.0,
+                    fontSize: 18.0,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -282,7 +289,14 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         color: Theme.of(context).accentColor.withOpacity(0.5),
         iconSize: 30.0,
         text: 'Play',
-        onPressed: null,
+        onPressed: () {
+          showDialog(
+            context: context, 
+            builder: (context) => DownloadBeforePlayingDialog(onDownload: () {
+              model.queueDownloads([message]);
+            }),
+          );
+        },
       );
     }
 
@@ -344,7 +358,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
 
     if (message?.iscurrentlydownloading == 1) {
       return Container(
-        padding: EdgeInsets.symmetric(vertical: 24.0),
+        padding: EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
         child: Row(
           children: [
             Container(

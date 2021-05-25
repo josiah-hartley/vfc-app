@@ -16,6 +16,7 @@ import 'package:voices_for_christ/database/downloads.dart' as downloadsMethods;
 import 'package:voices_for_christ/database/searching.dart' as search;
 import 'package:voices_for_christ/database/playlists.dart' as playlists;
 import 'package:voices_for_christ/database/recommendations.dart' as recommendations;
+import 'package:voices_for_christ/database/logs.dart' as logs;
 
 class MessageDB {
   //static final _databaseVersion = 1;
@@ -110,6 +111,11 @@ class MessageDB {
     return await messages.queryMultipleMessages(db: db, ids: ids);
   }
 
+  Future<List<Message>> queryRecentlyPlayedMessages({int start, int end}) async {
+    Database db = await instance.database;
+    return await messages.queryRecentlyPlayedMessages(db: db, start: start, end: end);
+  }
+
   Future<int> update(Message msg) async {
     Database db = await instance.database;
     return await messages.update(db, msg);
@@ -143,6 +149,11 @@ class MessageDB {
   }*/
 
   // FAVORITES
+  /*Future<int> getFavoritesCount() async {
+    Database db = await instance.database;
+    return await favorites.getFavoritesCount(db: db);
+  }*/
+
   Future<List<Message>> queryFavorites({int start, int end, String orderBy, bool ascending = true}) async {
     Database db = await instance.database;
     return await favorites.queryFavorites(
@@ -155,6 +166,11 @@ class MessageDB {
   }
 
   // DOWNLOADS
+  /*Future<int> getDownloadsCount() async {
+    Database db = await instance.database;
+    return await downloadsMethods.getDownloadsCount(db: db);
+  }*/
+
   Future<List<Message>> queryDownloads({int start, int end, String orderBy, bool ascending = true}) async {
     Database db = await instance.database;
     return await downloadsMethods.queryDownloads(
@@ -283,6 +299,30 @@ class MessageDB {
       );
     }
     return _recs;
+  }
+
+  Future<List<Message>> getMoreMessagesForRecommendation({Recommendation recommendation, int messageCount}) async {
+    return await searchByColumns(
+      searchTerm: recommendation.label,
+      columns: recommendation.type == 'speaker' ? ['speaker'] : ['taglist'],
+      start: recommendation.messages.length,
+      end: recommendation.messages.length + messageCount,
+    );
+  }
+
+  // LOGGING
+  Future<void> saveEventLog({String type, String event}) async {
+    Database db = await instance.database;
+    await logs.saveEventLog(
+      db: db,
+      type: type,
+      event: event,
+    );
+  }
+
+  Future<List<String>> getEventLogs() async {
+    Database db = await instance.database;
+    return await logs.getEventLogs(db: db);
   }
 
   // RESETTING DATABASE

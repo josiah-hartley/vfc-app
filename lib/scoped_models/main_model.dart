@@ -21,19 +21,38 @@ RecommendationsModel {
   ConnectivityResult get connection => _connection;
 
   Future<void> initialize() async {
-    await initializePlayer(onChangedMessage: (Message message) {
+    DateTime start = DateTime.now();
+    /*await initializePlayer(onChangedMessage: (Message message) {
       updateDownloadedMessage(message);
       updateFavoritedMessage(message);
       updateMessageInCurrentPlaylist(message);
-    });
+    });*/
+    DateTime a = DateTime.now();
+    print('initialized player: ${a.millisecondsSinceEpoch - start.millisecondsSinceEpoch} ms elapsed.');
     await loadPlaylistsMetadata();
+    DateTime b = DateTime.now();
+    print('loaded playlists metadata: ${b.millisecondsSinceEpoch - a.millisecondsSinceEpoch} ms elapsed.');
     await loadFavoritesFromDB();
+    DateTime c = DateTime.now();
+    print('loaded favorites from db: ${c.millisecondsSinceEpoch - b.millisecondsSinceEpoch} ms elapsed.');
     await loadDownloadedMessagesFromDB();
+    DateTime d = DateTime.now();
+    print('loaded downloaded messages from db: ${d.millisecondsSinceEpoch - c.millisecondsSinceEpoch} ms elapsed.');
     await loadDownloadQueueFromDB();
+    DateTime e = DateTime.now();
+    print('loaded download queue: ${e.millisecondsSinceEpoch - d.millisecondsSinceEpoch} ms elapsed.');
     await loadStorageUsage();
+    DateTime f = DateTime.now();
+    print('loaded storage usage: ${f.millisecondsSinceEpoch - e.millisecondsSinceEpoch} ms elapsed.');
     await loadSettings();
+    DateTime g = DateTime.now();
+    print('loaded settings: ${g.millisecondsSinceEpoch - f.millisecondsSinceEpoch} ms elapsed.');
     await loadRecommendations();
+    DateTime h = DateTime.now();
+    print('loaded recommendations: ${h.millisecondsSinceEpoch - g.millisecondsSinceEpoch} ms elapsed.');
     await deletePlayedDownloads();
+    DateTime i = DateTime.now();
+    print('deleted played downloads: ${i.millisecondsSinceEpoch - h.millisecondsSinceEpoch} ms elapsed.');
 
     Connectivity().onConnectivityChanged.listen((ConnectivityResult connection) {
       _connection = connection;
@@ -129,5 +148,9 @@ RecommendationsModel {
       print('REMOVING DOWNLOADS: $playedDownloads');
       await deleteMessages(playedDownloads);
     }
+  }
+
+  Future<List<Message>> recentMessages({int start, int end}) async {
+    return await db.queryRecentlyPlayedMessages(start: start, end: end);
   }
 }

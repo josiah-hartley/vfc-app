@@ -16,6 +16,7 @@ Future onCreateDB(Database db, int version) async {
         url TEXT,
         durationinseconds REAL,
         lastplayedposition REAL,
+        lastplayeddate INTEGER,
         isdownloaded INTEGER,
         iscurrentlyplaying INTEGER,
         downloadedat INTEGER,
@@ -65,6 +66,16 @@ Future onCreateDB(Database db, int version) async {
         type TEXT NOT NULL,
         count	INTEGER DEFAULT 1,
         PRIMARY KEY(label)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE $loggingTable (
+        id	INTEGER,
+        timestamp	INTEGER,
+        type	TEXT,
+        text	TEXT,
+        PRIMARY KEY(id AUTOINCREMENT)
       )
     ''');
 

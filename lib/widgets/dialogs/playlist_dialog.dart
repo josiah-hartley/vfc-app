@@ -64,32 +64,38 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
             ),
             child: Container(
               color: Theme.of(context).backgroundColor.withOpacity(0.7),
-              padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 16.0),
+              padding: EdgeInsets.symmetric(vertical: 40.0),
               child: Column(
                 children: [
                   _selectedMessages.length > 0
-                  ? MultiSelectDisplay(
-                    selectedMessages: _selectedMessages,
-                    onDeselectAll: _deselectAll,
+                  ? Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: MultiSelectDisplay(
+                      selectedMessages: _selectedMessages,
+                      onDeselectAll: _deselectAll,
+                    ),
                   )
                   : _titleAndActions(model, _reordering),
                   Expanded(
-                    child: _reordering
-                    ? Theme(
-                      data: ThemeData(canvasColor: Colors.transparent),
-                      child: ReorderableListView(
-                        onReorder: (oldIndex, newIndex) {
-                          model.reorderPlaylist(oldIndex: oldIndex, newIndex: newIndex);
-                        },
-                        shrinkWrap: true,
-                        children: _reorderingAndDeletingChildren(model),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: _reordering
+                      ? Theme(
+                        data: ThemeData(canvasColor: Colors.transparent),
+                        child: ReorderableListView(
+                          onReorder: (oldIndex, newIndex) {
+                            model.reorderPlaylist(oldIndex: oldIndex, newIndex: newIndex);
+                          },
+                          shrinkWrap: true,
+                          children: _reorderingAndDeletingChildren(model),
+                        )
                       )
-                    )
-                    : ListView(
-                      shrinkWrap: true,
-                      children: _children(model),
+                      : ListView(
+                        shrinkWrap: true,
+                        children: _children(model),
+                      ),
                     ),
-                  ),
+                    ),
                 ],
               ),
             ),
@@ -103,7 +109,8 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     List<Widget> _titleChildren = [
       GestureDetector(
         child: Container(
-          padding: EdgeInsets.only(right: 12.0),
+          color: Theme.of(context).backgroundColor.withOpacity(0.01),
+          padding: EdgeInsets.only(right: 18.0, left: 28.0, top: 13.0, bottom: 13.0),
           child: Icon(CupertinoIcons.back, 
             size: 32.0,
             color: Theme.of(context).accentColor
@@ -114,7 +121,9 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
       Expanded(
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 10.0),
-          child: Text(model.selectedPlaylist?.title ?? 'Playlist',
+          child: Text(model.selectedPlaylist == null
+            ? 'Playlist'
+            : '${model.selectedPlaylist.title} (${model.selectedPlaylist.messages?.length})',
             overflow: reordering ? TextOverflow.ellipsis : TextOverflow.visible,
             style: Theme.of(context).primaryTextTheme.headline1.copyWith(
               fontSize: 20.0,
@@ -138,7 +147,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
             color: Theme.of(context).accentColor,
             borderRadius: BorderRadius.circular(5.0),
           ),
-          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+          padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
           child: Text('Save',
             style: TextStyle(
               color: Theme.of(context).primaryColor,
@@ -180,7 +189,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
 
     return Container(
       key: Key('0'),
-      padding: EdgeInsets.only(bottom: 14.0),
+      padding: EdgeInsets.only(right: 16.0),
       child: Row(
         children: _titleChildren,
       ),
@@ -381,7 +390,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
         ),
         color: Theme.of(context).primaryColor,
         shape: Border.all(color: Theme.of(context).accentColor.withOpacity(0.2)),
-        offset: Offset(0.0, 30.0),
+        offset: Offset(0.0, 25.0),
         elevation: 1.0,
         itemBuilder: (context) {
           return [
@@ -446,11 +455,11 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
             ),
             Container(
               width: MediaQuery.of(context).size.width / 2,
-              padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 14.0),
+              padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 14.0),
               child: Text(text,
                 style: TextStyle(
                   color: active ? Theme.of(context).accentColor : Theme.of(context).accentColor.withOpacity(0.6),
-                  fontSize: 18.0,
+                  fontSize: 16.0,
                 )
               )
             ),

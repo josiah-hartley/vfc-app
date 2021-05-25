@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/check_database_updates_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/error_reporting_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/history_dialog.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key key}) : super(key: key);
@@ -48,6 +50,12 @@ class SettingsPage extends StatelessWidget {
                   _storageUsage(
                     context: context, 
                     bytes: model.downloadedBytes,
+                  ),
+                  _viewHistory(
+                    context: context,
+                  ),
+                  _reportError(
+                    context: context,
                   ),
                   _checkForUpdates(
                     context: context,
@@ -173,6 +181,35 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  Widget _viewHistory({BuildContext context}) {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => HistoryDialog(),
+        );
+      },
+      child: Container(
+        color: Theme.of(context).backgroundColor.withOpacity(0.01),
+        padding: EdgeInsets.symmetric(vertical: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('History',
+              style: Theme.of(context).primaryTextTheme.headline2,
+            ),
+            Container(
+              padding: EdgeInsets.only(top: 5.0, right: 25.0),
+              child: Text('View recently played messages',
+                style: Theme.of(context).primaryTextTheme.headline4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _checkForUpdates({BuildContext context, int lastUpdated}) {
     DateTime d = DateTime.fromMillisecondsSinceEpoch(lastUpdated);
     String lastUpdatedReadable = '${d.month}/${d.day}/${d.year}';
@@ -195,6 +232,35 @@ class SettingsPage extends StatelessWidget {
             Container(
               padding: EdgeInsets.only(top: 5.0, right: 25.0),
               child: Text('Last updated on $lastUpdatedReadable',
+                style: Theme.of(context).primaryTextTheme.headline4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _reportError({BuildContext context}) {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => ErrorReportingDialog(),
+        );
+      },
+      child: Container(
+        color: Theme.of(context).backgroundColor.withOpacity(0.01),
+        padding: EdgeInsets.symmetric(vertical: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Report Error',
+              style: Theme.of(context).primaryTextTheme.headline2,
+            ),
+            Container(
+              padding: EdgeInsets.only(top: 5.0, right: 25.0),
+              child: Text('Send a bug report',
                 style: Theme.of(context).primaryTextTheme.headline4,
               ),
             ),

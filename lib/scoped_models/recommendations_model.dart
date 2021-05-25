@@ -25,6 +25,17 @@ mixin RecommendationsModel on Model {
     notifyListeners();
   }
 
+  Future<void> getMoreMessagesForRecommendation(int rIndex) async {
+    // MAGIC NUMBER
+    int messageCount = 10;
+    List<Message> result = await db.getMoreMessagesForRecommendation(
+      recommendation: _recommendations[rIndex],
+      messageCount: messageCount,
+    );
+    _recommendations[rIndex].messages.addAll(result);
+    notifyListeners();
+  }
+
   Future<Recommendation> featuredMessages() async {
     List<Message> _featuredMessages = await db.queryMultipleMessages(featuredMessageIds);
     _featuredMessages.shuffle();

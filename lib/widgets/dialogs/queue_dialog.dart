@@ -394,11 +394,11 @@ class _QueueDialogState extends State<QueueDialog> {
             ),
             Container(
               width: MediaQuery.of(context).size.width / 2,
-              padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 14.0),
+              padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 14.0),
               child: Text(text,
                 style: TextStyle(
                   color: Theme.of(context).accentColor,
-                  fontSize: 18.0,
+                  fontSize: 16.0,
                 )
               )
             ),

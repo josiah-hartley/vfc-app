@@ -15,6 +15,7 @@ class Message {
   num durationinseconds;
   int approximateminutes;
   num lastplayedposition;
+  int lastplayeddate;
   int iscurrentlydownloading;
   int iscurrentlyplaying;
   int isdownloaded;
@@ -37,6 +38,7 @@ class Message {
     this.durationinseconds,
     this.approximateminutes,
     this.lastplayedposition,
+    this.lastplayeddate,
     this.iscurrentlydownloading,
     this.iscurrentlyplaying,
     this.isdownloaded,
@@ -79,6 +81,7 @@ class Message {
     durationinseconds = map['durationinseconds'];
     approximateminutes = map['approximateminutes'];
     lastplayedposition = map['lastplayedposition'] ?? 0.0;
+    lastplayeddate = map['lastplayeddate'];
     iscurrentlydownloading = map['iscurrentlydownloading'] ?? 0;
     isdownloaded = map['isdownloaded'] ?? 0;
     downloadedat = map['downloadedat'] ?? 0;
@@ -103,6 +106,7 @@ class Message {
     durationinseconds = map['durationinseconds'];
     approximateminutes = map['approximateminutes'];
     lastplayedposition = map['lastplayedposition'];
+    lastplayeddate = map['lastplayeddate'];
     iscurrentlydownloading = map['iscurrentlydownloading'];
     isdownloaded = map['isdownloaded'];
     downloadedat = map['downloadedat'];
@@ -127,6 +131,7 @@ class Message {
       'durationinseconds': durationinseconds,
       'approximateminutes': approximateminutes,
       'lastplayedposition': lastplayedposition,
+      'lastplayeddate': lastplayeddate,
       'isdownloaded': isdownloaded,
       'iscurrentlydownloading': iscurrentlydownloading,
       'downloadedat': downloadedat,

@@ -209,11 +209,11 @@ class _DownloadsPageState extends State<DownloadsPage> {
               ),
             Container(
               width: MediaQuery.of(context).size.width / 2,
-              padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 14.0),
+              padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 14.0),
               child: Text(text,
                 style: TextStyle(
                   color: Theme.of(context).accentColor,
-                  fontSize: 18.0,
+                  fontSize: 16.0,
                 )
               )
             ),
@@ -309,12 +309,13 @@ class _DownloadsPageState extends State<DownloadsPage> {
       listItems.add(_downloadQueueActions(
         context: context,
         paused: model.downloadsPaused,
+        pauseReason: model.downloadPauseReason,
         onPause: model.pauseDownloadQueue,
         onResume: model.unpauseDownloadQueue,
       ));
     }
     if (model.currentlyDownloading.length > 0) {
-      listItems.add(_listSectionTitle('Downloading'));
+      listItems.add(_listSectionTitle('Downloading (${model.currentlyDownloading.length})'));
       model.currentlyDownloading.forEach((task) {
         listItems.add(MessageCard(
           message: task?.message,
@@ -327,7 +328,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
       });
     }
     if (model.downloadQueue.length > 0) {
-      listItems.add(_listSectionTitle('Queue'));
+      listItems.add(_listSectionTitle('Queue (${model.downloadQueue.length})'));
       model.downloadQueue.forEach((task) {
         listItems.add(MessageCard(
           message: task?.message,
@@ -376,18 +377,20 @@ class _DownloadsPageState extends State<DownloadsPage> {
       switch(pauseReason) {
         case PauseReason.noConnection:
           return Container(
-            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+            padding: EdgeInsets.symmetric(vertical: 18.0, horizontal: 8.0),
             alignment: Alignment.center,
             child: Text('Downloads paused: no connection',
+              textAlign: TextAlign.center,
               style: Theme.of(context).primaryTextTheme.headline4,
             ),
           );
           break;
         case PauseReason.connectionType:
           return Container(
-            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+            padding: EdgeInsets.symmetric(vertical: 18.0, horizontal: 8.0),
             alignment: Alignment.center,
             child: Text('Downloads paused: connect to WiFi or change download settings',
+              textAlign: TextAlign.center,
               style: Theme.of(context).primaryTextTheme.headline4,
             ),
           );

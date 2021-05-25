@@ -29,15 +29,39 @@ Future<Message> queryOne(Database db, int id) async {
 
 Future<List<Message>> queryMultipleMessages({Database db, List<int> ids}) async {
   String idList = ids.join(',');
-  var result = await db.rawQuery('''
-    SELECT * FROM $messageTable
-      WHERE id IN ($idList)
-      ORDER BY instr('$idList', ',' || id || ',')
-  ''');
-  if (result.isNotEmpty) {
-    return result.map((msgMap) => Message.fromMap(msgMap)).toList();
+  try {
+    var result = await db.rawQuery('''
+      SELECT * FROM $messageTable
+        WHERE id IN ($idList)
+        ORDER BY instr('$idList', ',' || id || ',')
+    ''');
+    if (result.isNotEmpty) {
+      return result.map((msgMap) => Message.fromMap(msgMap)).toList();
+    }
+    return [];
+  } catch(error) {
+    print('Error querying messages: $error');
+    return [];
   }
-  return [];
+}
+
+Future<List<Message>> queryRecentlyPlayedMessages({Database db, int start, int end}) async {
+  try {
+    List<Map<String,dynamic>> msgList = await db.query(messageTable, 
+      where: 'lastplayeddate != 0', 
+      orderBy: 'lastplayeddate DESC',
+      limit: end - start,
+      offset: start,
+    );
+  
+    if (msgList != null && msgList.length > 0) {
+      return msgList.map((m) => Message.fromMap(m)).toList();
+    }
+    return [];
+  } catch(error) {
+    print('Error querying recently playedmessages: $error');
+    return [];
+  }
 }
 
 Future<int> update(Database db, Message msg) async {

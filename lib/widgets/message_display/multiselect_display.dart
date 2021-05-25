@@ -24,7 +24,7 @@ class MultiSelectDisplay extends StatelessWidget {
           _text += ' (max allowed)';
         }
         return Container(
-          padding: EdgeInsets.only(left: 12.0, right: 12.0, top: 5.0, bottom: 6.0),
+          padding: EdgeInsets.only(right: 12.0),
           decoration: BoxDecoration(
             color: Theme.of(context).accentColor.withOpacity(0.2),
           ),
@@ -33,13 +33,14 @@ class MultiSelectDisplay extends StatelessWidget {
               GestureDetector(
                 onTap: onDeselectAll,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                  color: Theme.of(context).accentColor.withOpacity(0.01),
+                  padding: EdgeInsets.only(left: 24.0, right: 26.0, top: 17.0, bottom: 18.0),
                   child: Icon(CupertinoIcons.xmark, color: Theme.of(context).accentColor),
                 ),
               ),
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 14.0),
+                  padding: EdgeInsets.only(right: 14.0, top: 5.0, bottom: 6.0),
                   child: Text(_text,
                     style: TextStyle(
                       color: Theme.of(context).accentColor,
@@ -48,13 +49,16 @@ class MultiSelectDisplay extends StatelessWidget {
                   ),
                 ),
               ),
-              _listActionsButton(
-                context: context,
-                messages: selectedMessages.toList(),
-                addAllToQueue: model.addMultipleMessagesToQueue,
-                setMultipleFavorites: model.setMultipleFavorites,
-                downloadAll: model.queueDownloads,
-                deleteAllDownloads: model.deleteMessages,
+              Container(
+                padding: EdgeInsets.only(top: 5.0, bottom: 6.0),
+                child: _listActionsButton(
+                  context: context,
+                  messages: selectedMessages.toList(),
+                  addAllToQueue: model.addMultipleMessagesToQueue,
+                  setMultipleFavorites: model.setMultipleFavorites,
+                  downloadAll: model.queueDownloads,
+                  deleteAllDownloads: model.deleteMessages,
+                ),
               ),
               /*IconButton(
                 icon: Icon(CupertinoIcons.ellipsis_vertical, color: Theme.of(context).accentColor), 
@@ -204,16 +208,16 @@ class MultiSelectDisplay extends StatelessWidget {
             Container(
               child: Icon(icon,
                 color: active ? Theme.of(context).accentColor : Theme.of(context).accentColor.withOpacity(0.6),
-                size: 22.0,
+                size: 20.0,
               ),
             ),
             Container(
               width: MediaQuery.of(context).size.width / 2,
-              padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 14.0),
+              padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 14.0),
               child: Text(text,
                 style: TextStyle(
                   color: active ? Theme.of(context).accentColor : Theme.of(context).accentColor.withOpacity(0.6),
-                  fontSize: 18.0,
+                  fontSize: 16.0,
                 )
               )
             ),

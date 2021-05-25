@@ -22,7 +22,6 @@ Future<List<Playlist>> getAllPlaylistsMetadata(Database db) async {
   try {
     // MAGIC NUMBER: the queue is a hidden playlist with id 0
     var result = await db.query(playlistTable, where: 'id != ?', whereArgs: [Constants.QUEUE_PLAYLIST_ID]);
-    // TODO: set up queue as playlist; save on changes, get on app reload, etc.
 
     if (result.isNotEmpty) {
       List<Playlist> playlists = result.map((pMap) => Playlist.fromMap(pMap)).toList();
