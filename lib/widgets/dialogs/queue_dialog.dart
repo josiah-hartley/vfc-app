@@ -6,6 +6,7 @@ import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
+import 'package:voices_for_christ/widgets/buttons/action_button.dart';
 import 'package:voices_for_christ/widgets/message_display/message_card.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:voices_for_christ/widgets/message_display/message_metadata.dart';
@@ -145,43 +146,19 @@ class _QueueDialogState extends State<QueueDialog> {
     ];
 
     if (_reordering) {
-      _titleChildren.add(TextButton(
+      _titleChildren.add(ActionButton(
         onPressed: () async {
           onSaveChanges();
           _closeReorderingList();
-        }, 
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).accentColor,
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
-          child: Text('Save',
-            style: TextStyle(
-              color: Theme.of(context).primaryColor,
-              fontSize: 16.0,
-            )
-          )
-        ),
+        },
+        text: 'Save',
       ));
 
-      _titleChildren.add(TextButton(
+      _titleChildren.add(ActionButton(
         onPressed: () async {
           _closeReorderingList();
-        }, 
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).accentColor,
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
-          child: Text('Cancel',
-            style: TextStyle(
-              color: Theme.of(context).primaryColor,
-              fontSize: 16.0,
-            )
-          )
-        ),
+        },
+        text: 'Cancel',
       ));
     } else {
       _titleChildren.add(_queueActionsButton(

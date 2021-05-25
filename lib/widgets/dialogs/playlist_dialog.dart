@@ -6,6 +6,7 @@ import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
+import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/buttons/action_button.dart';
 import 'package:voices_for_christ/widgets/dialogs/edit_playlist_title_dialog.dart';
@@ -76,6 +77,28 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
                     ),
                   )
                   : _titleAndActions(model, _reordering),
+                  _reordering
+                    ? Container()
+                    : Container(
+                      padding: EdgeInsets.only(top: 14.0),
+                      child: ActionButton(
+                        text: 'Play All Downloaded',
+                        onPressed: () async {
+                          if (model.selectedPlaylist != null && (model.selectedPlaylist.messages?.length ?? 0) > 0) {
+                            int indexOfFirstDownloaded = model.selectedPlaylist.messages.indexWhere((m) => m.isdownloaded == 1);
+                            if (indexOfFirstDownloaded > -1) {
+                              await model.setupPlayer(
+                                message: model.selectedPlaylist.messages[indexOfFirstDownloaded],
+                                playlist: model.selectedPlaylist,
+                              );
+                              model.play();
+                            } else {
+                              showToast('None of the messages in this playlist are downloaded');
+                            }
+                          }
+                        },
+                      ),
+                    ),
                   Expanded(
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -135,48 +158,24 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     ];
 
     if (reordering) {
-      _titleChildren.add(TextButton(
+      _titleChildren.add(ActionButton(
         onPressed: () async {
           await model.saveReorderingChanges();
           setState(() {
             _reordering = false;
           });
-        }, 
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).accentColor,
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
-          child: Text('Save',
-            style: TextStyle(
-              color: Theme.of(context).primaryColor,
-              fontSize: 16.0,
-            )
-          )
-        ),
+        },
+        text: 'Save',
       ));
 
-      _titleChildren.add(TextButton(
+      _titleChildren.add(ActionButton(
         onPressed: () async {
           await model.loadMessagesOnCurrentPlaylist();
           setState(() {
             _reordering = false;
           });
         }, 
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).accentColor,
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-          child: Text('Cancel',
-            style: TextStyle(
-              color: Theme.of(context).primaryColor,
-              fontSize: 16.0,
-            )
-          )
-        ),
+        text: 'Cancel',
       ));
     } else {
       _titleChildren.add(_playlistActionsButton(

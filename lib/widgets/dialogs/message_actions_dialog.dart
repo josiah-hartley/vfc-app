@@ -8,6 +8,7 @@ import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/confirm_delete_dialog.dart';
 import 'package:voices_for_christ/widgets/dialogs/download_before_playing_dialog.dart';
 import 'package:voices_for_christ/widgets/dialogs/more_message_details_dialog.dart';
 import 'package:voices_for_christ/widgets/player/progress_display_bar.dart';
@@ -86,25 +87,35 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
           );
         }
       ),
-      _action(
-        icon: CupertinoIcons.list_dash,
-        color: _isDownloaded 
-          ? Theme.of(context).accentColor 
-          : Theme.of(context).accentColor.withOpacity(0.5),
-        iconSize: 30.0,
-        text: _indexInQueue > -1 ? 'Remove from Queue' : 'Add to Queue',
-        onPressed: _isDownloaded
-          ? () {
-            if (_indexInQueue > -1) {
-              model.removeFromQueue(_indexInQueue);
-              showToast('Removed from Queue');
-            } else {
-              model.addToQueue(widget.message);
-              showToast('Added to Queue');
+      widget.message?.id == model.currentlyPlayingMessage?.id
+        ? _action(
+          icon: CupertinoIcons.list_dash,
+          color: Theme.of(context).accentColor.withOpacity(0.5),
+          iconSize: 30.0,
+          text: 'Remove from Queue',
+          onPressed: () {
+            showToast('Cannot remove currently playing message from queue');
+          },
+        )
+        : _action(
+          icon: CupertinoIcons.list_dash,
+          color: _isDownloaded 
+            ? Theme.of(context).accentColor 
+            : Theme.of(context).accentColor.withOpacity(0.5),
+          iconSize: 30.0,
+          text: _indexInQueue > -1 ? 'Remove from Queue' : 'Add to Queue',
+          onPressed: _isDownloaded
+            ? () {
+              if (_indexInQueue > -1) {
+                model.removeFromQueue(_indexInQueue);
+                showToast('Removed from Queue');
+              } else {
+                model.addToQueue(widget.message);
+                showToast('Added to Queue');
+              }
             }
-          }
-          : null,
-      ),
+            : null,
+        ),
       _action(
         icon: widget.message.isfavorite == 1 ? CupertinoIcons.star_fill : CupertinoIcons.star,
         color: Theme.of(context).accentColor,
@@ -290,12 +301,14 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         iconSize: 30.0,
         text: 'Play',
         onPressed: () {
-          showDialog(
-            context: context, 
-            builder: (context) => DownloadBeforePlayingDialog(onDownload: () {
-              model.queueDownloads([message]);
-            }),
-          );
+          if (message.iscurrentlydownloading != 1) {
+            showDialog(
+              context: context, 
+              builder: (context) => DownloadBeforePlayingDialog(onDownload: () {
+                model.queueDownloads([message], showPopup: true);
+              }),
+            );
+          }
         },
       );
     }
@@ -346,12 +359,28 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         color: Theme.of(context).accentColor,
         iconSize: 30.0,
         text: 'Remove Download',
-        onPressed: () async {
-          if (message?.id != model.currentlyPlayingMessage?.id) {
+        onPressed: () {
+          if (message?.id == model.currentlyPlayingMessage?.id) {
+            showToast('Cannot delete while message is playing');
+          } else if (model.queue.indexWhere((m) => message?.id == m?.id) > -1) {
+            showToast('Cannot delete message in currently playing queue');
+          } else {
+            //await model.deleteMessages([message]);
+            showDialog(
+              context: context, 
+              builder: (context) => ConfirmDeleteDialog(
+                messageTitle: message?.title,
+                onConfirm: () async {
+                  await model.deleteMessages([message]);
+                },
+              ),
+            );
+          }
+          /*if (message?.id != model.currentlyPlayingMessage?.id) {
             await model.deleteMessages([message]);
           } else {
             showToast('Cannot delete while message is playing');
-          }
+          }*/
         }
       );
     }
@@ -365,13 +394,20 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
               width: 65.0,
               alignment: Alignment.center,
               margin: EdgeInsets.only(right: 12.0),
-              child: CircularProgressIndicator(),
+              child: Container(
+                height: 26.0,
+                width: 26.0,
+                alignment: Alignment.center,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.0,
+                ),
+              ),
             ),
             Expanded(
               child: Text('Downloading...',
                 style: TextStyle(
                   color: Theme.of(context).accentColor,
-                  fontSize: 20.0,
+                  fontSize: 18.0,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -388,8 +424,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
       text: 'Download',
       onPressed: () async {
         //await model.downloadMessage(message);
-        
-        model.queueDownloads([message]);
+        model.queueDownloads([message], showPopup: true);
       }
     );
   }

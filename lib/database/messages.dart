@@ -64,6 +64,19 @@ Future<List<Message>> queryRecentlyPlayedMessages({Database db, int start, int e
   }
 }
 
+Future<int> getTotalTimeListened({Database db}) async {
+  try {
+    return Sqflite.firstIntValue(await db.rawQuery('''
+      SELECT SUM(approximateminutes)
+      FROM $messageTable
+      WHERE lastplayeddate != 0
+    '''));
+  } catch (error) {
+    print('Error getting total time listened: $error');
+    return 0;
+  }
+}
+
 Future<int> update(Database db, Message msg) async {
   return await db.update(messageTable, msg.toMap(), where: 'id = ?', whereArgs: [msg.id]);
 }

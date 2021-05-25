@@ -116,6 +116,11 @@ class MessageDB {
     return await messages.queryRecentlyPlayedMessages(db: db, start: start, end: end);
   }
 
+  Future<int> getTotalTimeListened() async {
+    Database db = await instance.database;
+    return await messages.getTotalTimeListened(db: db);
+  }
+
   Future<int> update(Message msg) async {
     Database db = await instance.database;
     return await messages.update(db, msg);

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:voices_for_christ/ui/shared_theme.dart';
 
-Color unselectedColor = darkBlue.withOpacity(0.75);
-Color selectedColor = darkBlue;
+//Color unselectedColor = darkBlue.withOpacity(0.75);
+//Color selectedColor = darkBlue;
+Color unselectedColor = Colors.white.withOpacity(0.8);
+Color selectedColor = Colors.white;
 
 ThemeData lightTheme = sharedTheme.copyWith(
   brightness: Brightness.light,
@@ -14,7 +16,7 @@ ThemeData lightTheme = sharedTheme.copyWith(
   //cardColor: Colors.white,
   cardColor: Colors.white,
   dialogBackgroundColor: Colors.white, //Color(0xffc5dfed),
-  //bottomAppBarColor: Color(0xff002133),
+  //bottomAppBarColor: Colors.black,
   bottomAppBarColor: Color(0xff013857),
   primaryTextTheme: TextTheme(
     headline1: TextStyle(
@@ -74,6 +76,7 @@ ThemeData lightTheme = sharedTheme.copyWith(
   ),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
     //backgroundColor: Color(0xff000d14),
+    backgroundColor: Colors.black,
     elevation: 0.0,
     selectedItemColor: selectedColor,
     unselectedItemColor: unselectedColor,

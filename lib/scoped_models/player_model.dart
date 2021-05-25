@@ -193,6 +193,7 @@ mixin PlayerModel on Model {
     if (playlist == null) {
       setQueueToSingleMessage(message, position: position);
     } else {
+      //List<Message> playableMessagesInPlaylist = playlist.messages.where((m) => m.isdownloaded == 1).toList();
       int index = playlist.messages.indexWhere((item) => item?.id == message?.id);
       if (index > -1) {
         setQueueToPlaylist(playlist, index: index, position: position);
@@ -217,8 +218,10 @@ mixin PlayerModel on Model {
 
   Future<void> setQueueToPlaylist(Playlist playlist, {int index, Duration position}) async {
     List<MediaItem> mediaItems = playlist.toMediaItemList();
-    mediaItems.forEach((item) { print('mediaItem is $item'); });
-    await setupQueue(queue: mediaItems, position: position, index: index);
+    List<MediaItem> q = mediaItems.sublist(index);
+    print('SETTING QUEUE TO PLAYLIST');
+    q.forEach((item) { print('mediaItem is $item'); });
+    await setupQueue(queue: q, position: position, index: 0);
   }
 
   Future<void> setupQueue({List<MediaItem> queue, Duration position, int index}) async {
@@ -285,7 +288,12 @@ mixin PlayerModel on Model {
   }
 
   void removeFromQueue(int index) {
-    _audioHandler.removeQueueItemAt(index);
+    // can't remove currently playing message
+    if (_queue != null && _queue[index]?.id == _currentlyPlayingMessage?.id) {
+      return;
+    } else {
+      _audioHandler.removeQueueItemAt(index);
+    }
   }
 
   /*void changeQueuePosition({int oldIndex, int newIndex}) {

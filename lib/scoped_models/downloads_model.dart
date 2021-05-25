@@ -242,7 +242,7 @@ mixin DownloadsModel on Model {
 
   Future<void> loadDownloadQueueFromDB() async {
     List<Message> result = await db.getDownloadQueueFromDB();
-    addMessagesToDownloadQueue(result, showToastPopup: false);
+    addMessagesToDownloadQueue(result);
   }
 
   bool _messageIsBeingDownloaded(Message message) {
@@ -251,11 +251,7 @@ mixin DownloadsModel on Model {
     return _currentlyDownloadingList.indexWhere((download) => download?.message?.id == message?.id) > -1;
   }
 
-  void addMessagesToDownloadQueue(List<Message> messages, {bool atFront = false, bool showToastPopup = true}) async {
-    if (showToastPopup) {
-      String _messages = messages.length != 1 ? 'messages' : 'message';
-      showToast('Added ${messages.length} $_messages to download queue');
-    }
+  void addMessagesToDownloadQueue(List<Message> messages, {bool atFront = false}) async {
     if (atFront) {
       messages = messages.reversed.toList();
     }

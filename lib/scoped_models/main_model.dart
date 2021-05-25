@@ -2,6 +2,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/helpers/pause_reason.dart';
+import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/scoped_models/downloads_model.dart';
 import 'package:voices_for_christ/scoped_models/favorites_model.dart';
 import 'package:voices_for_christ/scoped_models/player_model.dart';
@@ -113,7 +114,11 @@ RecommendationsModel {
     await updateRecommendations(messages: [message], subtract: subtract);
   }
 
-  Future<void> queueDownloads(List<Message> messages) async {
+  Future<void> queueDownloads(List<Message> messages, {bool showPopup = false}) async {
+    if (showPopup && messages.length > 0) {
+      String _messages = messages.length != 1 ? 'messages' : 'message';
+      showToast('Added ${messages.length} $_messages to download queue');
+    }
     await updateRecommendations(messages: messages);
     addMessagesToDownloadQueue(messages);
   }

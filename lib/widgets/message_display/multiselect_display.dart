@@ -7,6 +7,7 @@ import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/confirm_delete_dialog.dart';
 
 class MultiSelectDisplay extends StatelessWidget {
   const MultiSelectDisplay({Key key, this.selectedMessages, this.onDeselectAll, this.showDownloadOptions = true, this.showQueueOptions = true}) : super(key: key);
@@ -158,11 +159,18 @@ class MultiSelectDisplay extends StatelessWidget {
         onSelected: (value) async {
           switch (value) {
             case 0:
-              downloadAll(selectedMessages.toList());
+              downloadAll(selectedMessages.toList(), showPopup: true);
               break;
             case 1:
-              deleteAllDownloads(selectedMessages.toList());
-              onDeselectAll();
+              showDialog(
+                context: context, 
+                builder: (context) => ConfirmDeleteDialog(
+                  onConfirm: () {
+                    deleteAllDownloads(selectedMessages.toList());
+                    onDeselectAll();
+                  },
+                ),
+              );
               break;
             case 2:
               List<Message> _downloadedMessages = messages.where((m) => m.isdownloaded == 1).toList();

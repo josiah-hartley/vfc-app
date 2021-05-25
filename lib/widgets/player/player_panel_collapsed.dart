@@ -25,7 +25,41 @@ class _PlayerPanelCollapsedState extends State<PlayerPanelCollapsed> {
           return SizedBox(height: 0.0);
         }
 
-        return Dismissible(
+        return Container(
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(color: Theme.of(context).backgroundColor.withOpacity(0.5), width: 1.0),
+            )
+          ),
+          child: Column(
+            children: [
+              ProgressDisplayBar(
+                message: model.currentlyPlayingMessage,
+                height: 4.0,
+                color: Colors.white,
+                unplayedOpacity: 0.5,
+              ),
+              Row(
+                children: [
+                  Container(
+                    color: Theme.of(context).bottomAppBarColor,
+                    child: IconButton(
+                      icon: Icon(CupertinoIcons.chevron_up, color: Colors.white),
+                      onPressed: widget.togglePanel,
+                    ),
+                  ),
+                  _titleAndSpeaker(model.currentlyPlayingMessage),
+                  _playOrPause(
+                    playingStream: model.playingStream,
+                    onPlay: model.play,
+                    onPause: model.pause,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+        /*return Dismissible(
           key: Key('playbar'),
           onDismissed: (DismissDirection direction) { model.disposePlayer(); },
           child: Container(
@@ -36,10 +70,6 @@ class _PlayerPanelCollapsedState extends State<PlayerPanelCollapsed> {
             ),
             child: Column(
               children: [
-                /*_minimizedProgressBar(
-                  currentPositionStream: model.currentPositionStream,
-                  duration: model.duration,
-                ),*/
                 ProgressDisplayBar(
                   message: model.currentlyPlayingMessage,
                   height: 4.0,
@@ -66,7 +96,7 @@ class _PlayerPanelCollapsedState extends State<PlayerPanelCollapsed> {
               ],
             ),
           ),
-        );
+        );*/
       }
     );
   }

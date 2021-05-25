@@ -145,7 +145,7 @@ class _ErrorReportingDialogState extends State<ErrorReportingDialog> {
   Widget _form() {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
         child: Material(
           color: Colors.transparent,
           child: Form(
@@ -220,6 +220,14 @@ class _ErrorReportingDialogState extends State<ErrorReportingDialog> {
                       _attachLogs = !_attachLogs;
                     });
                   }
+                ),
+                Container(
+                  child: Text('Note: some information about your device (model, operating system, etc.) will also be sent, but none of this information can be used to uniquely identify you or your device.',
+                    style: Theme.of(context).primaryTextTheme.headline4.copyWith(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12.0,
+                    ),
+                  ),
                 ),
                 _submitButton(),
                 SizedBox(height: 300.0),
