@@ -1,21 +1,22 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/services.dart';
 
-Future<Map<String, dynamic>> deviceData() async {
+Future<String> deviceData() async {
   final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
   try {
     if (Platform.isAndroid) {
-      return _getAndroidData(await _deviceInfoPlugin.androidInfo);
+      return jsonEncode(_getAndroidData(await _deviceInfoPlugin.androidInfo));
     }
     if (Platform.isIOS) {
-      return _getIosData(await _deviceInfoPlugin.iosInfo);
+      return jsonEncode(_getIosData(await _deviceInfoPlugin.iosInfo));
     }
-    return {};
+    return '';
   } on PlatformException {
-    return {
+    return jsonEncode({
       'Error': 'Failed to get device data',
-    };
+    });
   }
 }
 

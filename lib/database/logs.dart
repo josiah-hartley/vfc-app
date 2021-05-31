@@ -23,9 +23,14 @@ Future<void> saveEventLog({Database db, String type, String event}) async {
   }
 }
 
-Future<List<String>> getEventLogs({Database db}) async {
+Future<List<String>> getEventLogs({Database db, int limit}) async {
   try {
-    List<Map<String, dynamic>> result = await db.query(loggingTable, orderBy: 'timestamp DESC');
+    List<Map<String, dynamic>> result;
+    if (limit != null) {
+      result = await db.query(loggingTable, orderBy: 'timestamp DESC', limit: limit);
+    } else {
+      result = await db.query(loggingTable, orderBy: 'timestamp DESC');
+    }
     if (result == null || result.isEmpty) {
       return [];
     }

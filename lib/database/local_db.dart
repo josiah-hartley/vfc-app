@@ -344,9 +344,9 @@ class MessageDB {
     );
   }
 
-  Future<List<String>> getEventLogs() async {
+  Future<List<String>> getEventLogs({int limit}) async {
     Database db = await instance.database;
-    return await logs.getEventLogs(db: db);
+    return await logs.getEventLogs(db: db, limit: limit);
   }
 
   // RESETTING DATABASE

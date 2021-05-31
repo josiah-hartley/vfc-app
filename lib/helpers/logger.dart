@@ -5,7 +5,7 @@ Future<void> logEvent({String type='action', String event}) async {
   await db.saveEventLog(type: type, event: event);
 }
 
-Future<List<String>> getEventLogs() async {
+Future<List<String>> getEventLogs({int limit}) async {
   final db = MessageDB.instance;
-  return await db.getEventLogs();
+  return await db.getEventLogs(limit: limit);
 }

@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:ui';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voices_for_christ/helpers/device.dart';
 import 'package:voices_for_christ/widgets/buttons/action_button.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 
 class ErrorReportingDialog extends StatefulWidget {
@@ -23,6 +26,7 @@ class _ErrorReportingDialogState extends State<ErrorReportingDialog> {
   String _errorDescription = '';
   bool _saveContactInfo = true;
   bool _attachLogs = true;
+  bool _submitting = false;
   bool _finishedSubmitting = false;
 
   @override
@@ -58,19 +62,22 @@ class _ErrorReportingDialogState extends State<ErrorReportingDialog> {
   }
 
   void submitForm() async {
+    setState(() {
+      _submitting = true;
+    });
     savePreferences();
     List<String> logs = await getLogs();
-    Map<String, dynamic> deviceInfo = await deviceData();
+    String deviceInfo = await deviceData();
     Map<String, dynamic> json = {
       'name': _name,
       'email': _email,
       'error': _errorDescription,
       'device': deviceInfo,
-      'logs': logs
+      'logs': jsonEncode(logs)
     };
-    print(json);
-    // TODO: set up API endpoint and send this data to the server
+    Dio().post(Constants.CLOUD_ERROR_REPORT_URL, data: json);
     setState(() {
+      _submitting = false;
       _finishedSubmitting = true;
       _errorDescription = '';
       if (!_saveContactInfo) {
@@ -94,12 +101,25 @@ class _ErrorReportingDialogState extends State<ErrorReportingDialog> {
           child: Column(
             children: [
               _title(),
-              _finishedSubmitting ? _thankYouMessage() : _form(),
+              _body(),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _body() {
+    if (_finishedSubmitting) {
+      return _thankYouMessage();
+    }
+    if (_submitting) {
+      return Container(
+        padding: EdgeInsets.only(top: 50.0),
+        child: CircularProgressIndicator(),
+      );
+    }
+    return _form();
   }
 
   Widget _title() {
