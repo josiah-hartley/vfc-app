@@ -38,13 +38,19 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
   }
 
   void _selectAll(List<Message> messages) {
-    if (messages.length > Constants.MESSAGE_SELECTION_LIMIT) {
+    List<Message> selected = messages;
+    if (selected.length > Constants.MESSAGE_SELECTION_LIMIT) {
       // max messages that can be selected
-      messages = messages.sublist(0, Constants.MESSAGE_SELECTION_LIMIT - 1);
+      selected = selected.sublist(0, Constants.MESSAGE_SELECTION_LIMIT - 1);
     }
     setState(() {
-      _selectedMessages = LinkedHashSet.from(messages);
+      _selectedMessages = LinkedHashSet.from(selected);
     });
+  }
+
+  void _selectAllUnplayed(List<Message> messages) {
+    List<Message> selected = messages.where((message) => message.isplayed != 1).toList();
+    _selectAll(selected);
   }
 
   void _deselectAll() {
@@ -422,6 +428,12 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
             _playlistAction(
               value: 4,
               active: active,
+              icon: Icons.check_circle_outline,
+              text: 'Select all unplayed',
+            ),
+            _playlistAction(
+              value: 5,
+              active: active,
               icon: Icons.download_sharp,
               text: 'Download all',
             ),
@@ -442,6 +454,9 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
               _selectAll(playlist.messages);
               break;
             case 4:
+              _selectAllUnplayed(playlist.messages);
+              break;
+            case 5:
               downloadAll(playlist.messages, showPopup: true);
               break;
           }

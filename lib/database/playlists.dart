@@ -252,7 +252,7 @@ Future<void> updatePlaylistsContainingMessage(Database db, Message message, List
         } 
         if (!shouldBeSelected && wasOriginallySelected) {
           // remove
-          batch.delete(messagesInPlaylist, where: 'messageid = ?', whereArgs: [message.id]);
+          batch.delete(messagesInPlaylist, where: 'messageid = ? AND playlistid = ?', whereArgs: [message.id, playlist.id]);
         }
       }
       await batch.commit();

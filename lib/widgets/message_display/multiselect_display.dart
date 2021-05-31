@@ -116,7 +116,7 @@ class MultiSelectDisplay extends StatelessWidget {
         value: 2,
         active: active,
         icon: CupertinoIcons.list_dash,
-        text: 'Add to queue (downloaded only)',
+        text: 'Add to queue (only if downloaded)',
       ));
     }
     _listChildren.addAll([
