@@ -233,10 +233,10 @@ mixin PlayerModel on Model {
     }
   }
 
-  void updateQueue(List<Message> messages) {
+  void updateQueue(List<Message> messages, {int index}) {
     Logger.logEvent(event: 'Updating queue: message list is $messages');
     List<MediaItem> _queueItems = messages.map((m) => m.toMediaItem()).toList();
-    _audioHandler.updateQueue(_queueItems);
+    _audioHandler.updateQueue(_queueItems, index: index);
 
     if (!_playerVisible) {
       _playerVisible = true;
@@ -269,13 +269,27 @@ mixin PlayerModel on Model {
 
   void addMultipleMessagesToQueue(List<Message> messages) {
     Logger.logEvent(event: 'Adding $messages to queue');
+    List<Message> playedQueue;
+    List<Message> currentAndFutureQueue;
     // trim played messages from the queue
     // leave at most n messages before the current one
     if (_queueIndex > Constants.QUEUE_BACKLOG_SIZE) {
-      _queue = _queue.sublist(_queueIndex - Constants.QUEUE_BACKLOG_SIZE);
+      playedQueue = _queue.sublist(_queueIndex - Constants.QUEUE_BACKLOG_SIZE, _queueIndex);
+    } else {
+      playedQueue = _queue.sublist(0, _queueIndex);
     }
-    _queue.addAll(messages);
-    updateQueue(_queue);
+    currentAndFutureQueue = _queue.sublist(_queueIndex);
+
+    // remove any of the added messages from the played queue, so that they can be added again
+    List<int> messageIdsToAdd = messages.map((m) => m.id).toList();
+    playedQueue.removeWhere((m) => messageIdsToAdd.contains(m.id));
+
+    _queue = playedQueue
+      ..addAll(currentAndFutureQueue)
+      ..addAll(messages);
+    _queueIndex = _queue.indexWhere((message) => message.id == _currentlyPlayingMessage?.id) ?? 0;
+    //_queue.addAll(messages);
+    updateQueue(_queue, index: _queueIndex);
   }
 
   void removeFromQueue(int index) {

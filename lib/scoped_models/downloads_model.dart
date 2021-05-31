@@ -360,7 +360,8 @@ mixin DownloadsModel on Model {
       } else {
         Logger.logEvent(type: 'error', event: 'Error executing download task for ${task.message.title}: $error');
         showToast('Error downloading ${task.message.title}: check connection');
-        advanceDownloadsQueue();
+        //advanceDownloadsQueue();
+        pauseDownloadQueue();
         /*ConnectivityResult connection = await Connectivity().checkConnectivity();
         if (connection == ConnectivityResult.none) {
           // pause all downloads

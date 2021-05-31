@@ -1,6 +1,6 @@
 // don't allow more than this many messages to be selected in a results list
 const int QUEUE_PLAYLIST_ID = 0;
-const int QUEUE_BACKLOG_SIZE = 3; // number of played messages to keep in the queue
+const int QUEUE_BACKLOG_SIZE = 5; // number of played messages to keep in the queue
 const double COLLAPSED_PLAYBAR_HEIGHT = 75.0;
 const double EXPANDED_PLAYBAR_TOP_PADDING = 120.0;
 const int MESSAGE_SELECTION_LIMIT = 25;
