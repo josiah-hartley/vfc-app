@@ -9,6 +9,7 @@ import 'package:voices_for_christ/scoped_models/player_model.dart';
 import 'package:voices_for_christ/scoped_models/playlists_model.dart';
 import 'package:voices_for_christ/scoped_models/recommendations_model.dart';
 import 'package:voices_for_christ/scoped_models/settings_model.dart';
+import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 
 class MainModel extends Model 
 with PlayerModel, 
@@ -22,43 +23,22 @@ RecommendationsModel {
   ConnectivityResult get connection => _connection;
 
   void initialize() async {
-    //DateTime start = DateTime.now();
     /*await initializePlayer(onChangedMessage: (Message message) {
       updateDownloadedMessage(message);
       updateFavoritedMessage(message);
       updateMessageInCurrentPlaylist(message);
     });*/
-    DateTime a = DateTime.now();
-    //print('initialized player: ${a.millisecondsSinceEpoch - start.millisecondsSinceEpoch} ms elapsed.');
     await loadPlaylistsMetadata();
-    DateTime b = DateTime.now();
-    print('loaded playlists metadata: ${b.millisecondsSinceEpoch - a.millisecondsSinceEpoch} ms elapsed.');
     await loadFavoritesFromDB();
-    DateTime c = DateTime.now();
-    print('loaded favorites from db: ${c.millisecondsSinceEpoch - b.millisecondsSinceEpoch} ms elapsed.');
     await loadDownloadedMessagesFromDB();
-    DateTime d = DateTime.now();
-    print('loaded downloaded messages from db: ${d.millisecondsSinceEpoch - c.millisecondsSinceEpoch} ms elapsed.');
     await loadDownloadQueueFromDB();
-    DateTime e = DateTime.now();
-    print('loaded download queue: ${e.millisecondsSinceEpoch - d.millisecondsSinceEpoch} ms elapsed.');
     await loadStorageUsage();
-    DateTime f = DateTime.now();
-    print('loaded storage usage: ${f.millisecondsSinceEpoch - e.millisecondsSinceEpoch} ms elapsed.');
-    //await loadSettings();
-    //DateTime g = DateTime.now();
-    //print('loaded settings: ${g.millisecondsSinceEpoch - f.millisecondsSinceEpoch} ms elapsed.');
-    //await loadRecommendations();
-    DateTime h = DateTime.now();
-    //print('loaded recommendations: ${h.millisecondsSinceEpoch - g.millisecondsSinceEpoch} ms elapsed.');
     await deletePlayedDownloads();
-    DateTime i = DateTime.now();
-    print('deleted played downloads: ${i.millisecondsSinceEpoch - h.millisecondsSinceEpoch} ms elapsed.');
 
     Connectivity().onConnectivityChanged.listen((ConnectivityResult connection) {
       _connection = connection;
       notifyListeners();
-      print('connectivity changed: $connection');
+      Logger.logEvent(event: 'Connectivity changed: $connection');
       if (connection == ConnectivityResult.none) {
         pauseDownloadQueue(reason: PauseReason.noConnection);
       } else if (connection == ConnectivityResult.mobile && !downloadOverData) {
@@ -138,10 +118,8 @@ RecommendationsModel {
     // can't delete any messages in the queue
     messages.removeWhere((m) => queue.indexWhere((message) => message.id == m.id) > -1);
     
-    print('REMOVING DOWNLOADS: $messages');
     messages = await deleteMessageDownloads(messages);
     for (Message message in messages) {
-      print('UPDATING $message');
       updateDownloadedMessage(message);
       updateFavoritedMessage(message);
       updateMessageInCurrentPlaylist(message);
@@ -157,9 +135,9 @@ RecommendationsModel {
 
   Future<void> deletePlayedDownloads() async {
     if (removePlayedDownloads) {
+      Logger.logEvent(event: 'Starting to remove played downloads');
       List<Message> downloads = await db.queryDownloads();
       List<Message> playedDownloads = downloads.where((m) => m.isplayed == 1).toList();
-      print('REMOVING DOWNLOADS: $playedDownloads');
       await deleteMessages(playedDownloads);
     }
   }

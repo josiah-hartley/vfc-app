@@ -6,6 +6,7 @@ import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/helpers/minimize_keyboard.dart';
 import 'package:voices_for_christ/widgets/search/search_input.dart';
 import 'package:voices_for_christ/widgets/search/search_results.dart';
+import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 
 class SearchWindow extends StatefulWidget {
   SearchWindow({Key key, this.focusNode, this.closeWindow}) : super(key: key);
@@ -118,6 +119,7 @@ class _SearchWindowState extends State<SearchWindow> {
         _reachedEndOfList = true;
       }
       _currentlyLoadedMessageCount += result.length;
+      Logger.logEvent(event: 'Searching for ${_searchController.text}; total number of results is $_fullSearchResultCount; currently loaded results: $_currentlyLoadedMessageCount; reached end of list is $_reachedEndOfList');
     }
     setState(() {
       _searchResults.addAll(result);

@@ -2,6 +2,7 @@ import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
+import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 
 mixin PlaylistsModel on Model {
   final db = MessageDB.instance;
@@ -23,6 +24,7 @@ mixin PlaylistsModel on Model {
 
   Future<void> selectPlaylist(Playlist playlist) async {
     _selectedPlaylist = playlist;
+    Logger.logEvent(event: 'Selected playlist $_selectedPlaylist');
     await loadMessagesOnCurrentPlaylist();
     //_selectedPlaylist.messages = await loadMessagesOnPlaylist(_selectedPlaylist);
   }
@@ -49,17 +51,20 @@ mixin PlaylistsModel on Model {
     //_playlists.sort((a, b) => a.title.compareTo(b.title));
     int index = _playlists.indexWhere((p) => title.compareTo(p.title) < 0);
     _playlists.insert(index, Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
+    Logger.logEvent(event: 'Created new playlist: $title');
     notifyListeners();
   }
 
   Future<void> deletePlaylist(Playlist playlist) async {
     await db.deletePlaylist(playlist);
     _playlists.removeWhere((p) => p.id == playlist.id);
+    Logger.logEvent(event: 'Deleted playlist: $playlist');
     notifyListeners();
     //await loadPlaylistsMetadata();
   }
 
   Future<void> editPlaylistTitle(Playlist playlist, String title) async {
+    Logger.logEvent(event: 'Changing title of $playlist to $title');
     await db.editPlaylistTitle(playlist, title);
     playlist.title = title;
     int index = _playlists.indexWhere((p) => p.id == playlist.id);
@@ -83,6 +88,7 @@ mixin PlaylistsModel on Model {
     if (messages == null || messages.length < 1 || playlist == null) {
       return;
     }
+    await Logger.logEvent(event: 'Adding messages to playlist $playlist: $messages');
     await db.addMessagesToPlaylist(
       messages: messages,
       playlist: playlist,

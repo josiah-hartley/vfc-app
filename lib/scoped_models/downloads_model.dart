@@ -11,6 +11,7 @@ import 'package:voices_for_christ/files/download_files.dart';
 import 'package:voices_for_christ/helpers/pause_reason.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
+import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 
 mixin DownloadsModel on Model {
   final db = MessageDB.instance;
@@ -228,6 +229,7 @@ mixin DownloadsModel on Model {
   }*/
 
   void pauseDownloadQueue({PauseReason reason = PauseReason.user}) {
+    Logger.logEvent(event: 'Paused download queue; reason: $reason');
     if (_downloadsPaused) {
       _downloadPauseReason = reason;
       notifyListeners();
@@ -243,6 +245,7 @@ mixin DownloadsModel on Model {
     if (!_downloadsPaused) {
       return;
     }
+    Logger.logEvent(event: 'Unpaused download queue; PauseReason is $_downloadPauseReason');
     _downloadsPaused = false;
     notifyListeners();
     fillUpCurrentlyDownloadingFromQueue();
@@ -260,6 +263,7 @@ mixin DownloadsModel on Model {
   }
 
   void addMessagesToDownloadQueue(List<Message> messages, {bool atFront = false}) async {
+    Logger.logEvent(event: 'Added messages to download queue: $messages');
     if (atFront) {
       messages = messages.reversed.toList();
     }
@@ -279,11 +283,11 @@ mixin DownloadsModel on Model {
 
     tasks.forEach((task) {
       if (!_downloadsPaused && _currentlyDownloading.length < Constants.ACTIVE_DOWNLOAD_QUEUE_SIZE) {
-        print('DOWNLOADQUEUE: adding ${task.message.title} to currently downloading');
+        Logger.logEvent(event: 'Download queue: adding ${task.message.title} to currently downloading');
         _currentlyDownloading.add(task);
         executeDownloadTask(task);
       } else {
-        print('DOWNLOADQUEUE: adding ${task.message.title} to download queue');
+        Logger.logEvent(event: 'Download queue: adding ${task.message.title} to queue, waiting to download');
         if (atFront) {
           _downloadQueue.addFirst(task);
         } else {
@@ -315,20 +319,19 @@ mixin DownloadsModel on Model {
   }
 
   void advanceDownloadsQueue() async {
-    print('DOWNLOADQUEUE: advancing download queue');
     await checkConnection();
     if (_downloadQueue.length < 1 || _downloadsPaused) {
       return;
     }
     Download result = _downloadQueue.removeFirst();
-    print('DOWNLOADQUEUE: moving ${result.message.title} to active downloads');
+    Logger.logEvent(event: 'Download queue: moving ${result.message.title} from queue to currently downloading');
     _currentlyDownloading.add(result);
     notifyListeners();
     executeDownloadTask(result);
   }
 
   void executeDownloadTask(Download task) async {
-    print('DOWNLOADQUEUE: executing download task: ${task.message.title}');
+    Logger.logEvent(event: 'Download queue: starting to download ${task.message.title}');
     if (task.message == null || task.message.isdownloaded == 1) {
       return;
     }
@@ -352,9 +355,10 @@ mixin DownloadsModel on Model {
       await db.update(task.message);
 
       if (error.toString().indexOf('DioErrorType.cancel') > -1) {
+        Logger.logEvent(event: 'Canceled download: ${task.message.title}');
         showToast('Canceled download: ${task.message.title}');
       } else {
-        print('Error executing download task: $error');
+        Logger.logEvent(type: 'error', event: 'Error executing download task for ${task.message.title}: $error');
         showToast('Error downloading ${task.message.title}: check connection');
         advanceDownloadsQueue();
         /*ConnectivityResult connection = await Connectivity().checkConnectivity();
@@ -376,6 +380,7 @@ mixin DownloadsModel on Model {
       bytes: task.size,
       add: true,
     );
+    Logger.logEvent(event: 'Finished downloading ${task.message.title}');
     showToast('Finished downloading ${task.message.title}');
     addMessageToDownloadedList(task.message);
     _currentlyDownloading.removeWhere((t) => t.message.id == task.message.id);
@@ -408,6 +413,8 @@ mixin DownloadsModel on Model {
         bytes: totalStorage,
         add: false,
       );
+
+      Logger.logEvent(event: 'Deleted message downloads; storage freed: $totalStorage, messages: $messages');
       
       if (messages.length == 1) {
         showToast('Removed ${messages[0].title} from downloads');
@@ -417,6 +424,7 @@ mixin DownloadsModel on Model {
       notifyListeners();
       return messages;
     } catch (error) {
+      Logger.logEvent(type: 'error', event: 'Error removing downloads; messages: $messages; error: $error');
       showToast('Error removing downloads');
       return messages;
     }

@@ -8,6 +8,7 @@ import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/helpers/toasts.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
+import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 import 'package:voices_for_christ/player/AudioHandler.dart';
 
 mixin PlayerModel on Model {
@@ -52,21 +53,10 @@ mixin PlayerModel on Model {
     loadLastPlaybackSpeed();
 
     _audioHandler.queue.listen((updatedQueue) async {
-      //_queue = await Future.wait<Message>(updatedQueue.map((qItem) => messageFromMediaItem(qItem)).toList());
       _queue = updatedQueue.map((item) => messageFromMediaItem(item)).toList();
-      /*_queue = [];
-      for (int i = 0; i < updatedQueue.length; i++) {
-        MediaItem item = updatedQueue[i];
-        Message message = await messageFromMediaItem(item);
-        _queue.add(message);
-      }*/
-      /*if (_queue.length < 1) {
-        _currentlyPlayingMessage = null;
-      }*/
       notifyListeners();
-      // TODO: figure this out
       if (_queue.length > 0) {
-        print('UPDATING QUEUE IN DB: $_queue');
+        Logger.logEvent(event: 'Updating queue in database: $_queue');
         await db.reorderAllMessagesInPlaylist(Playlist(Constants.QUEUE_PLAYLIST_ID, 0, 'Queue', []), _queue);
       }
     });
@@ -134,7 +124,9 @@ mixin PlayerModel on Model {
     if (_currMessageId != null) {
       Playlist savedQueue = Playlist(Constants.QUEUE_PLAYLIST_ID, 0, 'Queue', []);
       savedQueue.messages = await db.getMessagesOnPlaylist(savedQueue);
-      print('QUEUE: ${savedQueue.messages}');
+
+      Logger.logEvent(event: 'Loading last played queue: ${savedQueue.messages}');
+
       Message result = await db.queryOne(_currMessageId);
       double _seconds = result?.lastplayedposition ?? 0.0;
       int _milliseconds = (_seconds * 1000).round();
@@ -155,6 +147,7 @@ mixin PlayerModel on Model {
   }
 
   Future<void> setupPlayer({Message message, Duration position, Playlist playlist}) async {
+    Logger.logEvent(event: 'Setting up player: message: $message, position: $position, playlist: $playlist');
     message ??= _currentlyPlayingMessage; // if no message specified, try working with current message
     if (message == null || message.isdownloaded != 1) {
       return;
@@ -206,24 +199,25 @@ mixin PlayerModel on Model {
 
   Future<void> setQueueToSingleMessage(Message message, {Duration position}) async {
     MediaItem mediaItem = message.toMediaItem();
-    print('mediaItem is $mediaItem');
+    Logger.logEvent(event: 'Setting queue to single message at position $position; media item is $mediaItem');
     await setupQueue(queue: [mediaItem], position: position, index: 0);
   }
 
   Future<void> setQueueToPlaylist(Playlist playlist, {int index, Duration position}) async {
     List<MediaItem> mediaItems = playlist.toMediaItemList();
     List<MediaItem> q = mediaItems.sublist(index);
-    print('SETTING QUEUE TO PLAYLIST');
-    q.forEach((item) { print('mediaItem is $item'); });
+    Logger.logEvent(event: 'Setting queue to playlist at index $index and position $position; media items are $q');
     await setupQueue(queue: q, position: position, index: 0);
   }
 
   Future<void> setupQueue({List<MediaItem> queue, Duration position, int index}) async {
+    Logger.logEvent(event: 'Setting up queue at index $index and position $position; queue is $queue');
     Message _previousMessage = _currentlyPlayingMessage;
     Duration _previousPosition = _currentPosition;
 
     // only add downloaded items
     List<MediaItem> playableQueue = queue.where((item) => item?.id != '').toList();
+    Logger.logEvent(event: 'Playable queue is $playableQueue');
 
     if (playableQueue.length > 0) {
       await _audioHandler.updateQueue(queue, index: index);
@@ -240,6 +234,7 @@ mixin PlayerModel on Model {
   }
 
   void updateQueue(List<Message> messages) {
+    Logger.logEvent(event: 'Updating queue: message list is $messages');
     List<MediaItem> _queueItems = messages.map((m) => m.toMediaItem()).toList();
     _audioHandler.updateQueue(_queueItems);
 
@@ -259,6 +254,7 @@ mixin PlayerModel on Model {
   }
 
   void addToQueue(Message message, {int index}) {
+    Logger.logEvent(event: 'Adding $message to queue at index $index');
     //if (index == null) {
       _audioHandler.addQueueItem(message.toMediaItem());
     //} else {
@@ -272,6 +268,7 @@ mixin PlayerModel on Model {
   }
 
   void addMultipleMessagesToQueue(List<Message> messages) {
+    Logger.logEvent(event: 'Adding $messages to queue');
     // trim played messages from the queue
     // leave at most n messages before the current one
     if (_queueIndex > Constants.QUEUE_BACKLOG_SIZE) {
@@ -282,6 +279,7 @@ mixin PlayerModel on Model {
   }
 
   void removeFromQueue(int index) {
+    Logger.logEvent(event: 'Removing item from queue at index $index');
     // can't remove currently playing message
     if (_queue != null && _queue[index]?.id == _currentlyPlayingMessage?.id) {
       return;
