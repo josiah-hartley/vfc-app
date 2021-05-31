@@ -85,7 +85,7 @@ class SettingsPage extends StatelessWidget {
           GestureDetector(
             child: Container(
               color: Theme.of(context).backgroundColor.withOpacity(0.01),
-              padding: EdgeInsets.only(right: 10.0, top: 12.0, bottom: 12.0),
+              padding: EdgeInsets.only(right: 10.0, top: 12.0, bottom: 12.0, left: 12.0),
               child: Icon(CupertinoIcons.back, 
                 size: 34.0,
                 color: Theme.of(context).accentColor

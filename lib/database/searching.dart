@@ -19,7 +19,7 @@ String queryWhere(String searchArg, List<String> comparisons) {
   return query;
 }
 
-Future<List<Message>> queryArgList(Database db, String table, String searchTerm, List<String> comparisons, [int start, int end]) async {
+Future<List<Message>> queryArgList({Database db, String table, String searchTerm, List<String> comparisons, bool onlyUnplayed = false, int start, int end}) async {
   List<String> argList = searchArguments(searchTerm);
 
   if (argList.length < 1 || comparisons.length < 1) {
@@ -33,6 +33,10 @@ Future<List<Message>> queryArgList(Database db, String table, String searchTerm,
   for (int i = 1; i < argList.length; i++) {
     query += ' AND (' + queryWhere(argList[i], comparisons) + ')';
     args.addAll(List.filled(comparisons.length, argList[i]));
+  }
+
+  if (onlyUnplayed) {
+     query += ' AND isplayed = 0';
   }
 
   if (start != null && end != null) {
@@ -53,7 +57,7 @@ Future<List<Message>> queryArgList(Database db, String table, String searchTerm,
   }
 }
 
-Future<int> queryCountArgList (Database db, String table, String searchTerm, List<String> comparisons) async {
+Future<int> queryCountArgList ({Database db, String table, String searchTerm, List<String> comparisons, bool onlyUnplayed = false}) async {
   List<String> argList = searchArguments(searchTerm);
 
   if (argList.length < 1 || comparisons.length < 1) {
@@ -68,6 +72,10 @@ Future<int> queryCountArgList (Database db, String table, String searchTerm, Lis
     query += ' AND (' + queryWhere(argList[i], comparisons) + ')';
     args.addAll(List.filled(comparisons.length, argList[i]));
   }
+
+  if (onlyUnplayed) {
+     query += ' AND isplayed = 0';
+  }
   
   try {
     return Sqflite.firstIntValue(await db.rawQuery(query, args));
@@ -79,16 +87,36 @@ Future<int> queryCountArgList (Database db, String table, String searchTerm, Lis
 
 Future<int> searchCountSpeakerTitle(Database db, String searchTerm) async {
   List<String> comparisons = ['speaker', 'title', 'taglist'];
-  return queryCountArgList(db, messageTable, searchTerm, comparisons);
+  return queryCountArgList(
+    db: db,
+    table: messageTable,
+    searchTerm: searchTerm,
+    comparisons: comparisons,
+  );
 }
 
-Future<List<Message>> searchBySpeakerOrTitle(Database db, String searchTerm, [int start, int end]) async {
+Future<List<Message>> searchBySpeakerOrTitle({Database db, String searchTerm, int start, int end}) async {
   List<String> comparisons = ['speaker', 'title', 'taglist'];
-  return queryArgList(db, messageTable, searchTerm, comparisons, start, end);
+  return queryArgList(
+    db: db,
+    table: messageTable,
+    searchTerm: searchTerm,
+    comparisons: comparisons,
+    start: start,
+    end: end,
+  );
 }
 
-Future<List<Message>> searchByColumns({Database db, String searchTerm, List<String> columns, int start, int end}) async {
-  return queryArgList(db, messageTable, searchTerm, columns, start, end);
+Future<List<Message>> searchByColumns({Database db, String searchTerm, List<String> columns, bool onlyUnplayed, int start, int end}) async {
+  return queryArgList(
+    db: db,
+    table: messageTable,
+    searchTerm: searchTerm,
+    comparisons: columns,
+    onlyUnplayed: onlyUnplayed,
+    start: start,
+    end: end,
+  );
 }
 
 /*Future<List<Message>> searchBySpeaker(String searchTerm, [int start, int end]) async {

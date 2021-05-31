@@ -50,6 +50,11 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   onDeselectAll: _deselectAll,
                 )
                 : _filterButtonsRow(model.sortFavorites),
+              _messageCount(
+                context: context,
+                total: model.totalFavoritesCount,
+                played: model.playedFavoritesCount,
+              ),
               _filteredList(
                 isLoading: model.favoritesLoading,
                 fullList: model.favorites,
@@ -207,6 +212,48 @@ class _FavoritesPageState extends State<FavoritesPage> {
             ),
           ],
         )
+      ),
+    );
+  }
+
+  Widget _messageCount({BuildContext context, int total, int played}) {
+    String countDisplay = '';
+    switch(_filter) {
+      case 'All':
+        if (total > 0) {
+          countDisplay = '$total Favorite Message';
+          if (total > 1) {
+            countDisplay += 's';
+          }
+        }
+        break;
+      case 'Unplayed':
+        if (total - played > 0) {
+          countDisplay = '${total - played} Unplayed Favorite';
+          if (total - played > 1) {
+            countDisplay += 's';
+          }
+        }
+        break;
+      case 'Played':
+        if (played > 0) {
+          countDisplay = '$played Played Favorite';
+          if (played > 1) {
+            countDisplay += 's';
+          }
+        }
+        break;
+    }
+    if (countDisplay == '') {
+      return Container();
+    }
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5.0),
+      child: Text(countDisplay,
+        style: Theme.of(context).primaryTextTheme.headline2.copyWith(
+          fontSize: 14.0, 
+          color: Theme.of(context).accentColor.withOpacity(0.8),
+        ),
       ),
     );
   }

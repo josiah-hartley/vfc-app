@@ -151,6 +151,10 @@ class Message {
       duration: Duration(milliseconds: milliseconds),
       artist: speaker,
       album: speaker,
+      // TODO: figure this out
+      //artUri: Uri.parse('https://firebasestorage.googleapis.com/v0/b/voices-for-christ.appspot.com/o/notification_background_icon.png?alt=media&token=f4e816c4-c185-421b-aed0-89dff158bc3c'),
+          //Uri.parse('https://firebasestorage.googleapis.com/v0/b/voices-for-christ.appspot.com/o/notification_background.png?alt=media&token=fee126f6-a271-46dc-8703-80e4d27992ea'),
+          //Uri.parse("https://media.wnyc.org/i/1400/1400/l/80/1/ScienceFriday_WNYCStudios_1400.jpg"),
       extras: _extras,
       /*extras: {
         'messageId': id,

@@ -70,23 +70,6 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
         model: model,
         message: widget.message,
       ),
-      _action(
-        icon: Icons.playlist_add,
-        color: Theme.of(context).accentColor,
-        text: 'Add to Playlist',
-        onPressed: () async {
-          List<Playlist> containing = await model.playlistsContainingMessage(widget.message);
-          showDialog(
-            context: context, 
-            builder: (context) {
-              return AddToPlaylistDialog(
-                message: widget.message,
-                playlistsOriginallyContainingMessage: containing,
-              );
-            }
-          );
-        }
-      ),
       widget.message?.id == model.currentlyPlayingMessage?.id
         ? _action(
           icon: CupertinoIcons.list_dash,
@@ -116,6 +99,23 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
             }
             : null,
         ),
+      _action(
+        icon: Icons.playlist_add,
+        color: Theme.of(context).accentColor,
+        text: 'Add to Playlist',
+        onPressed: () async {
+          List<Playlist> containing = await model.playlistsContainingMessage(widget.message);
+          showDialog(
+            context: context, 
+            builder: (context) {
+              return AddToPlaylistDialog(
+                message: widget.message,
+                playlistsOriginallyContainingMessage: containing,
+              );
+            }
+          );
+        }
+      ),
       _action(
         icon: widget.message.isfavorite == 1 ? CupertinoIcons.star_fill : CupertinoIcons.star,
         color: Theme.of(context).accentColor,

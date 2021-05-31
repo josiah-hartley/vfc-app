@@ -25,7 +25,8 @@ Widget initialSticker({BuildContext context, String name, bool isFavorite = fals
       clipBehavior: Clip.none,
       children: [
         Container(
-          padding: EdgeInsets.only(left: 10.0),
+          color: Theme.of(context).backgroundColor.withOpacity(0.01),
+          padding: EdgeInsets.only(left: 10.0, right: 15.0, top: 15.0, bottom: 15.0),
           child: Container(
             child: selected ?? false
               ? Icon(Icons.check, color: Theme.of(context).primaryColor)
@@ -176,18 +177,34 @@ Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color
     : messageDurationInMinutes(message.durationinseconds);
   
   return Container(
-    padding: EdgeInsets.all(15.0),
+    padding: EdgeInsets.only(top: 15.0, right: 15.0, bottom: 15.0),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(message.title ?? '',
-          maxLines: 2,
-          overflow: truncateTitle ? TextOverflow.ellipsis : TextOverflow.visible,
-          style: TextStyle(
-            fontSize: 17.0,
-            fontWeight: message.isdownloaded == 1 ? FontWeight.w800 : FontWeight.w400,
-            color: message.isdownloaded == 1 ? textColor : textColor.withOpacity(0.9),
-            //fontWeight: FontWeight.bold,
+        Container(
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(message.title ?? '',
+                  maxLines: 2,
+                  overflow: truncateTitle ? TextOverflow.ellipsis : TextOverflow.visible,
+                  style: TextStyle(
+                    fontSize: 17.0,
+                    fontWeight: message.isdownloaded == 1 ? FontWeight.w800 : FontWeight.w400,
+                    color: message.isdownloaded == 1 ? textColor : textColor.withOpacity(0.9),
+                    //fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              message.isplayed == 1
+                ? Container(
+                  child: Icon(Icons.check,
+                    color: textColor,
+                    size: 16.0,
+                  ),
+                )
+                : Container(),
+            ],
           ),
         ),
         Container(

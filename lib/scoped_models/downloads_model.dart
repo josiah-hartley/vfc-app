@@ -19,7 +19,8 @@ mixin DownloadsModel on Model {
   PauseReason _downloadPauseReason;
   Queue<Download> _currentlyDownloading = Queue();
   Queue<Download> _downloadQueue = Queue();
-  //int _totalDownloadsCount = 0;
+  int _totalDownloadsCount = 0;
+  int _playedDownloadsCount = 0;
   List<Message> _downloads = [];
   List<Message> _unplayedDownloads = [];
   List<Message> _playedDownloads = [];
@@ -33,7 +34,8 @@ mixin DownloadsModel on Model {
   PauseReason get downloadPauseReason => _downloadPauseReason;
   Queue<Download> get currentlyDownloading => _currentlyDownloading;
   Queue<Download> get downloadQueue => _downloadQueue;
-  //int get totalDownloadsCount => _totalDownloadsCount;
+  int get totalDownloadsCount => _totalDownloadsCount;
+  int get playedDownloadsCount => _playedDownloadsCount;
   List<Message> get downloads => _downloads;
   /*List<Message> get downloads {
     List<Message> result = _currentlyDownloading.map((e) => e.message).toList();
@@ -61,6 +63,10 @@ mixin DownloadsModel on Model {
   Future<void> loadDownloadedMessagesFromDB() async {
     _downloadsLoading = true;
     notifyListeners();
+
+    List<int> count = await db.getDownloadsCount(); // [total, played]
+    _totalDownloadsCount = count[0];
+    _playedDownloadsCount = count[1];
 
     List<Message> result = await db.queryDownloads(
       start: _currentlyLoadedDownloadsCount,
@@ -103,11 +109,13 @@ mixin DownloadsModel on Model {
   }*/
 
   void addMessageToDownloadedList(Message message) {
-    _downloads.add(message);
+    _downloads.insert(0, message);
+    _totalDownloadsCount += 1;
     if (message.isplayed == 1) {
-      _playedDownloads.add(message);
+      _playedDownloads.insert(0, message);
+      _playedDownloadsCount += 1;
     } else {
-      _unplayedDownloads.add(message);
+      _unplayedDownloads.insert(0, message);
     }
     notifyListeners();
   }

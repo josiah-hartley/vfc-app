@@ -5,6 +5,8 @@ import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 
 mixin FavoritesModel on Model {
   final db = MessageDB.instance;
+  int _totalFavoritesCount = 0;
+  int _playedFavoritesCount = 0;
   List<Message> _favorites = [];
   List<Message> _unplayedFavorites = [];
   List<Message> _playedFavorites = [];
@@ -13,6 +15,8 @@ mixin FavoritesModel on Model {
   int _favoritesLoadingBatchSize = Constants.MESSAGE_LOADING_BATCH_SIZE;
   bool _reachedEndOfFavoritesList = false;
 
+  int get totalFavoritesCount => _totalFavoritesCount;
+  int get playedFavoritesCount => _playedFavoritesCount;
   List<Message> get favorites => _favorites;
   List<Message> get unplayedFavorites => _unplayedFavorites;
   List<Message> get playedFavorites => _playedFavorites;
@@ -22,6 +26,10 @@ mixin FavoritesModel on Model {
   Future<void> loadFavoritesFromDB() async {
     _favoritesLoading = true;
     notifyListeners();
+
+    List<int> count = await db.getFavoritesCount(); // [total, played]
+    _totalFavoritesCount = count[0];
+    _playedFavoritesCount = count[1];
 
     List<Message> result = await db.queryFavorites(
       start: _currentlyLoadedFavoritesCount,
@@ -64,8 +72,10 @@ mixin FavoritesModel on Model {
       return;
     }
     _favorites.add(message);
+    _totalFavoritesCount += 1;
     if (message.isplayed == 1) {
       _playedFavorites.add(message);
+      _playedFavoritesCount += 1;
     } else {
       unplayedFavorites.add(message);
     }
@@ -78,8 +88,10 @@ mixin FavoritesModel on Model {
       return;
     }
     _favorites.removeWhere((m) => m.id == message.id);
+    _totalFavoritesCount -= 1;
     if (message.isplayed == 1) {
       _playedFavorites.removeWhere((m) => m.id == message.id);
+      _playedFavoritesCount -= 1;
     } else {
       unplayedFavorites.removeWhere((m) => m.id == message.id);
     }
@@ -97,12 +109,14 @@ mixin FavoritesModel on Model {
           _playedFavorites[indexInPlayedFavorites] = message;
         } else {
           _playedFavorites.removeAt(indexInPlayedFavorites);
+          _playedFavoritesCount -= 1;
           _unplayedFavorites.add(message);
         }
       } else if (indexInUnplayedFavorites > -1) {
         if (shouldBePlayed) {
           _unplayedFavorites.removeAt(indexInUnplayedFavorites);
           _playedFavorites.add(message);
+          _playedFavoritesCount += 1;
         } else {
           _unplayedFavorites[indexInUnplayedFavorites] = message;
         }

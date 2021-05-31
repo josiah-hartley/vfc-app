@@ -108,9 +108,11 @@ class _SearchWindowState extends State<SearchWindow> {
     List<Message> result = [];
 
     if (_searchController.text != '') {
-      result = await db.searchBySpeakerOrTitle(_searchController.text, 
-        _currentlyLoadedMessageCount, 
-        _currentlyLoadedMessageCount + _messageLoadingBatchSize);
+      result = await db.searchBySpeakerOrTitle(
+        searchTerm: _searchController.text, 
+        start: _currentlyLoadedMessageCount, 
+        end: _currentlyLoadedMessageCount + _messageLoadingBatchSize
+      );
 
       if (result.length < _messageLoadingBatchSize) {
         _reachedEndOfList = true;

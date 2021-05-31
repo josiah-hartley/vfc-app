@@ -154,10 +154,10 @@ class MessageDB {
   }*/
 
   // FAVORITES
-  /*Future<int> getFavoritesCount() async {
+  Future<List<int>> getFavoritesCount() async {
     Database db = await instance.database;
     return await favorites.getFavoritesCount(db: db);
-  }*/
+  }
 
   Future<List<Message>> queryFavorites({int start, int end, String orderBy, bool ascending = true}) async {
     Database db = await instance.database;
@@ -171,10 +171,10 @@ class MessageDB {
   }
 
   // DOWNLOADS
-  /*Future<int> getDownloadsCount() async {
+  Future<List<int>> getDownloadsCount() async {
     Database db = await instance.database;
     return await downloadsMethods.getDownloadsCount(db: db);
-  }*/
+  }
 
   Future<List<Message>> queryDownloads({int start, int end, String orderBy, bool ascending = true}) async {
     Database db = await instance.database;
@@ -208,19 +208,25 @@ class MessageDB {
     return await search.searchCountSpeakerTitle(db, searchTerm);
   }
 
-  Future<List<Message>> searchBySpeakerOrTitle(String searchTerm, [int start, int end]) async {
+  Future<List<Message>> searchBySpeakerOrTitle({String searchTerm, int start, int end}) async {
     Database db = await instance.database;
-    return await search.searchBySpeakerOrTitle(db, searchTerm);
+    return await search.searchBySpeakerOrTitle(
+      db: db, 
+      searchTerm: searchTerm,
+      start: start,
+      end: end,
+    );
   }
 
-  Future<List<Message>> searchByColumns({String searchTerm, List<String> columns, int start, int end}) async {
+  Future<List<Message>> searchByColumns({String searchTerm, List<String> columns, bool onlyUnplayed, int start, int end}) async {
     Database db = await instance.database;
     return await search.searchByColumns(
       db: db, 
       searchTerm: searchTerm,
       columns: columns,
+      onlyUnplayed: onlyUnplayed,
       start: start,
-      end: end
+      end: end,
     );
   }
 
@@ -296,12 +302,24 @@ class MessageDB {
     Database db = await instance.database;
     List<Recommendation> _recs =  await recommendations.getRecommendations(db: db, limit: recommendationCount);
     for (int i = 0; i < _recs.length; i++) {
-      _recs[i].messages = await searchByColumns(
+      List<Message> result = await searchByColumns(
         searchTerm: _recs[i].label,
         columns: _recs[i].type == 'speaker' ? ['speaker'] : ['taglist'],
+        onlyUnplayed: true,
         start: 0,
         end: messageCount,
       );
+      if (result.length < 1) {
+        // if all messages in this category have already been played, remove unplayed restriction
+        result = await searchByColumns(
+          searchTerm: _recs[i].label,
+          columns: _recs[i].type == 'speaker' ? ['speaker'] : ['taglist'],
+          onlyUnplayed: false,
+          start: 0,
+          end: messageCount,
+        );
+      }
+      _recs[i].messages = result;
     }
     return _recs;
   }
@@ -310,6 +328,7 @@ class MessageDB {
     return await searchByColumns(
       searchTerm: recommendation.label,
       columns: recommendation.type == 'speaker' ? ['speaker'] : ['taglist'],
+      onlyUnplayed: true,
       start: recommendation.messages.length,
       end: recommendation.messages.length + messageCount,
     );

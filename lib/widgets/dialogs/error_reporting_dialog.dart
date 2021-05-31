@@ -90,7 +90,7 @@ class _ErrorReportingDialogState extends State<ErrorReportingDialog> {
         ),
         child: Container(
           color: Theme.of(context).backgroundColor.withOpacity(0.7),
-          padding: EdgeInsets.only(bottom: 10.0),
+          //padding: EdgeInsets.only(bottom: 10.0),
           child: Column(
             children: [
               _title(),
@@ -199,7 +199,7 @@ class _ErrorReportingDialogState extends State<ErrorReportingDialog> {
                 _input(
                   label: 'Description of Error',
                   hintText: 'Write a short description of the error you encountered.  Please be specific, and include what you were doing when the error occurred.',
-                  maxLines: 8,
+                  maxLines: 10,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Error description cannot be empty';

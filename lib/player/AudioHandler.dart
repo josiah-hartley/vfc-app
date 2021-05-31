@@ -50,7 +50,7 @@ class VFCAudioHandler extends BaseAudioHandler {
       broadcastQueueChanges();
     }
   }*/
-  updateQueue(List<MediaItem> newQueue) async {
+  updateQueue(List<MediaItem> newQueue, {int index}) async {
     _queue = newQueue;
     // an item can only appear in the queue once
     // only the first occurrence will remain
@@ -64,7 +64,7 @@ class VFCAudioHandler extends BaseAudioHandler {
     } catch (error) {
       print('Error setting audio source: $error');
     }*/
-    await broadcastQueueChanges();
+    await broadcastQueueChanges(currentIndex: index);
   }
   Future<void> broadcastQueueChanges({int currentIndex}) async {
     queue.add(await _playableQueue(_queue));
@@ -108,7 +108,9 @@ class VFCAudioHandler extends BaseAudioHandler {
     }
   }
   seek(Duration position) async {
-    seekTo(position);
+    if (position.inSeconds > 0 && position.inSeconds < _player.duration.inSeconds) {
+      seekTo(position);
+    }
   }
   skipToQueueItem(int index) async  {
     seekTo(Duration(seconds: 0), index: index);

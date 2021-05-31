@@ -21,13 +21,51 @@ class HomePage extends StatelessWidget {
             child: ListView.builder(
               padding: EdgeInsets.only(top: 0.0, bottom: 250.0),
               shrinkWrap: true,
-              itemCount: model.recommendations.length,
+              itemCount: model.recommendations.length + 1,
               itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Container(
+                    padding: EdgeInsets.only(top: 12.0, left: 14.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text('Recommendations',
+                            style: Theme.of(context).primaryTextTheme.headline1,
+                          )
+                        ),
+                        Container(
+                          child: IconButton(
+                            icon: Icon(CupertinoIcons.question_circle,
+                              color: Theme.of(context).accentColor,
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context, 
+                                builder: (context) => AlertDialog(
+                                  title: Container(
+                                    child: Text('Recommendations',
+                                      style: TextStyle(color: Theme.of(context).accentColor),
+                                    ),
+                                  ),
+                                  content: Container(
+                                    child: Text('At first, the recommended messages on the home page come from pre-selected categories.  Over time, these recommendations will update based on speakers and topics related to messages that you download and favorite.',
+                                      style: TextStyle(color: Theme.of(context).accentColor),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
                 return _recommendationCategory(
                   context: context, 
-                  recommendation: model.recommendations[index],
+                  recommendation: model.recommendations[index - 1],
                   onLoadMore: () {
-                    model.getMoreMessagesForRecommendation(index);
+                    model.getMoreMessagesForRecommendation(index - 1);
                   }
                 );
               }

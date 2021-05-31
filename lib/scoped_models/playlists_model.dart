@@ -16,7 +16,8 @@ mixin PlaylistsModel on Model {
   Future<void> loadPlaylistsMetadata() async {
     _playlists = await db.getAllPlaylistsMetadata();
     // by default, playlists are sorted by date added; list most recent at top
-    _playlists = _playlists.reversed.toList();
+    //_playlists = _playlists.reversed.toList();
+    _playlists.sort((a, b) => a.title.compareTo(b.title));
     notifyListeners();
   }
 
@@ -43,7 +44,11 @@ mixin PlaylistsModel on Model {
 
   Future<void> createPlaylist(String title) async {
     int id = await db.newPlaylist(title);
-    _playlists.insert(0, Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
+    //_playlists.insert(0, Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
+    //_playlists.add(Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
+    //_playlists.sort((a, b) => a.title.compareTo(b.title));
+    int index = _playlists.indexWhere((p) => title.compareTo(p.title) < 0);
+    _playlists.insert(index, Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
     notifyListeners();
   }
 

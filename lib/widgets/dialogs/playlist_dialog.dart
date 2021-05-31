@@ -183,6 +183,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
         onDelete: model.deletePlaylist,
         addAllToQueue: model.addMultipleMessagesToQueue,
         setMultipleFavorites: model.setMultipleFavorites,
+        downloadAll: model.queueDownloads,
       ));
     }
 
@@ -374,7 +375,8 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     Playlist playlist,
     Function onDelete,
     Function addAllToQueue,
-    Function setMultipleFavorites}) {
+    Function setMultipleFavorites,
+    Function downloadAll}) {
     bool active = false;
     if (playlist != null && playlist.messages != null && playlist.messages.length > 0) {
       active = true;
@@ -417,6 +419,12 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
               icon: Icons.check,
               text: 'Select all',
             ),
+            _playlistAction(
+              value: 4,
+              active: active,
+              icon: Icons.download_sharp,
+              text: 'Download all',
+            ),
           ];
         },
         onSelected: (value) async {
@@ -432,6 +440,9 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
               break;
             case 3:
               _selectAll(playlist.messages);
+              break;
+            case 4:
+              downloadAll(playlist.messages, showPopup: true);
               break;
           }
         },

@@ -52,6 +52,11 @@ class _DownloadsPageState extends State<DownloadsPage> {
                   onDeselectAll: _deselectAll,
                 )
                 : _filterButtonsRow(model.sortDownloads),
+              _messageCount(
+                context: context,
+                total: model.totalDownloadsCount,
+                played: model.playedDownloadsCount,
+              ),
               _filteredList(context, model)
             ],
           ),
@@ -219,6 +224,51 @@ class _DownloadsPageState extends State<DownloadsPage> {
             ),
           ],
         )
+      ),
+    );
+  }
+
+  Widget _messageCount({BuildContext context, int total, int played}) {
+    String countDisplay = '';
+    switch(_filter) {
+      case 'All':
+        if (total > 0) {
+          countDisplay = '$total Downloaded Message';
+          if (total > 1) {
+            countDisplay += 's';
+          }
+        }
+        break;
+      case 'Unplayed':
+        if (total - played > 0) {
+          countDisplay = '${total - played} Unplayed Download';
+          if (total - played > 1) {
+            countDisplay += 's';
+          }
+        }
+        break;
+      case 'Played':
+        if (played > 0) {
+          countDisplay = '$played Played Download';
+          if (played > 1) {
+            countDisplay += 's';
+          }
+        }
+        break;
+      case 'Queue':
+        countDisplay = '';
+        break;
+    }
+    if (countDisplay == '') {
+      return Container();
+    }
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5.0),
+      child: Text(countDisplay,
+        style: Theme.of(context).primaryTextTheme.headline2.copyWith(
+          fontSize: 14.0, 
+          color: Theme.of(context).accentColor.withOpacity(0.8),
+        ),
       ),
     );
   }

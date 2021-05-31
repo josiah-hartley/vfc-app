@@ -2,14 +2,17 @@ import 'package:sqflite/sqflite.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/table_names.dart';
 
-/*Future<int> getDownloadsCount({Database db}) async {
+Future<List<int>> getDownloadsCount({Database db}) async {
+  // returns [total, played]
   try {
-    return Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) from $messageTable WHERE isdownloaded = 1'));
+    int total =  Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) from $messageTable WHERE isdownloaded = 1'));
+    int played =  Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) from $messageTable WHERE isdownloaded = 1 AND isplayed = 1'));
+    return [total, played];
   } catch (error) {
     print('Error getting downloads count: $error');
-    return 0;
+    return [0, 0];
   }
-}*/
+}
 
 Future<List<Message>> queryDownloads({Database db, int start, int end, String orderBy, bool ascending = true}) async {
   String query = 'SELECT * from $messageTable WHERE isdownloaded = 1';

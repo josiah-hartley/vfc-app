@@ -34,7 +34,7 @@ mixin PlayerModel on Model {
   Stream<bool> get playingStream => _audioHandler.playingStream;
   double get playbackSpeed => _playbackSpeed;
 
-  Future<void> initializePlayer({Function onChangedMessage}) async {
+  void initializePlayer({Function onChangedMessage}) async {
     _audioHandler = await AudioService.init(
       builder: () => VFCAudioHandler(),
       config: AudioServiceConfig(
@@ -47,6 +47,9 @@ mixin PlayerModel on Model {
         fastForwardInterval: Duration(seconds: 15),
       ),
     );
+
+    await loadLastPlayedMessage();
+    loadLastPlaybackSpeed();
 
     _audioHandler.queue.listen((updatedQueue) async {
       //_queue = await Future.wait<Message>(updatedQueue.map((qItem) => messageFromMediaItem(qItem)).toList());
@@ -98,7 +101,6 @@ mixin PlayerModel on Model {
         onChangedMessage(_currentlyPlayingMessage);
         notifyListeners();
       }
-      //notifyListeners();
     });
 
     _audioHandler.durationStream.listen((updatedDuration) {
@@ -117,13 +119,6 @@ mixin PlayerModel on Model {
       }
       notifyListeners();
     });
-
-    /*_audioHandler.playerStateStream.listen((playerState) {
-      print('PLAYER STATE CHANGING');
-    });*/
-
-    loadLastPlaybackSpeed();
-    await loadLastPlayedMessage();
   }
 
   void saveLastPlayedMessage() async {
@@ -231,7 +226,7 @@ mixin PlayerModel on Model {
     List<MediaItem> playableQueue = queue.where((item) => item?.id != '').toList();
 
     if (playableQueue.length > 0) {
-      await _audioHandler.updateQueue(queue);
+      await _audioHandler.updateQueue(queue, index: index);
       await _audioHandler.seekTo(position ?? Duration(seconds: 0), index: index ?? 0);
     
       // save position on previous message

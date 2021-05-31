@@ -262,7 +262,7 @@ class SpeedometerPainter extends CustomPainter {
     }
     double perpendicularSlope = slope == 0 ? 1000 : (-1 / slope);
     double flareDistance = 5.0;
-    double backwardDistance = 20.0;
+    double backwardDistance = 10.0;
     double dxBehind = sqrt(pow(backwardDistance, 2) / (pow(slope, 2) + 1));
     double dyBehind = dxBehind * slope;
     if (end.x > start.x) {

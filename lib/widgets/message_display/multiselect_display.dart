@@ -56,6 +56,7 @@ class MultiSelectDisplay extends StatelessWidget {
                   context: context,
                   messages: selectedMessages.toList(),
                   addAllToQueue: model.addMultipleMessagesToQueue,
+                  setMultiplePlayed: model.setMultiplePlayed,
                   setMultipleFavorites: model.setMultipleFavorites,
                   downloadAll: model.queueDownloads,
                   deleteAllDownloads: model.deleteMessages,
@@ -83,6 +84,7 @@ class MultiSelectDisplay extends StatelessWidget {
     BuildContext context,
     List<Message> messages,
     Function addAllToQueue,
+    Function setMultiplePlayed,
     Function setMultipleFavorites,
     Function downloadAll,
     Function deleteAllDownloads}) {
@@ -98,7 +100,7 @@ class MultiSelectDisplay extends StatelessWidget {
         value: 0,
         active: active,
         icon: Icons.download_sharp,
-        text: 'Download all',
+        text: 'Download',
       ));
       _listChildren.add(_listAction(
         context: context,
@@ -138,6 +140,20 @@ class MultiSelectDisplay extends StatelessWidget {
         active: active,
         icon: CupertinoIcons.star_slash,
         text: 'Remove from favorites',
+      ),
+      _listAction(
+        context: context,
+        value: 6,
+        active: active,
+        icon: CupertinoIcons.check_mark_circled,
+        text: 'Mark as played',
+      ),
+      _listAction(
+        context: context,
+        value: 7,
+        active: active,
+        icon: CupertinoIcons.circle,
+        text: 'Mark as unplayed',
       ),
     ]);
 
@@ -199,6 +215,16 @@ class MultiSelectDisplay extends StatelessWidget {
               String _m = messages.length > 1 ? 'messages' : 'message';
               await setMultipleFavorites(messages, 0);
               showToast('Removed ${messages.length} $_m from favorites');
+              break;
+            case 6:
+              String _m = messages.length > 1 ? 'messages' : 'message';
+              await setMultiplePlayed(messages, 1);
+              showToast('Marked ${messages.length} $_m as played');
+              break;
+            case 7:
+              String _m = messages.length > 1 ? 'messages' : 'message';
+              await setMultiplePlayed(messages, 0);
+              showToast('Marked ${messages.length} $_m as unplayed');
               break;
           }
         },

@@ -83,16 +83,19 @@ class _QueueDialogState extends State<QueueDialog> {
             ),
             child: Container(
               color: Theme.of(context).backgroundColor.withOpacity(0.7),
-              padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 16.0),
+              padding: EdgeInsets.only(bottom: 40.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _selectedMessages.length > 0
-                    ? MultiSelectDisplay(
-                      selectedMessages: _selectedMessages,
-                      onDeselectAll: _deselectAll,
-                      showDownloadOptions: false,
-                      showQueueOptions: false,
+                    ? Container(
+                      padding: EdgeInsets.only(top: 40.0),
+                      child: MultiSelectDisplay(
+                        selectedMessages: _selectedMessages,
+                        onDeselectAll: _deselectAll,
+                        showDownloadOptions: false,
+                        showQueueOptions: false,
+                      ),
                     )
                     : _titleAndActions(
                       currentMessage: model.currentlyPlayingMessage,
@@ -107,9 +110,12 @@ class _QueueDialogState extends State<QueueDialog> {
                     ? _sectionTitle(context, 'Up Next')
                     : Container(),
                   Expanded(
-                    child: _reordering
-                      ? _reorderingUpNext()
-                      : _upNext(_futureQueue, _queueAsPlaylist),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: _reordering
+                        ? _reorderingUpNext()
+                        : _upNext(_futureQueue, _queueAsPlaylist),
+                    ),
                   ),
                 ],
               ),
@@ -124,7 +130,8 @@ class _QueueDialogState extends State<QueueDialog> {
     List<Widget> _titleChildren = [
       GestureDetector(
         child: Container(
-          padding: EdgeInsets.only(right: 12.0),
+          color: Theme.of(context).backgroundColor.withOpacity(0.01),
+          padding: EdgeInsets.only(right: 12.0, left: 16.0, top: 47.0, bottom: 7.0),
           child: Icon(CupertinoIcons.back, 
             size: 34.0,
             color: Theme.of(context).accentColor
@@ -134,7 +141,7 @@ class _QueueDialogState extends State<QueueDialog> {
       ),
       Expanded(
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 10.0),
+          padding: EdgeInsets.only(top: 50.0, bottom: 10.0),
           child: Text('Queue',
             style: Theme.of(context).primaryTextTheme.headline1.copyWith(
               fontSize: 20.0,
@@ -146,29 +153,38 @@ class _QueueDialogState extends State<QueueDialog> {
     ];
 
     if (_reordering) {
-      _titleChildren.add(ActionButton(
-        onPressed: () async {
-          onSaveChanges();
-          _closeReorderingList();
-        },
-        text: 'Save',
+      _titleChildren.add(Container(
+        padding: EdgeInsets.only(top: 40.0),
+        child: ActionButton(
+          onPressed: () async {
+            onSaveChanges();
+            _closeReorderingList();
+          },
+          text: 'Save',
+        )
       ));
 
-      _titleChildren.add(ActionButton(
-        onPressed: () async {
-          _closeReorderingList();
-        },
-        text: 'Cancel',
+      _titleChildren.add(Container(
+        padding: EdgeInsets.only(top: 40.0),
+        child: ActionButton(
+          onPressed: () async {
+            _closeReorderingList();
+          },
+          text: 'Cancel',
+        )
       ));
     } else {
-      _titleChildren.add(_queueActionsButton(
-        currentMessage: currentMessage,
-        futureQueue: futureQueue,
+      _titleChildren.add(Container(
+        padding: EdgeInsets.only(top: 40.0),
+        child: _queueActionsButton(
+          currentMessage: currentMessage,
+          futureQueue: futureQueue,
+        ),
       ));
     }
 
     return Container(
-      padding: EdgeInsets.only(bottom: 10.0),
+      padding: EdgeInsets.only(bottom: 10.0, right: 16.0),
       child: Row(
         children: _titleChildren,
       ),
@@ -182,7 +198,7 @@ class _QueueDialogState extends State<QueueDialog> {
 
   Widget _sectionTitle(BuildContext context, String title) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 12.0),
+      padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 28.0),
       child: Text(title,
         style: Theme.of(context).primaryTextTheme.headline1.copyWith(fontWeight: FontWeight.w400),
       )
@@ -191,19 +207,22 @@ class _QueueDialogState extends State<QueueDialog> {
 
   Widget _nowPlaying(BuildContext context, Message message, Playlist queueAsPlaylist) {
     return Container(
-      padding: EdgeInsets.only(bottom: 10.0),
-      margin: EdgeInsets.only(bottom: 15.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).accentColor.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: MessageCard(
-        message: message,
-        playlist: queueAsPlaylist,
-        selected: _selectedMessages.contains(message),
-        onSelect: () {
-          _toggleMessageSelection(message);
-        },
+      padding: EdgeInsets.symmetric(horizontal: 16.0),
+      child: Container(
+        padding: EdgeInsets.only(bottom: 10.0),
+        margin: EdgeInsets.only(bottom: 15.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).accentColor.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: MessageCard(
+          message: message,
+          playlist: queueAsPlaylist,
+          selected: _selectedMessages.contains(message),
+          onSelect: () {
+            _toggleMessageSelection(message);
+          },
+        ),
       ),
     );
   }
@@ -253,7 +272,7 @@ class _QueueDialogState extends State<QueueDialog> {
       Message message = _reorderableQueue[i];
       result.add(Container(
         key: Key('${message.id}'),
-        padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 6.0),
+        padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 6.0),
         child: Column(
           children: [
             Row(
@@ -261,7 +280,7 @@ class _QueueDialogState extends State<QueueDialog> {
                 ReorderableDragStartListener(
                   index: i,
                   child: Container(
-                    padding: EdgeInsets.only(left: 10.0),
+                    padding: EdgeInsets.only(left: 5.0, right: 5.0),
                     child: Container(
                       child: Icon(CupertinoIcons.line_horizontal_3, 
                         color: Theme.of(context).accentColor

@@ -13,7 +13,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
   
   var model = MainModel();
-  await model.initialize();
+  //await model.initialize();
+  DateTime a = DateTime.now();
+  await model.loadSettings();
+  await model.loadRecommendations();
+  DateTime b = DateTime.now();
+  print('loaded settings and recommendations: ${b.millisecondsSinceEpoch - a.millisecondsSinceEpoch} ms elapsed.');
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
   .then((_) async {
@@ -44,6 +49,7 @@ class _MyAppState extends State<MyApp> {
     });
     DateTime a = DateTime.now();
     print('initialized player: ${a.millisecondsSinceEpoch - start.millisecondsSinceEpoch} ms elapsed.');
+    widget.model.initialize();
   }
 
   @override

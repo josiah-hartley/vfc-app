@@ -21,15 +21,15 @@ RecommendationsModel {
 
   ConnectivityResult get connection => _connection;
 
-  Future<void> initialize() async {
-    DateTime start = DateTime.now();
+  void initialize() async {
+    //DateTime start = DateTime.now();
     /*await initializePlayer(onChangedMessage: (Message message) {
       updateDownloadedMessage(message);
       updateFavoritedMessage(message);
       updateMessageInCurrentPlaylist(message);
     });*/
     DateTime a = DateTime.now();
-    print('initialized player: ${a.millisecondsSinceEpoch - start.millisecondsSinceEpoch} ms elapsed.');
+    //print('initialized player: ${a.millisecondsSinceEpoch - start.millisecondsSinceEpoch} ms elapsed.');
     await loadPlaylistsMetadata();
     DateTime b = DateTime.now();
     print('loaded playlists metadata: ${b.millisecondsSinceEpoch - a.millisecondsSinceEpoch} ms elapsed.');
@@ -45,12 +45,12 @@ RecommendationsModel {
     await loadStorageUsage();
     DateTime f = DateTime.now();
     print('loaded storage usage: ${f.millisecondsSinceEpoch - e.millisecondsSinceEpoch} ms elapsed.');
-    await loadSettings();
-    DateTime g = DateTime.now();
-    print('loaded settings: ${g.millisecondsSinceEpoch - f.millisecondsSinceEpoch} ms elapsed.');
-    await loadRecommendations();
+    //await loadSettings();
+    //DateTime g = DateTime.now();
+    //print('loaded settings: ${g.millisecondsSinceEpoch - f.millisecondsSinceEpoch} ms elapsed.');
+    //await loadRecommendations();
     DateTime h = DateTime.now();
-    print('loaded recommendations: ${h.millisecondsSinceEpoch - g.millisecondsSinceEpoch} ms elapsed.');
+    //print('loaded recommendations: ${h.millisecondsSinceEpoch - g.millisecondsSinceEpoch} ms elapsed.');
     await deletePlayedDownloads();
     DateTime i = DateTime.now();
     print('deleted played downloads: ${i.millisecondsSinceEpoch - h.millisecondsSinceEpoch} ms elapsed.');
@@ -106,6 +106,15 @@ RecommendationsModel {
     //await loadDownloads();
     //await loadFavorites();
     //notifyListeners();
+  }
+
+  Future<void> setMultiplePlayed(List<Message> messages, int value) async {
+    for (int i = 0; i < messages.length; i++) {
+      messages[i].isplayed = value;
+      updateDownloadedMessage(messages[i]);
+      updateFavoritedMessage(messages[i]);
+    }
+    await db.batchAddToDB(messages);
   }
 
   Future<void> toggleFavorite(Message message) async {
