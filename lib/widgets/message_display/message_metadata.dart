@@ -138,7 +138,7 @@ Widget downloadProgress({BuildContext context, Download task, Function onCancel}
     progress = task.bytesReceived / task.size;
   }
   return Container(
-    padding: EdgeInsets.only(left: 8.0),
+    padding: EdgeInsets.only(left: 8.0, right: 15.0),
     child: GestureDetector(
       onTap: onCancel,
       child: Stack(

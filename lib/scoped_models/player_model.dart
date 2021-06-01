@@ -269,16 +269,19 @@ mixin PlayerModel on Model {
 
   void addMultipleMessagesToQueue(List<Message> messages) {
     Logger.logEvent(event: 'Adding $messages to queue');
-    List<Message> playedQueue;
-    List<Message> currentAndFutureQueue;
-    // trim played messages from the queue
-    // leave at most n messages before the current one
-    if (_queueIndex > Constants.QUEUE_BACKLOG_SIZE) {
-      playedQueue = _queue.sublist(_queueIndex - Constants.QUEUE_BACKLOG_SIZE, _queueIndex);
-    } else {
-      playedQueue = _queue.sublist(0, _queueIndex);
+    List<Message> playedQueue = [];
+    List<Message> currentAndFutureQueue = [];
+    
+    if (_queue != null && _queueIndex != null && _queueIndex > -1 && _queueIndex < _queue.length) {
+      // trim played messages from the queue
+      // leave at most n messages before the current one
+      if (_queueIndex > Constants.QUEUE_BACKLOG_SIZE) {
+        playedQueue = _queue.sublist(_queueIndex - Constants.QUEUE_BACKLOG_SIZE, _queueIndex);
+      } else {
+        playedQueue = _queue.sublist(0, _queueIndex);
+      }
+      currentAndFutureQueue = _queue.sublist(_queueIndex);
     }
-    currentAndFutureQueue = _queue.sublist(_queueIndex);
 
     // remove any of the added messages from the played queue, so that they can be added again
     List<int> messageIdsToAdd = messages.map((m) => m.id).toList();
@@ -287,7 +290,10 @@ mixin PlayerModel on Model {
     _queue = playedQueue
       ..addAll(currentAndFutureQueue)
       ..addAll(messages);
-    _queueIndex = _queue.indexWhere((message) => message.id == _currentlyPlayingMessage?.id) ?? 0;
+    _queueIndex = _queue.indexWhere((message) => message.id == _currentlyPlayingMessage?.id);
+    if (_queueIndex < 0) {
+      _queueIndex = 0;
+    }
     //_queue.addAll(messages);
     updateQueue(_queue, index: _queueIndex);
   }
