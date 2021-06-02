@@ -91,11 +91,26 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
                         text: 'Play All Downloaded',
                         onPressed: () async {
                           if (model.selectedPlaylist != null && (model.selectedPlaylist.messages?.length ?? 0) > 0) {
-                            int indexOfFirstDownloaded = model.selectedPlaylist.messages.indexWhere((m) => m.isdownloaded == 1);
+                            List<Message> playableMessages = model.selectedPlaylist.messages.where((m) => m.isdownloaded == 1).toList();
+                            /*int indexOfFirstDownloaded = model.selectedPlaylist.messages.indexWhere((m) => m.isdownloaded == 1);
                             if (indexOfFirstDownloaded > -1) {
                               await model.setupPlayer(
                                 message: model.selectedPlaylist.messages[indexOfFirstDownloaded],
                                 playlist: model.selectedPlaylist,
+                              );
+                              model.play();
+                            } else {
+                              showToast('None of the messages in this playlist are downloaded');
+                            }*/
+                            if (playableMessages.length > 0) {
+                              Playlist playablePlaylist = Playlist(
+                                model.selectedPlaylist?.id, 
+                                model.selectedPlaylist?.created,
+                                model.selectedPlaylist.title,
+                                playableMessages);
+                              await model.setupPlayer(
+                                message: playableMessages[0],
+                                playlist: playablePlaylist,
                               );
                               model.play();
                             } else {

@@ -13,12 +13,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
   
   var model = MainModel();
-  //await model.initialize();
-  DateTime a = DateTime.now();
   await model.loadSettings();
   await model.loadRecommendations();
-  DateTime b = DateTime.now();
-  print('loaded settings and recommendations: ${b.millisecondsSinceEpoch - a.millisecondsSinceEpoch} ms elapsed.');
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
   .then((_) async {
@@ -41,14 +37,11 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() { 
     super.initState();
-    DateTime start = DateTime.now();
     widget.model.initializePlayer(onChangedMessage: (Message message) {
       widget.model.updateDownloadedMessage(message);
       widget.model.updateFavoritedMessage(message);
       widget.model.updateMessageInCurrentPlaylist(message);
     });
-    DateTime a = DateTime.now();
-    print('initialized player: ${a.millisecondsSinceEpoch - start.millisecondsSinceEpoch} ms elapsed.');
     widget.model.initialize();
   }
 
@@ -69,25 +62,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
-/*class MyApp extends StatelessWidget {
-  const MyApp({Key key, this.model}) : super(key: key);
-  final MainModel model;
-
-  @override
-  Widget build(BuildContext context) {
-    return ScopedModel<MainModel>(
-      model: model, 
-      child: ScopedModelDescendant<MainModel>(
-        builder: (context, child, model) {
-          return MaterialApp(
-            title: 'Voices for Christ',
-            home: MainScaffold(),
-            theme: model.darkMode == true ? darkTheme : lightTheme,
-            debugShowCheckedModeBanner: false,
-          );
-        }
-      ),
-    );
-  }
-}*/

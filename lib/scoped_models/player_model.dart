@@ -84,7 +84,7 @@ mixin PlayerModel on Model {
 
       if (_currentlyPlayingMessage != null && (position.inSeconds.toDouble() - _currentlyPlayingMessage.lastplayedposition).abs() > 15) {
         _currentlyPlayingMessage.lastplayedposition = position.inSeconds.toDouble();
-        if ((_currentlyPlayingMessage.lastplayedposition - position.inSeconds.toDouble()).abs() < 30) {
+        if ((_currentlyPlayingMessage.durationinseconds - position.inSeconds.toDouble()).abs() < 30) {
           _currentlyPlayingMessage.isplayed = 1;
         }
         await db.update(_currentlyPlayingMessage);
@@ -205,9 +205,10 @@ mixin PlayerModel on Model {
 
   Future<void> setQueueToPlaylist(Playlist playlist, {int index, Duration position}) async {
     List<MediaItem> mediaItems = playlist.toMediaItemList();
-    List<MediaItem> q = mediaItems.sublist(index);
-    Logger.logEvent(event: 'Setting queue to playlist at index $index and position $position; media items are $q');
-    await setupQueue(queue: q, position: position, index: 0);
+    //List<MediaItem> q = mediaItems.sublist(index);
+    print('${mediaItems.length}: Setting queue to playlist at index $index and position $position; media items are $mediaItems');
+    Logger.logEvent(event: 'Setting queue to playlist at index $index and position $position; media items are $mediaItems');
+    await setupQueue(queue: mediaItems, position: position, index: index);
   }
 
   Future<void> setupQueue({List<MediaItem> queue, Duration position, int index}) async {

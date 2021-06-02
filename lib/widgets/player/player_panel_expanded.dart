@@ -95,7 +95,7 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
     return Container(
       padding: EdgeInsets.only(top: 12.0, bottom: 12.0, left: 12.0),
       child: IconButton(
-        icon: Icon(CupertinoIcons.question_circle,
+        icon: Icon(CupertinoIcons.info,
           color: Colors.white,
           size: 28.0,
         ),
