@@ -101,7 +101,6 @@ mixin PlayerModel on Model {
     _audioHandler.playbackState.listen((playbackState) async {
       _playbackSpeed = playbackState.speed;
       bool queueFinished = playbackState?.processingState == AudioProcessingState.completed;
-      print('PLAYBACK STATE: ${playbackState.processingState}');
       if (queueFinished) {
         //_audioHandler.pause();
         disposePlayer();
@@ -205,10 +204,9 @@ mixin PlayerModel on Model {
 
   Future<void> setQueueToPlaylist(Playlist playlist, {int index, Duration position}) async {
     List<MediaItem> mediaItems = playlist.toMediaItemList();
-    //List<MediaItem> q = mediaItems.sublist(index);
-    print('${mediaItems.length}: Setting queue to playlist at index $index and position $position; media items are $mediaItems');
-    Logger.logEvent(event: 'Setting queue to playlist at index $index and position $position; media items are $mediaItems');
-    await setupQueue(queue: mediaItems, position: position, index: index);
+    List<MediaItem> q = mediaItems.sublist(index);
+    Logger.logEvent(event: 'Setting queue to playlist at index $index and position $position; media items are $q');
+    await setupQueue(queue: q, position: position, index: 0);
   }
 
   Future<void> setupQueue({List<MediaItem> queue, Duration position, int index}) async {
@@ -217,12 +215,12 @@ mixin PlayerModel on Model {
     Duration _previousPosition = _currentPosition;
 
     // only add downloaded items
-    List<MediaItem> playableQueue = queue.where((item) => item?.id != '').toList();
+    List<MediaItem> playableQueue = queue.where((item) => item.extras['isdownloaded'] == 1 && item?.id != '').toList();
     Logger.logEvent(event: 'Playable queue is $playableQueue');
 
     if (playableQueue.length > 0) {
       await _audioHandler.updateQueue(queue, index: index);
-      await _audioHandler.seekTo(position ?? Duration(seconds: 0), index: index ?? 0);
+      await _audioHandler.seekTo(position: position ?? Duration(seconds: 0), index: index ?? 0);
     
       // save position on previous message
       if (_previousMessage != null && _previousPosition != null) {
@@ -337,7 +335,7 @@ mixin PlayerModel on Model {
 
   void seekToSecond(double seconds) {
     int milliseconds = (seconds * 1000).round();
-    _audioHandler.seekTo(Duration(milliseconds: milliseconds));
+    _audioHandler.seekTo(position: Duration(milliseconds: milliseconds));
   }
 
   void seekForwardFifteenSeconds() {

@@ -19,6 +19,9 @@ class VFCAudioHandler extends BaseAudioHandler {
     return _player.pause();
   }
   Future<List<MediaItem>> _playableQueue(List<MediaItem> rawQueue) async{
+    if (rawQueue == null) {
+      return [];
+    }
     // item.id corresponds to the filepath; if this is empty or the file doesn't exist, it's not playable
     List<MediaItem> result = [];
     for (int i = 0; i < rawQueue.length; i++) {
@@ -34,8 +37,13 @@ class VFCAudioHandler extends BaseAudioHandler {
     //return rawQueue.where((item) => item.id != null && item.id.length > 0).toList();
   }
   removeQueueItemAt(int index) async {
+    int indexToSeekTo;
+    if (index < _player.currentIndex) {
+      // removing from the past queue
+      indexToSeekTo = _player.currentIndex - 1;
+    }
     _queue.removeAt(index);
-    broadcastQueueChanges();
+    broadcastQueueChanges(positionToSeekTo: _player.position, indexToSeekTo: indexToSeekTo);
   }
   addQueueItem(MediaItem item) async {
     // an item can only appear in the queue once
@@ -56,6 +64,15 @@ class VFCAudioHandler extends BaseAudioHandler {
     // only the first occurrence will remain
     Set<String> queueIds = newQueue.map((i) => i.id).toSet();
     _queue.retainWhere((item) => queueIds.remove(item.id));
+    _queue = await _playableQueue(_queue);
+    MediaItem itemToSeekTo = index == null || index < 0 || index >= newQueue.length ? null : newQueue[index];
+    int indexInPlayableQueue = 0;
+    if (itemToSeekTo != null) {
+      indexInPlayableQueue = _queue.indexWhere((item) => item?.id == newQueue[index]?.id);
+      if (indexInPlayableQueue < 0) {
+        indexInPlayableQueue = 0;
+      }
+    }
     //queue.add(await _playableQueue(_queue));
     /*try {
       print('ready to set audio source');
@@ -64,15 +81,26 @@ class VFCAudioHandler extends BaseAudioHandler {
     } catch (error) {
       print('Error setting audio source: $error');
     }*/
-    await broadcastQueueChanges(currentIndex: index);
+    await broadcastQueueChanges(indexToSeekTo: indexInPlayableQueue);
   }
-  Future<void> broadcastQueueChanges({int currentIndex}) async {
-    queue.add(await _playableQueue(_queue));
-    currentIndex ??= _player.currentIndex;
-    Duration currentPosition = _player.position;
+  Future<void> broadcastQueueChanges({Duration positionToSeekTo, int indexToSeekTo}) async {
+    _queue = await _playableQueue(_queue);
+    queue.add(_queue);
+    print('PLAYER INDEX IS ${_player.currentIndex}');
+    int currentIndex = _player.currentIndex ?? 0;
+    if (currentIndex < 0 || currentIndex >= _queue.length) {
+      currentIndex = 0;
+    }
+    Duration currentPosition = _player.position ?? Duration(seconds: 0);
     try {
       await setAudioSource();
-      seekTo(currentPosition, index: currentIndex);
+      print('INDEX TO SEEK TO IS $indexToSeekTo; currentIndex is $currentIndex');
+      if (indexToSeekTo == null) {
+        print('SEEKING TO $currentPosition at index $currentIndex in queue ${_queue.map((item) => item.title).toList()}');
+        seekTo(position: currentPosition, index: currentIndex);
+      } else {
+        seekTo(position: positionToSeekTo ?? Duration(seconds: 0), index: indexToSeekTo);
+      }
     } catch (error) {
       print('Error setting audio source: $error');
     }
@@ -80,9 +108,11 @@ class VFCAudioHandler extends BaseAudioHandler {
   Future<void> setAudioSource() async {
     List<MediaItem> _validQueue = await _playableQueue(_queue);
     try {
-      await _player.setAudioSource(ConcatenatingAudioSource(
-        children: _validQueue.map((item) => AudioSource.uri(Uri.parse('file://' + item.id))).toList(),
-      ));
+      if (_validQueue.length > 0) {
+        await _player.setAudioSource(ConcatenatingAudioSource(
+          children: _validQueue.map((item) => AudioSource.uri(Uri.parse('file://' + item.id))).toList(),
+        ));
+      }
     } on PlatformException {
       print('Error setting audio source');
     }
@@ -91,33 +121,34 @@ class VFCAudioHandler extends BaseAudioHandler {
     return _player.seekToPrevious();
   }
   skipToNext() {
+    print('SKIPPTING TO NEXT: INDEX IS ${_player.currentIndex}');
     return _player.seekToNext();
   }
   fastForward() async {
     if (_player.duration.inSeconds - _player.position.inSeconds > 15) {
-      seekTo(Duration(seconds: _player.position.inSeconds + 15));
+      seekTo(position: Duration(seconds: _player.position.inSeconds + 15));
     } else {
-      seekTo(Duration(seconds: _player.duration.inSeconds - 1));
+      seekTo(position: Duration(seconds: _player.duration.inSeconds - 1));
     }
   }
   rewind() async {
     if (_player.position.inSeconds >= 15) {
-      seekTo(Duration(seconds: _player.position.inSeconds - 15));
+      seekTo(position: Duration(seconds: _player.position.inSeconds - 15));
     } else {
-      seekTo(Duration(seconds: 0));
+      seekTo(position: Duration(seconds: 0));
     }
   }
   seek(Duration position) async {
-    if (position.inSeconds > 0 && position.inSeconds < _player.duration.inSeconds) {
-      seekTo(position);
-    }
+    seekTo(position: position);
   }
   skipToQueueItem(int index) async  {
-    seekTo(Duration(seconds: 0), index: index);
+    seekTo(position: Duration(seconds: 0), index: index);
   }
-  seekTo(Duration position, {int index}) {
+  seekTo({Duration position, int index}) {
     try {
-      _player.seek(position, index: index);
+      if (position?.inSeconds != null && position.inSeconds >= 0 && position.inSeconds <= (_player.duration?.inSeconds ?? 0)) {
+        _player.seek(position, index: index);
+      }
     } catch (error) {
       print('Error seeking to position $position: $error');
     }
