@@ -4,7 +4,7 @@ String messageDurationInMinutes(double durationInSeconds) {
   }
 
   int hours = durationInSeconds ~/ 3600;
-  String minutes = (durationInSeconds ~/ 60).toString();
+  String minutes = ((durationInSeconds ~/ 60) % 60).toString();
   String seconds = (durationInSeconds % 60).round().toString();
   if (seconds.length == 1) {
     seconds = '0' + seconds;

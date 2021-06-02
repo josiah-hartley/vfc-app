@@ -6,6 +6,7 @@ import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/more_message_details_dialog.dart';
 import 'package:voices_for_christ/widgets/dialogs/playback_speed_dialog.dart';
 import 'package:voices_for_christ/widgets/dialogs/queue_dialog.dart';
 import 'package:voices_for_christ/widgets/player/seekbar.dart';
@@ -40,6 +41,14 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
                 children: [
                   _closeButton(),
                   Expanded(child: Container()),
+                  _info(
+                    onPressed: () {
+                      showDialog(
+                        context: context, 
+                        builder: (context) => MoreMessageDetailsDialog(message: model.currentlyPlayingMessage),
+                      );
+                    }
+                  ),
                   _favorite(
                     message: model.currentlyPlayingMessage,
                     onPressed: () async {
@@ -79,6 +88,19 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
           ),
         );
       }
+    );
+  }
+
+  Widget _info({Function onPressed}) {
+    return Container(
+      padding: EdgeInsets.only(top: 12.0, bottom: 12.0, left: 12.0),
+      child: IconButton(
+        icon: Icon(CupertinoIcons.question_circle,
+          color: Colors.white,
+          size: 28.0,
+        ),
+        onPressed: onPressed,
+      )
     );
   }
 

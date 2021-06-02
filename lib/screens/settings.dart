@@ -5,6 +5,7 @@ import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/check_database_updates_dialog.dart';
 import 'package:voices_for_christ/widgets/dialogs/error_reporting_dialog.dart';
 import 'package:voices_for_christ/widgets/dialogs/history_dialog.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key key}) : super(key: key);
@@ -60,6 +61,9 @@ class SettingsPage extends StatelessWidget {
                   _checkForUpdates(
                     context: context,
                     lastUpdated: model.cloudLastCheckedDate,
+                  ),
+                  _versionNumber(
+                    context: context,
                   ),
                 ],
               ),
@@ -266,6 +270,27 @@ class SettingsPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _versionNumber({BuildContext context}) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text('Version',
+              style: Theme.of(context).primaryTextTheme.headline2,
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+            child: Text(Constants.APP_VERSION,
+              style: Theme.of(context).primaryTextTheme.headline2,
+            ),
+          ),
+        ],
       ),
     );
   }
