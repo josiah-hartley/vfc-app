@@ -46,14 +46,18 @@ mixin PlaylistsModel on Model {
 
   Future<void> createPlaylist(String title) async {
     int id = await db.newPlaylist(title);
+    if (id == null) {
+      Logger.logEvent(type: 'error', event: 'Error creating new playlist');
+    }
     //_playlists.insert(0, Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
     //_playlists.add(Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
     //_playlists.sort((a, b) => a.title.compareTo(b.title));
     int index = _playlists.indexWhere((p) => title.toLowerCase().compareTo(p.title.toLowerCase()) < 0);
-    if (index < 0) {
-      index = 0;
+    if (index < 0 || index >= _playlists.length) {
+      _playlists.add(Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
+    } else {
+      _playlists.insert(index, Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
     }
-    _playlists.insert(index, Playlist(id, DateTime.now().millisecondsSinceEpoch, title, []));
     Logger.logEvent(event: 'Created new playlist: $title');
     notifyListeners();
   }
