@@ -58,7 +58,7 @@ Light and dark themes for the app
 Contains ActionButton class, as well as dialogs, components used to display message data in a list (MessageCard and related), the player view components, and search widgets
 
 ## Database
-The app is shipped with an initial database (the messages loaded from voicesforchrist.net).  As more messages are added to the online database, the local copy would be out of date, so the app periodically checks for updates (with a manual option as well).
+The app is shipped with an initial database (the messages loaded from voicesforchrist.net), located in the assets directory.  As more messages are added to the online database, the local copy would be out of date, so the app periodically checks for updates (with a manual option as well).
 
 This database has 7 tables:
 * downloads: persists download queue, so that if the app closes before downloads finish, the queue is reloaded on the next start
