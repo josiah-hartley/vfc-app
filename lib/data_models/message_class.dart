@@ -1,5 +1,4 @@
 import 'package:audio_service/audio_service.dart';
-//import 'package:voices_for_christ/database/local_db.dart';
 
 class Message {
   int id;
@@ -151,14 +150,7 @@ class Message {
       duration: Duration(milliseconds: milliseconds),
       artist: speaker,
       album: speaker,
-      // TODO: figure this out
-      //artUri: Uri.parse('https://firebasestorage.googleapis.com/v0/b/voices-for-christ.appspot.com/o/notification_background_icon.png?alt=media&token=f4e816c4-c185-421b-aed0-89dff158bc3c'),
-          //Uri.parse('https://firebasestorage.googleapis.com/v0/b/voices-for-christ.appspot.com/o/notification_background.png?alt=media&token=fee126f6-a271-46dc-8703-80e4d27992ea'),
-          //Uri.parse("https://media.wnyc.org/i/1400/1400/l/80/1/ScienceFriday_WNYCStudios_1400.jpg"),
       extras: _extras,
-      /*extras: {
-        'messageId': id,
-      }*/
     );
   }
 
@@ -173,13 +165,4 @@ Message messageFromMediaItem(MediaItem mediaItem) {
   }
   Message result = Message.fromMap(mediaItem.extras);
   return result;
-  //int id = mediaItem.extras['messageId'] ?? -1;
-  /*int id = mediaItem.extras['id'] ?? -1;
-  if (id > -1) {
-    final db = MessageDB.instance;
-    Message result = await db.queryOne(id);
-    return result;
-  } else {
-    return null;
-  }*/
 }
