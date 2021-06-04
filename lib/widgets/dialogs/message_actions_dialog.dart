@@ -35,7 +35,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
             ),
             child: Container(
               color: Theme.of(context).backgroundColor.withOpacity(0.7),
-              padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 0.0),
+              padding: EdgeInsets.only(top: 40.0),
               child: ListView(
                 shrinkWrap: true,
                 children: _children(model),

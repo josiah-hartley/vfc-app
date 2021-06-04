@@ -8,7 +8,8 @@ import 'package:voices_for_christ/widgets/message_display/message_card.dart';
 import 'package:voices_for_christ/widgets/message_display/multiselect_display.dart';
 
 class SearchResultsDisplay extends StatefulWidget {
-  SearchResultsDisplay({Key key, this.searchResults, this.fullSearchCount, this.batchSize, this.loadMoreResults, this.reachedEndOfList}) : super(key: key);
+  SearchResultsDisplay({Key key, this.hasSearched, this.searchResults, this.fullSearchCount, this.batchSize, this.loadMoreResults, this.reachedEndOfList}) : super(key: key);
+  final bool hasSearched;
   final List<Message> searchResults;
   final int fullSearchCount;
   final int batchSize;
@@ -46,7 +47,7 @@ class _SearchResultsDisplayState extends State<SearchResultsDisplay> {
       _deselectAll();
     }
     return Expanded(
-      child: widget.searchResults.length == 0
+      child: widget.hasSearched == false
         ? Container()
         : Container(
           child: Column(
@@ -64,7 +65,7 @@ class _SearchResultsDisplayState extends State<SearchResultsDisplay> {
                   decoration: BoxDecoration(
                     border: Border(bottom: BorderSide(color: Theme.of(context).accentColor)),
                   ),
-                  child: Text('${widget.fullSearchCount} RESULTS',
+                  child: Text('${widget.fullSearchCount} RESULT' + (widget.fullSearchCount != 1 ? 'S' : ''),
                     style: TextStyle(
                       color: Theme.of(context).accentColor,
                     )

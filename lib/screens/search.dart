@@ -24,6 +24,7 @@ class _SearchWindowState extends State<SearchWindow> {
   int _fullSearchResultCount = 0;
   int _currentlyLoadedMessageCount = 0;
   int _messageLoadingBatchSize = Constants.MESSAGE_LOADING_BATCH_SIZE;
+  bool _hasSearched = false;
   bool _reachedEndOfList = false;
   bool _waitingForResults = false;
 
@@ -47,11 +48,13 @@ class _SearchWindowState extends State<SearchWindow> {
             onClearSearchString: () {
               setState(() {
                 _searchController.text = '';
+                _hasSearched = false;
                 _resetSearchParameters();
               });
             }
           ),
           SearchResultsDisplay(
+            hasSearched: _hasSearched,
             searchResults: _searchResults,
             fullSearchCount: _fullSearchResultCount,
             batchSize: _messageLoadingBatchSize,
@@ -68,6 +71,9 @@ class _SearchWindowState extends State<SearchWindow> {
   }
 
   void _onSearch(BuildContext context) async {
+    setState(() {
+      _hasSearched = true;
+    });
     await _initializeNewSearch(context);
   }
 
