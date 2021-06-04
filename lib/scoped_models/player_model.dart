@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/playlist_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
-import 'package:voices_for_christ/helpers/toasts.dart';
+import 'package:voices_for_christ/helpers/playable_queue.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 import 'package:voices_for_christ/player/AudioHandler.dart';
@@ -62,13 +62,6 @@ mixin PlayerModel on Model {
     });
 
     _audioHandler.mediaItem.listen((item) async {
-      // save position on previous message
-      /*if (_currentlyPlayingMessage != null && currentPosition != null) {
-        _currentlyPlayingMessage.lastplayedposition = currentPosition.inSeconds.toDouble();
-        print('updating LAST PLAYED POSITION: $currentPosition');
-        await db.update(_currentlyPlayingMessage);
-      }*/
-
       _currentlyPlayingMessage = messageFromMediaItem(item);
       if (_currentlyPlayingMessage != null) {
         _currentlyPlayingMessage.lastplayeddate = DateTime.now().millisecondsSinceEpoch;
@@ -102,9 +95,7 @@ mixin PlayerModel on Model {
       _playbackSpeed = playbackState.speed;
       bool queueFinished = playbackState?.processingState == AudioProcessingState.completed;
       if (queueFinished) {
-        //_audioHandler.pause();
         disposePlayer();
-        //_audioHandler.updateQueue([]);
       }
       notifyListeners();
     });
@@ -161,25 +152,11 @@ mixin PlayerModel on Model {
     if (message?.id == _currentlyPlayingMessage?.id) {
       // message already playing
       position ??= _currentPosition;
-    } /*else {
-      // different message from the one currently playing
-      // if another message is playing, save its position
-      /*if (_currentlyPlayingMessage != null) {
-        _currentlyPlayingMessage.lastplayedposition = currentPosition.inSeconds.toDouble();
-        print('SAVING LAST PLAYED POSITION: ${currentPosition.inSeconds}');
-        await db.update(_currentlyPlayingMessage);
-      }*/
-      // reload message in case anything has changed
-      /*Message result = await db.queryOne(message?.id);
-      int _milliseconds = ((result?.lastplayedposition ?? 0.0) * 1000).round();
-      position ??= Duration(milliseconds: _milliseconds);*/
-      position ??= Duration(seconds: 0);
-    }*/
+    }
 
     if (playlist == null) {
       setQueueToSingleMessage(message, position: position);
     } else {
-      //List<Message> playableMessagesInPlaylist = playlist.messages.where((m) => m.isdownloaded == 1).toList();
       int index = playlist.messages.indexWhere((item) => item?.id == message?.id);
       if (index > -1) {
         setQueueToPlaylist(playlist, index: index, position: position);
@@ -192,10 +169,6 @@ mixin PlayerModel on Model {
     notifyListeners();
   }
 
-  /*Future<void> setQueueToEmpty() async {
-    await setupQueue(queue: [], index: 0);
-  }*/
-
   Future<void> setQueueToSingleMessage(Message message, {Duration position}) async {
     MediaItem mediaItem = message.toMediaItem();
     Logger.logEvent(event: 'Setting queue to single message at position $position; media item is $mediaItem');
@@ -203,10 +176,15 @@ mixin PlayerModel on Model {
   }
 
   Future<void> setQueueToPlaylist(Playlist playlist, {int index, Duration position}) async {
+    if (playlist.messages.length < 1) {
+      return;
+    }
+    if (index == null || index < 0 || index >= playlist.messages.length) {
+      index = 0;
+    }
     List<MediaItem> mediaItems = playlist.toMediaItemList();
-    List<MediaItem> q = mediaItems.sublist(index);
-    Logger.logEvent(event: 'Setting queue to playlist at index $index and position $position; media items are $q');
-    await setupQueue(queue: q, position: position, index: 0);
+    Logger.logEvent(event: 'Setting queue to playlist at index $index and position $position'); //index in playable queue is $queueIndex, and playable queue is $playableQueue');
+    await setupQueue(queue: mediaItems, position: position, index: index);
   }
 
   Future<void> setupQueue({List<MediaItem> queue, Duration position, int index}) async {
@@ -214,51 +192,67 @@ mixin PlayerModel on Model {
     Message _previousMessage = _currentlyPlayingMessage;
     Duration _previousPosition = _currentPosition;
 
-    // only add downloaded items
-    List<MediaItem> playableQueue = queue.where((item) => item.extras['isdownloaded'] == 1 && item?.id != '').toList();
-    Logger.logEvent(event: 'Playable queue is $playableQueue');
-
-    if (playableQueue.length > 0) {
-      await _audioHandler.updateQueue(queue, index: index);
-      await _audioHandler.seekTo(position: position ?? Duration(seconds: 0), index: index ?? 0);
-    
+    bool didUpdateQueue = await updateQueue(
+      queue: queue,
+      index: index,
+    );
+    if (didUpdateQueue) {
+      await _audioHandler.seekTo(position: position ?? Duration(seconds: 0));
+      
       // save position on previous message
       if (_previousMessage != null && _previousPosition != null) {
         _previousMessage.lastplayedposition = _previousPosition.inSeconds.toDouble();
         await db.update(_previousMessage);
       }
-    } else {
-      showToast('No downloaded messages in playlist');
     }
   }
 
-  void updateQueue(List<Message> messages, {int index}) {
-    Logger.logEvent(event: 'Updating queue: message list is $messages');
-    List<MediaItem> _queueItems = messages.map((m) => m.toMediaItem()).toList();
-    _audioHandler.updateQueue(_queueItems, index: index);
-
-    if (!_playerVisible) {
-      _playerVisible = true;
-      notifyListeners();
+  Future<bool> updateQueue({List<MediaItem> queue, int index}) async {
+    Logger.logEvent(event: 'Setting up queue at index $index; queue is $queue');
+    if (queue == null || queue.length < 1) {
+      return false;
     }
+    index ??= _queueIndex;
+    if (index == null || index < 0 || index >= queue.length) {
+      index = 0;
+    }
+
+    // only add downloaded items
+    MediaItem _startingMessage = queue[index];
+    List<MediaItem> validQueue = await playableQueue(queue);
+    int validQueueIndex = validQueue.indexWhere((item) => item.id == _startingMessage?.id);
+    if (validQueueIndex < 0) {
+      validQueueIndex = 0;
+    }
+    Logger.logEvent(event: 'Playable queue is $validQueue');
+
+    if (validQueue.length > 0) {
+      await _audioHandler.updateQueue(validQueue, index: validQueueIndex);
+      if (!_playerVisible) {
+        _playerVisible = true;
+        notifyListeners();
+      }
+      return true;
+    }
+    return false;
   }
 
-  void updateFutureQueue(List<Message> futureQueue) {
+  void updateFutureQueue(List<Message> futureQueue) async {
     // replace everything after current message with futureQueue
     int index = _queue.indexWhere((m) => m.id == _currentlyPlayingMessage?.id);
     if (index > -1) {
       _queue.replaceRange(index + 1, _queue.length, futureQueue);
-      updateQueue(_queue);
+      List<MediaItem> mediaItems = _queue.map((message) => message.toMediaItem()).toList();
+      await updateQueue(queue: mediaItems, index: index);
     }
   }
 
-  void addToQueue(Message message, {int index}) {
-    Logger.logEvent(event: 'Adding $message to queue at index $index');
-    //if (index == null) {
-      _audioHandler.addQueueItem(message.toMediaItem());
-    //} else {
-    //  _audioHandler.insertQueueItem(index, message.toMediaItem());
-    //}
+  void addToQueue(Message message) async {
+    Logger.logEvent(event: 'Adding $message to queue');
+    MediaItem mediaItem = message.toMediaItem();
+    if (await mediaItemIsPlayable(mediaItem)) {
+      _audioHandler.addQueueItem(mediaItem);
+    }
 
     if (!_playerVisible) {
       _playerVisible = true;
@@ -266,7 +260,7 @@ mixin PlayerModel on Model {
     }
   }
 
-  void addMultipleMessagesToQueue(List<Message> messages) {
+  void addMultipleMessagesToQueue(List<Message> messages) async {
     Logger.logEvent(event: 'Adding $messages to queue');
     List<Message> playedQueue = [];
     List<Message> currentAndFutureQueue = [];
@@ -293,8 +287,9 @@ mixin PlayerModel on Model {
     if (_queueIndex < 0) {
       _queueIndex = 0;
     }
-    //_queue.addAll(messages);
-    updateQueue(_queue, index: _queueIndex);
+
+    List<MediaItem> mediaItems = _queue.map((message) => message.toMediaItem()).toList();
+    await updateQueue(queue: mediaItems, index: _queueIndex);
   }
 
   void removeFromQueue(int index) {
@@ -307,32 +302,6 @@ mixin PlayerModel on Model {
     }
   }
 
-  /*void changeQueuePosition({int oldIndex, int newIndex}) {
-    if (oldIndex == null || newIndex == null || oldIndex == newIndex) {
-      return;
-    }
-    if (oldIndex < 0 || newIndex < 0 || oldIndex >= _queue.length || newIndex >= _queue.length) {
-      return;
-    }
-    MediaItem mediaItem = _queue[oldIndex].toMediaItem();
-    _audioHandler.removeQueueItemAt(oldIndex);
-    _audioHandler.insertQueueItem(newIndex, mediaItem);
-  }*/
-
-  /*Future<void> setInitialMessage() async {
-    Message _defaultMessage = await db.queryOne(56823);
-    MediaItem item = MediaItem(
-      album: 'Will Mac',
-      title: _defaultMessage?.title ?? 'default title',
-      id: _defaultMessage?.filepath ?? 'https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3',
-      extras: {
-        'messageId': 56823,
-      }
-    );
-    _audioHandler.updateQueue([item]);
-    _audioHandler.skipToQueueItem(0);
-  }*/
-
   void seekToSecond(double seconds) {
     int milliseconds = (seconds * 1000).round();
     _audioHandler.seekTo(position: Duration(milliseconds: milliseconds));
@@ -343,11 +312,6 @@ mixin PlayerModel on Model {
       return;
     }
     _audioHandler.fastForward();
-    /*if (_currentlyPlayingMessage.durationinseconds.toInt() - currentPosition.inSeconds > 15) {
-      seekToSecond(currentPosition.inSeconds.toDouble() + 15.0);
-    } else {
-      seekToSecond(_currentlyPlayingMessage.durationinseconds.toDouble());
-    }*/
   }
 
   void seekBackwardFifteenSeconds() {
@@ -355,11 +319,6 @@ mixin PlayerModel on Model {
       return;
     }
     _audioHandler.rewind();
-    /*if (currentPosition.inSeconds >= 15) {
-      seekToSecond(currentPosition.inSeconds.toDouble() - 15.0);
-    } else {
-      seekToSecond(0.0);
-    }*/
   }
 
   void skipPrevious() {
