@@ -2,7 +2,7 @@
 const int QUEUE_PLAYLIST_ID = 0;
 const int QUEUE_BACKLOG_SIZE = 5; // number of played messages to keep in the queue
 const double COLLAPSED_PLAYBAR_HEIGHT = 75.0;
-const double EXPANDED_PLAYBAR_TOP_PADDING = 120.0;
+const double EXPANDED_PLAYBAR_TOP_PADDING = 100.0;
 const int MESSAGE_SELECTION_LIMIT = 25;
 const int MESSAGE_LOADING_BATCH_SIZE = 50; // should be an even number
 const int ACTIVE_DOWNLOAD_QUEUE_SIZE = 5;

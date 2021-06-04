@@ -132,9 +132,9 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
 
   Widget _messageTitle(String title) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 22.0, horizontal: 20.0),
+      padding: EdgeInsets.symmetric(horizontal: 20.0),
       alignment: Alignment.center,
-      child: Text(title,
+      child: Text(title + 'a',
         textAlign: TextAlign.center,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,

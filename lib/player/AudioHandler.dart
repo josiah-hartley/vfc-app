@@ -165,6 +165,8 @@ class VFCAudioHandler extends BaseAudioHandler {
     playingStream = _player.playingStream;
     durationStream = _player.durationStream;
 
+    
+
     // Broadcast which item is currently playing
     _player.currentIndexStream.listen((index) {
       if (index != null && _queue.length > index) {
@@ -181,36 +183,7 @@ class VFCAudioHandler extends BaseAudioHandler {
       }
 
       playbackState.add(playbackState.valueWrapper.value.copyWith(
-        controls: [
-          MediaControl(
-            androidIcon: 'drawable/ic_action_seek_backward',
-            label: 'Seek Backward',
-            action: MediaAction.rewind,
-          ),
-          _player.playing
-            ? MediaControl(
-              androidIcon: 'drawable/ic_action_pause',
-              label: 'Pause',
-              action: MediaAction.pause,
-            )
-            : MediaControl(
-              androidIcon: 'drawable/ic_action_play',
-              label: 'Play',
-              action: MediaAction.play,
-            ),
-          //_player.playing ? MediaControl.pause : MediaControl.play,
-          MediaControl(
-            androidIcon: 'drawable/ic_action_seek_forward',
-            label: 'Seek Forward',
-            action: MediaAction.fastForward,
-          ),
-          MediaControl(
-            androidIcon: 'drawable/ic_action_skip_forward',
-            label: 'Skip to Next',
-            action: MediaAction.skipToNext,
-          ),
-          //MediaControl.skipToNext,
-        ],
+        controls: mediaControls(_player),
         androidCompactActionIndices: [0, 1, 2],
         systemActions: {
           MediaAction.seek,
@@ -231,4 +204,42 @@ class VFCAudioHandler extends BaseAudioHandler {
       ));
     });
   }
+}
+
+List<MediaControl> mediaControls(AudioPlayer player) {
+  List<MediaControl> _controls = [
+    MediaControl(
+      androidIcon: 'drawable/ic_action_seek_backward',
+      label: 'Seek Backward',
+      action: MediaAction.rewind,
+    ),
+    player.playing
+      ? MediaControl(
+        androidIcon: 'drawable/ic_action_pause',
+        label: 'Pause',
+        action: MediaAction.pause,
+      )
+      : MediaControl(
+        androidIcon: 'drawable/ic_action_play',
+        label: 'Play',
+        action: MediaAction.play,
+      ),
+    //_player.playing ? MediaControl.pause : MediaControl.play,
+    MediaControl(
+      androidIcon: 'drawable/ic_action_seek_forward',
+      label: 'Seek Forward',
+      action: MediaAction.fastForward,
+    ),
+    //MediaControl.skipToNext,
+  ];
+
+  if (player.hasNext) {
+    _controls.add(MediaControl(
+      androidIcon: 'drawable/ic_action_skip_forward',
+      label: 'Skip to Next',
+      action: MediaAction.skipToNext,
+    ));
+  }
+
+  return _controls;
 }
