@@ -52,23 +52,24 @@ class MultiSelectDisplay extends StatelessWidget {
               ),
               Container(
                 padding: EdgeInsets.only(top: 5.0, bottom: 6.0),
-                child: _listActionsButton(
-                  context: context,
-                  messages: selectedMessages.toList(),
-                  addAllToQueue: model.addMultipleMessagesToQueue,
-                  setMultiplePlayed: model.setMultiplePlayed,
-                  setMultipleFavorites: model.setMultipleFavorites,
-                  downloadAll: model.queueDownloads,
-                  deleteAllDownloads: model.deleteMessages,
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context, 
+                      builder: (context) => popupMenu(context, model),
+                      barrierColor: Colors.black.withOpacity(0.2),
+                    );
+                  },
+                  child: Container(
+                    color: Theme.of(context).primaryColor.withOpacity(0.01),
+                    child: Icon(CupertinoIcons.ellipsis_vertical,
+                      color: Theme.of(context).accentColor,
+                      size: 24.0,
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                  ),
                 ),
               ),
-              /*IconButton(
-                icon: Icon(CupertinoIcons.ellipsis_vertical, color: Theme.of(context).accentColor), 
-                onPressed: () {
-                  List<Message> msgList = selectedMessages.toList();
-                  selectedMessages.forEach((element) {print(element.title);});
-                },
-              )*/
             ],
           ),
         );
@@ -76,166 +77,191 @@ class MultiSelectDisplay extends StatelessWidget {
     );
   }
 
-  /*void downloadAll() {
+  Widget popupMenu(BuildContext context, MainModel model) {
+    const TOP_POSITION = 115.0;
+    const RIGHT_POSITION = 16.0;
 
-  }*/
+    return SizedBox.expand(
+      child: Stack(
+        children: [
+          GestureDetector(
+            onTap: Navigator.of(context).pop,
+            child: Container(color: Theme.of(context).backgroundColor.withOpacity(0.01)),
+          ),
+          Positioned(
+            top: TOP_POSITION,
+            right: RIGHT_POSITION,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).dialogBackgroundColor,
+                border: Border.all(
+                  color: Theme.of(context).accentColor.withOpacity(0.5),
+                  width: 1.0,
+                ),
+              ),
+              child: _popupMenuActions(
+                context: context,
+                messages: selectedMessages.toList(),
+                addAllToQueue: model.addMultipleMessagesToQueue,
+                setMultiplePlayed: model.setMultiplePlayed,
+                setMultipleFavorites: model.setMultipleFavorites,
+                downloadAll: model.queueDownloads,
+                deleteAllDownloads: model.deleteMessages,
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
 
-  Widget _listActionsButton({
-    BuildContext context,
-    List<Message> messages,
-    Function addAllToQueue,
-    Function setMultiplePlayed,
-    Function setMultipleFavorites,
-    Function downloadAll,
-    Function deleteAllDownloads}) {
+  Widget _popupMenuActions({
+  BuildContext context,
+  List<Message> messages,
+  Function addAllToQueue,
+  Function setMultiplePlayed,
+  Function setMultipleFavorites,
+  Function downloadAll,
+  Function deleteAllDownloads}) {
+
+    double height = MediaQuery.of(context).size.height * 2 / 3;
+    double width = MediaQuery.of(context).size.width * 2 / 3;
+
     bool active = false;
     if (messages != null && messages.length > 0) {
       active = true;
     }
 
-    List<PopupMenuItem<int>> _listChildren = [];
+    List<Widget> _listChildren = [];
     if (showDownloadOptions == true) {
-      _listChildren.add(_listAction(
+      _listChildren.add(_popupListAction(
         context: context,
-        value: 0,
+        onPressed: () {
+          downloadAll(selectedMessages.toList(), showPopup: true);
+        },
         active: active,
         icon: Icons.download_sharp,
         text: 'Download',
       ));
-      _listChildren.add(_listAction(
+      _listChildren.add(_popupListAction(
         context: context,
-        value: 1,
+        onPressed: () {
+          showDialog(
+            context: context, 
+            builder: (context) => ConfirmDeleteDialog(
+              onConfirm: () {
+                deleteAllDownloads(selectedMessages.toList());
+                onDeselectAll();
+              },
+            ),
+          );
+        },
         active: active,
         icon: CupertinoIcons.delete,
         text: 'Remove downloads',
       ));
     }
     if (showQueueOptions == true) {
-      _listChildren.add(_listAction(
+      _listChildren.add(_popupListAction(
         context: context,
-        value: 2,
+        onPressed: () {
+          List<Message> _downloadedMessages = messages.where((m) => m.isdownloaded == 1).toList();
+          if (_downloadedMessages.length > 0) {
+            String _m = _downloadedMessages.length > 1 ? 'messages' : 'message';
+            addAllToQueue(_downloadedMessages);
+            showToast('Added ${_downloadedMessages.length} $_m to queue');
+          } else {
+            showToast('None of the selected messages are downloaded');
+          }
+        },
         active: active,
         icon: CupertinoIcons.list_dash,
         text: 'Add to queue (only if downloaded)',
       ));
     }
     _listChildren.addAll([
-      _listAction(
+      _popupListAction(
         context: context,
-        value: 3,
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => AddToPlaylistDialog(
+              messageList: selectedMessages.toList(),
+            ),
+          );
+        },
         active: active,
         icon: Icons.playlist_add,
         text: 'Add to playlist',
       ),
-      _listAction(
+      _popupListAction(
         context: context,
-        value: 4,
+        onPressed: () async {
+          String _m = messages.length > 1 ? 'messages' : 'message';
+          await setMultipleFavorites(messages, 1);
+          showToast('Added ${messages.length} $_m to favorites');
+        },
         active: active,
         icon: CupertinoIcons.star_fill,
         text: 'Add to favorites',
       ),
-      _listAction(
+      _popupListAction(
         context: context,
-        value: 5,
+        onPressed: () async {
+          String _m = messages.length > 1 ? 'messages' : 'message';
+          await setMultipleFavorites(messages, 0);
+          showToast('Removed ${messages.length} $_m from favorites');
+        },
         active: active,
         icon: CupertinoIcons.star_slash,
         text: 'Remove from favorites',
       ),
-      _listAction(
+      _popupListAction(
         context: context,
-        value: 6,
+        onPressed: () async {
+          String _m = messages.length > 1 ? 'messages' : 'message';
+          await setMultiplePlayed(messages, 1);
+          showToast('Marked ${messages.length} $_m as played');
+        },
         active: active,
         icon: CupertinoIcons.check_mark_circled,
         text: 'Mark as played',
       ),
-      _listAction(
+      _popupListAction(
         context: context,
-        value: 7,
+        onPressed: () async {
+          String _m = messages.length > 1 ? 'messages' : 'message';
+          await setMultiplePlayed(messages, 0);
+          showToast('Marked ${messages.length} $_m as unplayed');
+        },
         active: active,
         icon: CupertinoIcons.circle,
         text: 'Mark as unplayed',
       ),
     ]);
 
-    return Material(
+    return Container(
       color: Theme.of(context).backgroundColor.withOpacity(0.01),
-      child: PopupMenuButton<int>(
-        //iconSize: 25.0,
-        icon: Icon(CupertinoIcons.ellipsis_vertical,
-          color: Theme.of(context).accentColor,
-          size: 24.0,
-        ),
-        color: Theme.of(context).primaryColor,
-        shape: Border.all(color: Theme.of(context).accentColor.withOpacity(0.4)),
-        //offset: Offset(0.0, 100.0),
-        elevation: 20.0,
-        itemBuilder: (context) {
-          return _listChildren;
-        },
-        onSelected: (value) async {
-          switch (value) {
-            case 0:
-              downloadAll(selectedMessages.toList(), showPopup: true);
-              break;
-            case 1:
-              showDialog(
-                context: context, 
-                builder: (context) => ConfirmDeleteDialog(
-                  onConfirm: () {
-                    deleteAllDownloads(selectedMessages.toList());
-                    onDeselectAll();
-                  },
-                ),
-              );
-              break;
-            case 2:
-              List<Message> _downloadedMessages = messages.where((m) => m.isdownloaded == 1).toList();
-              if (_downloadedMessages.length > 0) {
-                String _m = _downloadedMessages.length > 1 ? 'messages' : 'message';
-                addAllToQueue(_downloadedMessages);
-                showToast('Added ${_downloadedMessages.length} $_m to queue');
-              } else {
-                showToast('None of the selected messages are downloaded');
-              }
-              break;
-            case 3:
-              showDialog(
-                context: context,
-                builder: (context) => AddToPlaylistDialog(
-                  messageList: selectedMessages.toList(),
-                ),
-              );
-              break;
-            case 4:
-              String _m = messages.length > 1 ? 'messages' : 'message';
-              await setMultipleFavorites(messages, 1);
-              showToast('Added ${messages.length} $_m to favorites');
-              break;
-            case 5:
-              String _m = messages.length > 1 ? 'messages' : 'message';
-              await setMultipleFavorites(messages, 0);
-              showToast('Removed ${messages.length} $_m from favorites');
-              break;
-            case 6:
-              String _m = messages.length > 1 ? 'messages' : 'message';
-              await setMultiplePlayed(messages, 1);
-              showToast('Marked ${messages.length} $_m as played');
-              break;
-            case 7:
-              String _m = messages.length > 1 ? 'messages' : 'message';
-              await setMultiplePlayed(messages, 0);
-              showToast('Marked ${messages.length} $_m as unplayed');
-              break;
-          }
-        },
+      constraints: BoxConstraints(
+        maxHeight: height,
+        maxWidth: width,
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+      child: ListView(
+        shrinkWrap: true,
+        children: _listChildren,
       ),
     );
   }
 
-  PopupMenuItem<int> _listAction({BuildContext context, bool active, int value, IconData icon, String text}) {
-    return PopupMenuItem<int>(
-      value: value,
-      enabled: active,
+  Widget _popupListAction({BuildContext context, bool active, Function onPressed, IconData icon, String text}) {
+    return GestureDetector(
+      onTap: active 
+        ? () { 
+          onPressed();
+          Navigator.of(context).pop();
+        }
+        : null,
       child: Container(
         child: Row(
           children: [
