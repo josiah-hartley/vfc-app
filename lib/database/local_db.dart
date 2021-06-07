@@ -187,6 +187,11 @@ class MessageDB {
     );
   }
 
+  Future<List<Message>> queryAllPlayedDownloads() async {
+    Database db = await instance.database;
+    return await downloadsMethods.queryAllPlayedDownloads(db: db);
+  }
+
   Future<List<Message>> getDownloadQueueFromDB() async {
     Database db = await instance.database;
     return await downloadsMethods.getDownloadQueueFromDB(db);

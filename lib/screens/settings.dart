@@ -2,9 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
-import 'package:voices_for_christ/widgets/dialogs/check_database_updates_dialog.dart';
-import 'package:voices_for_christ/widgets/dialogs/error_reporting_dialog.dart';
-import 'package:voices_for_christ/widgets/dialogs/history_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/settings/check_database_updates_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/settings/delete_played_downloads_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/settings/error_reporting_dialog.dart';
+import 'package:voices_for_christ/widgets/dialogs/settings/history_dialog.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 
 class SettingsPage extends StatelessWidget {
@@ -51,6 +52,7 @@ class SettingsPage extends StatelessWidget {
                   _storageUsage(
                     context: context, 
                     bytes: model.downloadedBytes,
+                    deleteMessages: model.deleteMessages,
                   ),
                   _viewHistory(
                     context: context,
@@ -147,40 +149,48 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _storageUsage({BuildContext context, int bytes}) {
+  Widget _storageUsage({BuildContext context, int bytes, Function deleteMessages}) {
     double mb = bytes / 1000000;
     double gb = mb / 1000;
     // round megabytes to 1 decimal place
     mb = (mb * 10).round() / 10;
     // round gigabytes to 2 decimal places
     gb = (gb * 100).round() / 100;
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 12.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Storage used',
-                  style: Theme.of(context).primaryTextTheme.headline2,
-                ),
-                Container(
-                  padding: EdgeInsets.only(top: 5.0, right: 25.0),
-                  child: Text('You can remove downloaded messages to free up space',
-                    style: Theme.of(context).primaryTextTheme.headline4,
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => DeletePlayedDownloadsDialog(deleteMessages: deleteMessages),
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 12.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Storage used',
+                    style: Theme.of(context).primaryTextTheme.headline2,
                   ),
-                ),
-              ],
+                  Container(
+                    padding: EdgeInsets.only(top: 5.0, right: 25.0),
+                    child: Text('You can remove downloaded messages to free up space',
+                      style: Theme.of(context).primaryTextTheme.headline4,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-            child: Text(mb > 500 ? '$gb GB' : '$mb MB',
-              style: Theme.of(context).primaryTextTheme.headline2,
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+              child: Text(mb > 500 ? '$gb GB' : '$mb MB',
+                style: Theme.of(context).primaryTextTheme.headline2,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

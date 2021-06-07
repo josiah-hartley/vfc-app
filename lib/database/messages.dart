@@ -59,7 +59,7 @@ Future<List<Message>> queryRecentlyPlayedMessages({Database db, int start, int e
     }
     return [];
   } catch(error) {
-    print('Error querying recently playedmessages: $error');
+    print('Error querying recently played messages: $error');
     return [];
   }
 }

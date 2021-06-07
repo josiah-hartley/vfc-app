@@ -40,6 +40,22 @@ Future<List<Message>> queryDownloads({Database db, int start, int end, String or
   }
 }
 
+Future<List<Message>> queryAllPlayedDownloads({Database db}) async {
+  try {
+    List<Map<String,dynamic>> msgList = await db.query(messageTable, 
+      where: 'isdownloaded = 1 AND isplayed = 1',
+    );
+  
+    if (msgList != null && msgList.length > 0) {
+      return msgList.map((m) => Message.fromMap(m)).toList();
+    }
+    return [];
+  } catch(error) {
+    print('Error querying all played messages: $error');
+    return [];
+  }
+}
+
 Future<List<Message>> getDownloadQueueFromDB(Database db) async {
   try {
     var result = await db.rawQuery('''
