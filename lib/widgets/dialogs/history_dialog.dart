@@ -29,9 +29,11 @@ class _HistoryDialogState extends State<HistoryDialog> {
 
   void loadTotalListeningTime() async {
     int time = await db.getTotalTimeListened();
-    setState(() {
-      _totalMinutesListened = time;
-    });
+    if (time != null) {
+      setState(() {
+        _totalMinutesListened = time;
+      });
+    }
   }
 
   void loadRecentMessages() async {
