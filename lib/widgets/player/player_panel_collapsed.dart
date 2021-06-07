@@ -25,7 +25,7 @@ class _PlayerPanelCollapsedState extends State<PlayerPanelCollapsed> {
           return SizedBox(height: 0.0);
         }
 
-        return Container(
+        /*return Container(
           decoration: BoxDecoration(
             border: Border(
               top: BorderSide(color: Theme.of(context).backgroundColor.withOpacity(0.5), width: 1.0),
@@ -58,8 +58,8 @@ class _PlayerPanelCollapsedState extends State<PlayerPanelCollapsed> {
               ),
             ],
           ),
-        );
-        /*return Dismissible(
+        );*/
+        return Dismissible(
           key: Key('playbar'),
           onDismissed: (DismissDirection direction) { model.disposePlayer(); },
           child: Container(
@@ -96,7 +96,7 @@ class _PlayerPanelCollapsedState extends State<PlayerPanelCollapsed> {
               ],
             ),
           ),
-        );*/
+        );
       }
     );
   }

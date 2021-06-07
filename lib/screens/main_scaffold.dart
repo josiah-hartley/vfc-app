@@ -112,7 +112,7 @@ class _MainScaffoldState extends State<MainScaffold> {
             controller: _playerPanelController,
             minHeight: (model.currentlyPlayingMessage == null || !model.playerVisible) ? 0.0 : Constants.COLLAPSED_PLAYBAR_HEIGHT,
             maxHeight: (model.currentlyPlayingMessage == null || !model.playerVisible) ? 0.0 : MediaQuery.of(context).size.height - kBottomNavigationBarHeight - Constants.EXPANDED_PLAYBAR_TOP_PADDING,
-            backdropEnabled: true,
+            backdropEnabled: false,
             backdropTapClosesPanel: false,
             collapsed: PlayerPanelCollapsed(panelOpen: _playerPanelOpen, togglePanel: _togglePlayerPanel),
             panel: PlayerPanelExpanded(panelOpen: _playerPanelOpen, togglePanel: _togglePlayerPanel),

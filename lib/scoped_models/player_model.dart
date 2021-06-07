@@ -77,7 +77,7 @@ mixin PlayerModel on Model {
 
       if (_currentlyPlayingMessage != null && (position.inSeconds.toDouble() - _currentlyPlayingMessage.lastplayedposition).abs() > 15) {
         _currentlyPlayingMessage.lastplayedposition = position.inSeconds.toDouble();
-        if ((_currentlyPlayingMessage.durationinseconds - position.inSeconds.toDouble()).abs() < 30) {
+        if ((_currentlyPlayingMessage.durationinseconds - position.inSeconds.toDouble()).abs() < 60) {
           _currentlyPlayingMessage.isplayed = 1;
         }
         await db.update(_currentlyPlayingMessage);
@@ -93,8 +93,10 @@ mixin PlayerModel on Model {
 
     _audioHandler.playbackState.listen((playbackState) async {
       _playbackSpeed = playbackState.speed;
+      print('PLAYBACK STATE CHANGING: $playbackState');
       bool queueFinished = playbackState?.processingState == AudioProcessingState.completed;
       if (queueFinished) {
+        print('DISPOSING: _queueIndex is $_queueIndex and _queue is $_queue');
         disposePlayer();
       }
       notifyListeners();
@@ -261,6 +263,7 @@ mixin PlayerModel on Model {
   }
 
   void addMultipleMessagesToQueue(List<Message> messages) async {
+    print('adding messages to queue: _queueIndex is $_queueIndex and _queue is $_queue');
     Logger.logEvent(event: 'Adding $messages to queue');
     List<Message> playedQueue = [];
     List<Message> currentAndFutureQueue = [];
@@ -341,9 +344,15 @@ mixin PlayerModel on Model {
     setSpeed(speed);
   }
 
-  void disposePlayer() {
+  void disposePlayer() async {
     _audioHandler.stop();
     _playerVisible = false;
+    _queue = [];
+    _queueIndex = null;
     notifyListeners();
+    Logger.logEvent(event: 'Disposing of player; updating queue in database: $_queue');
+    await db.reorderAllMessagesInPlaylist(Playlist(Constants.QUEUE_PLAYLIST_ID, 0, 'Queue', []), _queue);
+    _prefs = await SharedPreferences.getInstance();
+    _prefs.remove('mostRecentMessageId');
   }
 }

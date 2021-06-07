@@ -23,6 +23,7 @@ class MessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onLongPress: onSelect,
       onTap: () {
         showDialog(
           context: context, 

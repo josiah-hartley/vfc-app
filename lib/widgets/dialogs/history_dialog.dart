@@ -23,7 +23,15 @@ class _HistoryDialogState extends State<HistoryDialog> {
   @override
   void initState() { 
     super.initState();
+    loadTotalListeningTime();
     loadRecentMessages();
+  }
+
+  void loadTotalListeningTime() async {
+    int time = await db.getTotalTimeListened();
+    setState(() {
+      _totalMinutesListened = time;
+    });
   }
 
   void loadRecentMessages() async {
@@ -36,12 +44,9 @@ class _HistoryDialogState extends State<HistoryDialog> {
       _reachedEndOfRecentMessages = true;
     }
 
-    int time = await db.getTotalTimeListened();
-
     setState(() {
       _recentMessageLoadedCount += result.length;
-      _recentMessages = result;
-      _totalMinutesListened = time;
+      _recentMessages.addAll(result);
     });
   }
 

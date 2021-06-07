@@ -123,8 +123,10 @@ mixin DownloadsModel on Model {
 
   void removeMessageFromDownloadedList(Message message) {
     _downloads.removeWhere((m) => m.id == message.id);
+    _totalDownloadsCount -= 1;
     if (message.isplayed == 1) {
       _playedDownloads.removeWhere((m) => m.id == message.id);
+      _playedDownloadsCount -= 1;
     } else {
       _unplayedDownloads.removeWhere((m) => m.id == message.id);
     }
@@ -143,12 +145,14 @@ mixin DownloadsModel on Model {
           _playedDownloads[indexInPlayedDownloads] = message;
         } else {
           _playedDownloads.removeAt(indexInPlayedDownloads);
+          _playedDownloadsCount -= 1;
           _unplayedDownloads.add(message);
         }
       } else if (indexInUnplayedDownloads > -1) {
         if (shouldBePlayed) {
           _unplayedDownloads.removeAt(indexInUnplayedDownloads);
           _playedDownloads.add(message);
+          _playedDownloadsCount += 1;
         } else {
           _unplayedDownloads[indexInUnplayedDownloads] = message;
         }
@@ -382,7 +386,7 @@ mixin DownloadsModel on Model {
       add: true,
     );
     Logger.logEvent(event: 'Finished downloading ${task.message.title}');
-    showToast('Finished downloading ${task.message.title}');
+    //showToast('Finished downloading ${task.message.title}');
     addMessageToDownloadedList(task.message);
     _currentlyDownloading.removeWhere((t) => t.message.id == task.message.id);
     await db.removeMessagesFromDownloadQueueDB([task.message]);

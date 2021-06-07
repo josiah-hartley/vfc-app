@@ -118,15 +118,16 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
   }
 
   Widget _closeButton() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-      child: IconButton(
-        icon: Icon(CupertinoIcons.chevron_down,
+    return TextButton(
+      onPressed: widget.togglePanel,
+      child: Container(
+        color: Theme.of(context).bottomAppBarColor.withOpacity(0.01),
+        padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 14.0),
+        child: Icon(CupertinoIcons.chevron_down,
           color: Colors.white,
           size: 28.0,
         ),
-        onPressed: widget.togglePanel,
-      )
+      ),
     );
   }
 
@@ -134,7 +135,7 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20.0),
       alignment: Alignment.center,
-      child: Text(title + 'a',
+      child: Text(title,
         textAlign: TextAlign.center,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,

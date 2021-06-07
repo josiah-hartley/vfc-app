@@ -71,9 +71,6 @@ class _SearchWindowState extends State<SearchWindow> {
   }
 
   void _onSearch(BuildContext context) async {
-    setState(() {
-      _hasSearched = true;
-    });
     await _initializeNewSearch(context);
   }
 
@@ -125,6 +122,9 @@ class _SearchWindowState extends State<SearchWindow> {
         _reachedEndOfList = true;
       }
       _currentlyLoadedMessageCount += result.length;
+      setState(() {
+        _hasSearched = true;
+      });
       Logger.logEvent(event: 'Searching for ${_searchController.text}; total number of results is $_fullSearchResultCount; currently loaded results: $_currentlyLoadedMessageCount; reached end of list is $_reachedEndOfList');
     }
     setState(() {
