@@ -23,7 +23,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   final _navigatorKey = GlobalKey<NavigatorState>();
-  List<String> _routeNames = ['Home', 'Favorites', 'Playlists', 'Downloads'];
+  List<String> _routeNames = ['Home', 'Downloads', 'Playlists', 'Favorites'];
   List<int> _pageRoutes = [0];
   String _currentRouteName = 'Home';
   bool _searchWindowOpen = false;
@@ -201,16 +201,16 @@ class _MainScaffoldState extends State<MainScaffold> {
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(CupertinoIcons.star_fill, size: 20.0),
-          label: 'Favorites',
+          icon: Icon(Icons.download_sharp, size: 28.0),
+          label: 'Downloads',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.playlist_play, size: 30.0),
           label: 'Playlists',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.download_sharp, size: 28.0),
-          label: 'Downloads',
+          icon: Icon(CupertinoIcons.star_fill, size: 20.0),
+          label: 'Favorites',
         ),
       ],
       currentIndex: _pageRoutes.last < 4 ? _pageRoutes.last : 0,
@@ -220,13 +220,13 @@ class _MainScaffoldState extends State<MainScaffold> {
             _navigatorKey.currentState?.pushNamed('/');
             break;
           case 1:
-            _navigatorKey.currentState?.pushNamed('/favorites');
+            _navigatorKey.currentState?.pushNamed('/downloads');
             break;
           case 2:
             _navigatorKey.currentState?.pushNamed('/playlists');
             break;
           case 3:
-            _navigatorKey.currentState?.pushNamed('/downloads');
+            _navigatorKey.currentState?.pushNamed('/favorites');
             break;
           default:
             _navigatorKey.currentState?.pushNamed('/');
