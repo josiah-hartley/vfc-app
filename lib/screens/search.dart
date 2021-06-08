@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/helpers/minimize_keyboard.dart';
+import 'package:voices_for_christ/widgets/buttons/action_button.dart';
 import 'package:voices_for_christ/widgets/search/search_input.dart';
 import 'package:voices_for_christ/widgets/search/search_results.dart';
 import 'package:voices_for_christ/helpers/logger.dart' as Logger;
@@ -92,6 +94,7 @@ class _SearchWindowState extends State<SearchWindow> {
       });
 
       await _search();
+      showMultiSelectTip(context);
     } catch(e) {
       print(e);
     }
@@ -130,5 +133,43 @@ class _SearchWindowState extends State<SearchWindow> {
     setState(() {
       _searchResults.addAll(result);
     });
+  }
+
+  void showMultiSelectTip(BuildContext context) async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+    bool alreadyShownTip = _prefs.getBool('shownMultiSelectTip') ?? false;
+    if (!alreadyShownTip) {
+      _prefs.setBool('shownMultiSelectTip', true);
+      showDialog(
+        context: context,
+        builder: (context) => SimpleDialog(
+          title: Text('Tip',
+            style: TextStyle(color: Theme.of(context).accentColor),
+          ),
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Text('Tap on a message listing to see more actions.',
+                style: TextStyle(fontSize: 16.0, color: Theme.of(context).accentColor),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Text('You can select multiple messages by long pressing the message listings or by tapping the circles with the speakers\' initials.',
+                style: TextStyle(fontSize: 16.0, color: Theme.of(context).accentColor),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              alignment: Alignment.centerRight,
+              child: ActionButton(
+                text: 'Got it',
+                onPressed: () { Navigator.of(context).pop(); },
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }

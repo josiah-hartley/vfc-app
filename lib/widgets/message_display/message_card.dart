@@ -36,7 +36,9 @@ class MessageCard extends StatelessWidget {
         );
       },
       child: Container(
-        color: Theme.of(context).backgroundColor.withOpacity(0.01),
+        color: selected 
+          ? Theme.of(context).accentColor.withOpacity(0.1)
+          : Theme.of(context).backgroundColor.withOpacity(0.01),
         padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 6.0),
         child: Column(
           children: [
