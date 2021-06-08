@@ -156,6 +156,7 @@ class MultiSelectDisplay extends StatelessWidget {
             ),
           );
         },
+        popNavigator: false,
         active: active,
         icon: CupertinoIcons.delete,
         text: 'Remove downloads',
@@ -190,6 +191,7 @@ class MultiSelectDisplay extends StatelessWidget {
             ),
           );
         },
+        popNavigator: false,
         active: active,
         icon: Icons.playlist_add,
         text: 'Add to playlist',
@@ -246,7 +248,7 @@ class MultiSelectDisplay extends StatelessWidget {
         maxHeight: height,
         maxWidth: width,
       ),
-      padding: EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+      padding: EdgeInsets.symmetric(vertical: 5.0),
       child: ListView(
         shrinkWrap: true,
         children: _listChildren,
@@ -254,15 +256,19 @@ class MultiSelectDisplay extends StatelessWidget {
     );
   }
 
-  Widget _popupListAction({BuildContext context, bool active, Function onPressed, IconData icon, String text}) {
+  Widget _popupListAction({BuildContext context, bool active, Function onPressed, IconData icon, String text, bool popNavigator = true}) {
     return GestureDetector(
       onTap: active 
         ? () { 
           onPressed();
-          Navigator.of(context).pop();
+          if (popNavigator) {
+            Navigator.of(context).pop();
+          }
         }
         : null,
       child: Container(
+        color: Theme.of(context).backgroundColor.withOpacity(0.01),
+        padding: EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
         child: Row(
           children: [
             Container(
@@ -273,7 +279,7 @@ class MultiSelectDisplay extends StatelessWidget {
             ),
             Container(
               width: MediaQuery.of(context).size.width / 2,
-              padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 14.0),
+              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 14.0),
               child: Text(text,
                 style: TextStyle(
                   color: active ? Theme.of(context).accentColor : Theme.of(context).accentColor.withOpacity(0.6),
