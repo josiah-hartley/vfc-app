@@ -19,7 +19,6 @@ mixin PlayerModel on Model {
   List<Message> _queue;
   int _queueIndex;
   Message _currentlyPlayingMessage;
-  Playlist _currentlyPlayingPlaylist;
   Duration _currentPosition;
   Duration _duration = Duration(seconds: 0);
   double _playbackSpeed = 1.0;
@@ -28,7 +27,6 @@ mixin PlayerModel on Model {
   List<Message> get queue => _queue;
   int get queueIndex => _queueIndex;
   Message get currentlyPlayingMessage => _currentlyPlayingMessage;
-  Playlist get currentlyPlayingPlaylist => _currentlyPlayingPlaylist;
   Stream<Duration> get currentPositionStream => AudioService.getPositionStream();
   Duration get currentPosition => _currentPosition;
   Duration get duration => _duration;
@@ -93,10 +91,8 @@ mixin PlayerModel on Model {
 
     _audioHandler.playbackState.listen((playbackState) async {
       _playbackSpeed = playbackState.speed;
-      print('PLAYBACK STATE CHANGING: $playbackState');
       bool queueFinished = playbackState?.processingState == AudioProcessingState.completed;
       if (queueFinished) {
-        print('DISPOSING: _queueIndex is $_queueIndex and _queue is $_queue');
         disposePlayer();
       }
       notifyListeners();
@@ -148,6 +144,12 @@ mixin PlayerModel on Model {
     // reload message in case anything has changed
     Message result = await db.queryOne(message.id);
     double _seconds = result?.lastplayedposition ?? 0.0;
+    if (result?.lastplayedposition != null 
+        && result?.durationinseconds != null 
+        && (result.lastplayedposition - result.durationinseconds).abs() < 30) {
+        // if the message finished playing, start it from the beginning
+      _seconds = 0.0;
+    }
     int _milliseconds = (_seconds * 1000).round();
     position ??= Duration(milliseconds: _milliseconds);
     
@@ -263,7 +265,6 @@ mixin PlayerModel on Model {
   }
 
   void addMultipleMessagesToQueue(List<Message> messages) async {
-    print('adding messages to queue: _queueIndex is $_queueIndex and _queue is $_queue');
     Logger.logEvent(event: 'Adding $messages to queue');
     List<Message> playedQueue = [];
     List<Message> currentAndFutureQueue = [];

@@ -50,6 +50,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
   List<Widget> _children(MainModel model) {
     bool _isDownloaded = widget.message?.isdownloaded == 1 && widget.message?.filepath != '';
     int _indexInQueue = model.queue.indexWhere((m) => m.id == widget.message?.id);
+    
     return [
       _title(),
       //_progress(model),

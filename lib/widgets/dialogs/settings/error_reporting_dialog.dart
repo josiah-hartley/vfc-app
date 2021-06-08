@@ -73,6 +73,7 @@ class _ErrorReportingDialogState extends State<ErrorReportingDialog> {
       'email': _email,
       'error': _errorDescription,
       'device': deviceInfo,
+      'appVersion': Constants.APP_VERSION,
       'logs': jsonEncode(logs)
     };
     Dio().post(Constants.CLOUD_ERROR_REPORT_URL, data: json);

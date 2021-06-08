@@ -41,7 +41,6 @@ class _DeletePlayedDownloadsDialogState extends State<DeletePlayedDownloadsDialo
                       _deleting = true;
                     });
                     List<Message> _playedMessages = await db.queryAllPlayedDownloads();
-                    print('TO BE DELETED: $_playedMessages');
                     widget.deleteMessages(_playedMessages);
                     setState(() {
                       _deleting = false;
