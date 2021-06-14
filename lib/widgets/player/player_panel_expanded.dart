@@ -134,7 +134,7 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
   Widget _messageTitle(String title) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20.0),
-      alignment: Alignment.center,
+      alignment: Alignment.bottomCenter,
       child: Text(title,
         textAlign: TextAlign.center,
         maxLines: 2,
@@ -147,7 +147,7 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
   Widget _speakerName(String speaker) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
-      alignment: Alignment.center,
+      alignment: Alignment.topCenter,
       child: Text(speakerReversedName(speaker),
         textAlign: TextAlign.center,
         maxLines: 2,
@@ -166,6 +166,8 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
           position: position,
           duration: duration,
           updatePosition: updatePosition,
+          verticalPadding: MediaQuery.of(context).size.height > 700 ? 10.0 : 0.0,
+          horizontalPadding: MediaQuery.of(context).size.width > 500 ? MediaQuery.of(context).size.width / 12 : 0.0,
         );
       }
     );
@@ -181,27 +183,35 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
     bool hasNext,
     Function onSkipPrevious,
     Function onSkipNext}) {
+      List<Widget> _children = [
+        _skipPrevious(
+          hasPrevious: hasPrevious,
+          onSkipPrevious: onSkipPrevious,
+        ),
+        _seekBackward(onSeekBackward),
+        _playOrPause(
+          playingStream: playingStream,
+          onPlay: onPlay,
+          onPause: onPause,
+        ),
+        _seekForward(onSeekForward),
+        _skipNext(
+          hasNext: hasNext,
+          onSkipNext: onSkipNext,
+        ),
+      ];
+
+      if (MediaQuery.of(context).size.width > 500) {
+        _children.insert(0, Expanded(child: Container()));
+        _children.add(Expanded(child: Container()));
+      }
+
       return Container(
+        alignment: Alignment.bottomCenter,
         padding: EdgeInsets.only(bottom: 25.0, left: 15.0, right: 15.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _skipPrevious(
-              hasPrevious: hasPrevious,
-              onSkipPrevious: onSkipPrevious,
-            ),
-            _seekBackward(onSeekBackward),
-            _playOrPause(
-              playingStream: playingStream,
-              onPlay: onPlay,
-              onPause: onPause,
-            ),
-            _seekForward(onSeekForward),
-            _skipNext(
-              hasNext: hasNext,
-              onSkipNext: onSkipNext,
-            ),
-          ],
+          children: _children,
         ),
       );
   }
@@ -309,7 +319,8 @@ class _PlayerPanelExpandedState extends State<PlayerPanelExpanded> {
 
   Widget _extraActions(MainModel model) {
     return Container(
-      padding: EdgeInsets.only(top: 15.0, bottom: 40.0),
+      alignment: Alignment.topCenter,
+      padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,

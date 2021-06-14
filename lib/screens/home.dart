@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
@@ -7,6 +8,7 @@ import 'package:voices_for_christ/helpers/duration_in_minutes.dart';
 import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/dialogs/message_actions_dialog.dart';
+import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 
 class HomePage extends StatelessWidget {
   const HomePage({Key key}) : super(key: key);
@@ -142,7 +144,7 @@ class HomePage extends StatelessWidget {
               ),
             ),
             padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-            width: MediaQuery.of(context).size.width * 0.7,
+            width: min(MediaQuery.of(context).size.width * 0.7, Constants.MAX_RECOMMENDATION_WIDTH),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -195,7 +197,7 @@ class HomePage extends StatelessWidget {
               ),
             ),
             padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-            width: MediaQuery.of(context).size.width * 0.7,
+            width: min(MediaQuery.of(context).size.width * 0.7, Constants.MAX_RECOMMENDATION_WIDTH),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

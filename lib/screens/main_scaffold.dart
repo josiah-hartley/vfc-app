@@ -107,11 +107,15 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget _mainPageSlidingPanelWrapper(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
       builder: (context, child, model) {
+        double maxHeight = (model.currentlyPlayingMessage == null || !model.playerVisible) ? 0.0 : MediaQuery.of(context).size.height - kBottomNavigationBarHeight - Constants.EXPANDED_PLAYBAR_TOP_PADDING;
+        if (maxHeight > Constants.MAX_EXPANDED_PLAYBAR_HEIGHT) {
+          maxHeight = Constants.MAX_EXPANDED_PLAYBAR_HEIGHT;
+        }
         return Container(
           child: SlidingUpPanel(
             controller: _playerPanelController,
             minHeight: (model.currentlyPlayingMessage == null || !model.playerVisible) ? 0.0 : Constants.COLLAPSED_PLAYBAR_HEIGHT,
-            maxHeight: (model.currentlyPlayingMessage == null || !model.playerVisible) ? 0.0 : MediaQuery.of(context).size.height - kBottomNavigationBarHeight - Constants.EXPANDED_PLAYBAR_TOP_PADDING,
+            maxHeight: maxHeight,
             backdropEnabled: false,
             backdropTapClosesPanel: false,
             collapsed: PlayerPanelCollapsed(panelOpen: _playerPanelOpen, togglePanel: _togglePlayerPanel),

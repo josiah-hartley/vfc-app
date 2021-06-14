@@ -189,8 +189,8 @@ Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color
                   maxLines: 2,
                   overflow: truncateTitle ? TextOverflow.ellipsis : TextOverflow.visible,
                   style: TextStyle(
-                    fontSize: 17.0,
-                    fontWeight: message.isdownloaded == 1 ? FontWeight.w800 : FontWeight.w400,
+                    fontSize: 16.0,
+                    fontWeight: message.isdownloaded == 1 ? FontWeight.w700 : FontWeight.w400,
                     color: message.isdownloaded == 1 ? textColor : textColor.withOpacity(0.9),
                     //fontWeight: FontWeight.bold,
                   ),

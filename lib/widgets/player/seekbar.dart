@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:voices_for_christ/helpers/duration_in_minutes.dart';
 
 class SeekBar extends StatefulWidget {
-  SeekBar({Key key, this.position, this.duration, this.updatePosition}) : super(key: key);
+  SeekBar({Key key, this.position, this.duration, this.updatePosition, this.verticalPadding = 10.0, this.horizontalPadding = 0.0}) : super(key: key);
   final Duration position;
   final Duration duration;
   final Function updatePosition;
+  final double verticalPadding;
+  final double horizontalPadding;
 
   @override
   _SeekBarState createState() => _SeekBarState();
@@ -27,7 +29,7 @@ class _SeekBarState extends State<SeekBar> {
 
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 0.0),
+        padding: EdgeInsets.symmetric(vertical: widget.verticalPadding, horizontal: widget.horizontalPadding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
