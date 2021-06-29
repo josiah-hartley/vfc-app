@@ -154,7 +154,7 @@ class _QueueDialogState extends State<QueueDialog> {
 
     if (_reordering) {
       _titleChildren.add(Container(
-        padding: EdgeInsets.only(top: 40.0),
+        padding: EdgeInsets.only(top: 37.0),
         child: ActionButton(
           onPressed: () async {
             onSaveChanges();
@@ -165,7 +165,7 @@ class _QueueDialogState extends State<QueueDialog> {
       ));
 
       _titleChildren.add(Container(
-        padding: EdgeInsets.only(top: 40.0),
+        padding: EdgeInsets.only(top: 37.0),
         child: ActionButton(
           onPressed: () async {
             _closeReorderingList();
