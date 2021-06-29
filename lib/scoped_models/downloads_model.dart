@@ -69,7 +69,7 @@ mixin DownloadsModel on Model {
     _totalDownloadsCount = count[0];
     _playedDownloadsCount = count[1];
 
-    List<Message> result = await db.queryDownloads(
+    /*List<Message> result = await db.queryDownloads(
       start: _currentlyLoadedDownloadsCount,
       end: _currentlyLoadedDownloadsCount + _downloadsLoadingBatchSize,
       orderBy: 'downloadedat',
@@ -78,7 +78,12 @@ mixin DownloadsModel on Model {
 
     if (result.length < _downloadsLoadingBatchSize) {
       _reachedEndOfDownloadsList = true;
-    }
+    }*/
+    List<Message> result = await db.queryDownloads(
+      orderBy: 'downloadedat',
+      ascending: false,
+    );
+    _reachedEndOfDownloadsList = true;
     _currentlyLoadedDownloadsCount += result.length;
 
     //_downloads = result;

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
+import 'package:voices_for_christ/helpers/filter_message_list.dart';
 import 'package:voices_for_christ/helpers/pause_reason.dart';
 import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/widgets/message_display/message_card.dart';
@@ -19,6 +20,8 @@ class DownloadsPage extends StatefulWidget {
 class _DownloadsPageState extends State<DownloadsPage> {
   String _filter = 'All';
   LinkedHashSet<Message> _selectedMessages = LinkedHashSet();
+  String _searchTerm = '';
+  bool _searchOpen = false;
 
   void _toggleMessageSelection(Message message) {
     setState(() {
@@ -38,6 +41,13 @@ class _DownloadsPageState extends State<DownloadsPage> {
     });
   }
 
+  void _toggleSearch() {
+    setState(() {
+      _searchTerm = '';
+      _searchOpen = !_searchOpen;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
@@ -52,7 +62,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                   onDeselectAll: _deselectAll,
                 )
                 : _filterButtonsRow(model.sortDownloads),
-              _messageCount(
+              _messageCountAndSearch(
                 context: context,
                 total: model.totalDownloadsCount,
                 played: model.playedDownloadsCount,
@@ -81,6 +91,10 @@ class _DownloadsPageState extends State<DownloadsPage> {
                   onPressed: () {
                     setState(() {
                       _filter = _categories[index];
+                      if (_filter == 'Queue') {
+                        _searchTerm = '';
+                        _searchOpen = false;
+                      }
                     });
                   }
                 );
@@ -228,7 +242,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
     );
   }
 
-  Widget _messageCount({BuildContext context, int total, int played}) {
+  Widget _messageCountAndSearch({BuildContext context, int total, int played}) {
     String countDisplay = '';
     switch(_filter) {
       case 'All':
@@ -259,16 +273,87 @@ class _DownloadsPageState extends State<DownloadsPage> {
         countDisplay = '';
         break;
     }
-    if (countDisplay == '') {
-      return Container();
-    }
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 5.0),
+    
+    Widget _countMessage = countDisplay == ''
+      ? SizedBox(height: 48.0)
+      : Container(
+      padding: EdgeInsets.only(top: 16.0, bottom: 15.0),
+      alignment: Alignment.center,
       child: Text(countDisplay,
         style: Theme.of(context).primaryTextTheme.headline2.copyWith(
           fontSize: 14.0, 
           color: Theme.of(context).accentColor.withOpacity(0.8),
         ),
+      ),
+    );
+
+    Widget _searchBox = Container(
+      child: TextField(
+        onChanged: (String filterString) {
+          setState(() {
+            _searchTerm = filterString;
+          });
+        },
+        autofocus: true,
+        textInputAction: TextInputAction.done,
+        cursorColor: Theme.of(context).accentColor,
+        cursorWidth: 2.0,
+        style: TextStyle(
+          color: Theme.of(context).accentColor,
+          fontSize: 24.0,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Filter by topic or speaker',
+          hintStyle: TextStyle(
+            color: Theme.of(context).accentColor.withOpacity(0.6),
+            fontSize: 18.0,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: EdgeInsets.only(left: 12.0, right: 12.0),
+        ),
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            Theme.of(context).accentColor.withOpacity(0.1),
+            Theme.of(context).accentColor.withOpacity(0.2),
+          ]
+        ),
+      ),
+    );
+
+    if (_filter == 'Queue') {
+      return Container();
+    }
+
+    return Container(
+      padding: EdgeInsets.only(bottom: 5.0),
+      child: Row(
+        children: [
+          SizedBox(width: 38.0),
+          Expanded(
+            child: Container(
+              alignment: Alignment.center,
+              child: _searchOpen ? _searchBox : _countMessage,
+            ),
+          ),
+          GestureDetector(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+              color: Theme.of(context).backgroundColor.withOpacity(0.01),
+              width: 38.0,
+              child: Icon(_searchOpen ? CupertinoIcons.xmark_circle : Icons.filter_list_rounded,
+                size: 30.0,
+                color: Theme.of(context).accentColor,
+              ),
+            ),
+            onTap: _toggleSearch,
+          ),
+        ],
       ),
     );
   }
@@ -301,6 +386,11 @@ class _DownloadsPageState extends State<DownloadsPage> {
       return _queueDisplay(context, model, emptyMessage);
     }
 
+    List<Message> filteredMessageList = filterMessageList(
+      messages: messageList,
+      searchTerm: _searchTerm,
+    );
+
     if (messageList.length < 1) {
       return Expanded(
         child: Container(
@@ -315,14 +405,29 @@ class _DownloadsPageState extends State<DownloadsPage> {
         ),
       );
     }
+
+    if (filteredMessageList.length < 1) {
+        return Expanded(
+          child: Container(
+            alignment: Alignment.topCenter,
+            padding: EdgeInsets.only(top: 150.0),
+            child: model.downloadsLoading  
+              ? CircularProgressIndicator()
+              : Text('No downloads match that search filter',
+                style: Theme.of(context).primaryTextTheme.headline2,
+                textAlign: TextAlign.center,
+              ),
+          ),
+        );
+      }
     
     return Expanded(
       child: Container(
         child: ListView.builder(
           padding: EdgeInsets.only(top: 0.0),
-          itemCount: messageList.length + 1,
+          itemCount: filteredMessageList.length + 1,
           itemBuilder: (context, index) {
-            if (index >= messageList.length) {
+            if (index >= filteredMessageList.length) {
               if (model.reachedEndOfDownloadsList) {
                 return SizedBox(height: 250.0); 
               }
@@ -339,7 +444,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
             if (index + Constants.MESSAGE_LOADING_BATCH_SIZE / 2 >= messageList.length && !model.reachedEndOfDownloadsList) {
               model.loadDownloadedMessagesFromDB();
             }
-            Message message = messageList[index];
+            Message message = filteredMessageList[index];
             return MessageCard(
               message: message,
               selected: _selectedMessages.contains(message),

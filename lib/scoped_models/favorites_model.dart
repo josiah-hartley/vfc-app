@@ -31,7 +31,7 @@ mixin FavoritesModel on Model {
     _totalFavoritesCount = count[0];
     _playedFavoritesCount = count[1];
 
-    List<Message> result = await db.queryFavorites(
+    /*List<Message> result = await db.queryFavorites(
       start: _currentlyLoadedFavoritesCount,
       end: _currentlyLoadedFavoritesCount + _favoritesLoadingBatchSize,
       orderBy: 'speaker',
@@ -40,7 +40,13 @@ mixin FavoritesModel on Model {
 
     if (result.length < _favoritesLoadingBatchSize) {
       _reachedEndOfFavoritesList = true;
-    }
+    }*/
+    List<Message> result = await db.queryFavorites(
+      orderBy: 'speaker',
+      ascending: true,
+    );
+    _reachedEndOfFavoritesList = true;
+
     _currentlyLoadedFavoritesCount += result.length;
 
     _favorites.addAll(result);
