@@ -8,12 +8,16 @@ import 'package:voices_for_christ/helpers/reverse_speaker_name.dart';
 Widget initialSticker({BuildContext context, String name, bool isFavorite = false, Color borderColor, double borderWidth = 1.0, bool selected, Function onSelect}) {
   String initials = '';
   // split on a comma, a space, or a comma followed by a space
-  List<String> names = name.split(RegExp(r",\ |,|\ "));
+  // List<String> names = name.split(RegExp(r",\ |,|\ "));
+
+  // reverse and split name on spaces
+  List<String> names = speakerReversedName(name).split(' ');
   if (names.length >= 1) {
     initials = names[0][0].toUpperCase();
   }
   if (names.length >= 2) {
-    initials = names[names.length - 1][0].toUpperCase() + initials;
+    //initials = names[names.length - 1][0].toUpperCase() + initials;
+    initials += names[names.length - 1][0].toUpperCase();
   }
 
   /*if (initials.length < 1) {
