@@ -1,5 +1,5 @@
 import 'dart:collection';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -450,11 +450,13 @@ mixin DownloadsModel on Model {
     if (connection == ConnectivityResult.none) {
       _downloadsPaused = true;
       _downloadPauseReason = PauseReason.noConnection;
+      showToast('Cannot download: no connection (added to download queue)');
       notifyListeners();
     } else {
       if (connection == ConnectivityResult.mobile && !downloadOverData) {
         _downloadsPaused = true;
         _downloadPauseReason = PauseReason.connectionType;
+        showToast('Can only download over WiFi; check settings (added to download queue)');
         notifyListeners();
       } 
     }

@@ -8,6 +8,7 @@ import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/ui/dark_theme.dart';
 import 'package:voices_for_christ/ui/light_theme.dart';
 import 'package:voices_for_christ/screens/main_scaffold.dart';
+import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
@@ -39,8 +40,11 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     widget.model.initializePlayer(onChangedMessage: (Message message) {
       widget.model.updateDownloadedMessage(message);
+      Logger.logEvent(event: 'Initializing: updateDownloadedMessage complete');
       widget.model.updateFavoritedMessage(message);
+      Logger.logEvent(event: 'Initializing: updateFavoritedMessage complete');
       widget.model.updateMessageInCurrentPlaylist(message);
+      Logger.logEvent(event: 'Initializing: updateMessageInCurrentPlaylist complete');
     });
     widget.model.initialize();
   }

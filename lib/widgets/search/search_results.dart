@@ -46,10 +46,11 @@ class _SearchResultsDisplayState extends State<SearchResultsDisplay> {
     if ((widget.searchResults?.length ?? 0) < 1) {
       _deselectAll();
     }
+    if (!widget.hasSearched) {
+      return Container();
+    }
     return Expanded(
-      child: widget.hasSearched == false
-        ? Container()
-        : Container(
+      child: Container(
           child: Column(
             children: [
               _selectedMessages.length > 0

@@ -6,7 +6,7 @@ mixin SettingsModel on Model {
   final db = MessageDB.instance;
   SharedPreferences prefs;
   bool _darkMode = false;
-  bool _downloadOverData = false;
+  bool _downloadOverData = true;
   bool _removePlayedDownloads = false;
   int _cloudLastCheckedDate = 0;
 
@@ -18,7 +18,7 @@ mixin SettingsModel on Model {
   Future<void> loadSettings() async {
     prefs = await SharedPreferences.getInstance();
     _darkMode = prefs.getBool('darkMode') ?? false;
-    _downloadOverData = prefs.getBool('downloadOverData') ?? false;
+    _downloadOverData = prefs.getBool('downloadOverData') ?? true;
     _removePlayedDownloads = prefs.getBool('removePlayedDownloads') ?? false;
     _cloudLastCheckedDate = await db.getLastUpdatedDate();
     notifyListeners();

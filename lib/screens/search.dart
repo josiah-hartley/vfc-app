@@ -5,6 +5,7 @@ import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/helpers/minimize_keyboard.dart';
+import 'package:voices_for_christ/helpers/search_history.dart';
 import 'package:voices_for_christ/widgets/buttons/action_button.dart';
 import 'package:voices_for_christ/widgets/search/search_input.dart';
 import 'package:voices_for_christ/widgets/search/search_results.dart';
@@ -29,6 +30,44 @@ class _SearchWindowState extends State<SearchWindow> {
   bool _hasSearched = false;
   bool _reachedEndOfList = false;
   bool _waitingForResults = false;
+  List<String> _searchHistory = [];
+
+  @override
+  void initState() { 
+    super.initState();
+    loadSearchHistory();
+  }
+
+  void loadSearchHistory() async {
+    List<String> history = await getSearchHistory();
+    setState(() {
+      _searchHistory = history.reversed.toList();
+    });
+  }
+
+  void addToHistory(String search) async {
+    search = search.toLowerCase();
+    await addSearchToHistory(search);
+    setState(() {
+      int _indexInHistory = _searchHistory.indexOf(search);
+      if (_indexInHistory > -1) {
+        _searchHistory.removeAt(_indexInHistory);
+      }
+      _searchHistory.insert(0, search);
+
+      if (_searchHistory.length > 15) {
+        _searchHistory.removeAt(_searchHistory.length - 1);
+      }
+    });
+  }
+
+  void removeFromHistory(int index) async {
+    // history results are in reverse order on this page
+    await removeSearchFromHistory(_searchHistory.length - (index + 1));
+    setState(() {
+      _searchHistory.removeAt(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +94,63 @@ class _SearchWindowState extends State<SearchWindow> {
               });
             }
           ),
+          _hasSearched
+            ? Container()
+            : Expanded(
+              child: Container(
+                padding: EdgeInsets.only(left: 50.0, right: 10.0, top: 20.0),
+                child: Container(
+                  //color: Theme.of(context).accentColor.withOpacity(0.1),
+                  //height: MediaQuery.of(context).size.height / 3,
+                  child: ListView.builder(
+                    padding: EdgeInsets.only(top: 0.0, bottom: 20.0),
+                    itemCount: _searchHistory.length,
+                    itemBuilder: (context, index) => Container(
+                      child: Container(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  _searchController.text = _searchHistory[index];
+                                  _initializeNewSearch(context);
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+                                  color: Theme.of(context).accentColor.withOpacity(0.01),
+                                  child: Text(_searchHistory[index],
+                                    style: TextStyle(
+                                      color: Theme.of(context).accentColor,
+                                      fontStyle: FontStyle.italic,
+                                      fontSize: 16.0,
+                                    ),
+                                  )
+                                ),
+                              ),
+                            ),
+                            Container(
+                              child: GestureDetector(
+                                onTap: () { removeFromHistory(index); },
+                                child: Container(
+                                  child: Icon(
+                                    CupertinoIcons.xmark, 
+                                    color: Theme.of(context).accentColor,
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: 12.0,
+                                    horizontal: 12.0
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      ),
+                    ),
+                  ),
+                )
+              ),
+            ),
           SearchResultsDisplay(
             hasSearched: _hasSearched,
             searchResults: _searchResults,
@@ -115,6 +211,7 @@ class _SearchWindowState extends State<SearchWindow> {
     List<Message> result = [];
 
     if (_searchController.text != '') {
+      addToHistory(_searchController.text);
       result = await db.searchBySpeakerOrTitle(
         searchTerm: _searchController.text, 
         start: _currentlyLoadedMessageCount, 

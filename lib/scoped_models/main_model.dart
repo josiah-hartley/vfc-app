@@ -1,4 +1,4 @@
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/helpers/pause_reason.dart';
@@ -29,11 +29,17 @@ RecommendationsModel {
       updateMessageInCurrentPlaylist(message);
     });*/
     await loadPlaylistsMetadata();
+    await Logger.logEvent(event: 'Initializing MainModel: loadPlaylistsMetadata complete');
     await loadFavoritesFromDB();
+    await Logger.logEvent(event: 'Initializing MainModel: loadFavoritesFromDB complete');
     await loadDownloadedMessagesFromDB();
+    await Logger.logEvent(event: 'Initializing MainModel: loadDownloadedMessagesFromDB complete');
     await loadDownloadQueueFromDB();
+    await Logger.logEvent(event: 'Initializing MainModel: loadDownloadQueueFromDB complete');
     await loadStorageUsage();
+    await Logger.logEvent(event: 'Initializing MainModel: loadStorageUsage complete');
     await deletePlayedDownloads();
+    await Logger.logEvent(event: 'Initializing MainModel: deletePlayedDownloads complete');
 
     Connectivity().onConnectivityChanged.listen((ConnectivityResult connection) {
       _connection = connection;
@@ -50,6 +56,7 @@ RecommendationsModel {
         }
       }
     });
+    await Logger.logEvent(event: 'Initializing MainModel: connectivity listener set');
   }
 
   void toggleDownloadOverData() {
