@@ -140,12 +140,16 @@ class Message {
     };
   }
 
-  MediaItem toMediaItem() {
+  MediaItem toMediaItem(String dir) {
     double seconds = durationinseconds ?? 0.0;
     int milliseconds = (seconds * 1000).round();
     Map<String, dynamic> _extras = toMap();
+
+    // for iOS: application directory changes with app update
+    String fileLocation = '$dir/${id.toString()}.mp3';
+
     return MediaItem(
-      id: filepath,
+      id: fileLocation,
       title: title,
       duration: Duration(milliseconds: milliseconds),
       artist: speaker,

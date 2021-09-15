@@ -30,8 +30,8 @@ class Playlist {
     };
   }
 
-  List<MediaItem> toMediaItemList() {
-    return messages.map((msg) => msg.toMediaItem()).toList();
+  List<MediaItem> toMediaItemList(String dir) {
+    return messages.map((msg) => msg.toMediaItem(dir)).toList();
   }
 
   String toString() {

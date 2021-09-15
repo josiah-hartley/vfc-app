@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
@@ -174,7 +175,8 @@ mixin PlayerModel on Model {
   }
 
   Future<void> setQueueToSingleMessage(Message message, {Duration position}) async {
-    MediaItem mediaItem = message.toMediaItem();
+    String dir = (await getApplicationDocumentsDirectory()).path;
+    MediaItem mediaItem = message.toMediaItem(dir);
     Logger.logEvent(event: 'Setting queue to single message at position $position; media item is $mediaItem');
     await setupQueue(queue: [mediaItem], position: position, index: 0);
   }
@@ -186,7 +188,9 @@ mixin PlayerModel on Model {
     if (index == null || index < 0 || index >= playlist.messages.length) {
       index = 0;
     }
-    List<MediaItem> mediaItems = playlist.toMediaItemList();
+
+    String dir = (await getApplicationDocumentsDirectory()).path;
+    List<MediaItem> mediaItems = playlist.toMediaItemList(dir);
     Logger.logEvent(event: 'Setting queue to playlist at index $index and position $position'); //index in playable queue is $queueIndex, and playable queue is $playableQueue');
     await setupQueue(queue: mediaItems, position: position, index: index);
   }
@@ -245,15 +249,17 @@ mixin PlayerModel on Model {
     // replace everything after current message with futureQueue
     int index = _queue.indexWhere((m) => m.id == _currentlyPlayingMessage?.id);
     if (index > -1) {
+      String dir = (await getApplicationDocumentsDirectory()).path;
       _queue.replaceRange(index + 1, _queue.length, futureQueue);
-      List<MediaItem> mediaItems = _queue.map((message) => message.toMediaItem()).toList();
+      List<MediaItem> mediaItems = _queue.map((message) => message.toMediaItem(dir)).toList();
       await updateQueue(queue: mediaItems, index: index);
     }
   }
 
   void addToQueue(Message message) async {
     Logger.logEvent(event: 'Adding $message to queue');
-    MediaItem mediaItem = message.toMediaItem();
+    String dir = (await getApplicationDocumentsDirectory()).path;
+    MediaItem mediaItem = message.toMediaItem(dir);
     if (await mediaItemIsPlayable(mediaItem)) {
       _audioHandler.addQueueItem(mediaItem);
     }
@@ -292,7 +298,8 @@ mixin PlayerModel on Model {
       _queueIndex = 0;
     }
 
-    List<MediaItem> mediaItems = _queue.map((message) => message.toMediaItem()).toList();
+    String dir = (await getApplicationDocumentsDirectory()).path;
+    List<MediaItem> mediaItems = _queue.map((message) => message.toMediaItem(dir)).toList();
     await updateQueue(queue: mediaItems, index: _queueIndex);
   }
 

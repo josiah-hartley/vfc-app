@@ -13,4 +13,4 @@ const String CLOUD_ERROR_REPORT_URL = 'https://us-central1-voices-for-christ.clo
 const int DAYS_TO_MANUALLY_CHECK_CLOUD = 7; // only let manual updates happen once a week
 const int DAYS_TO_AUTOMATICALLY_CHECK_CLOUD = 30; // do automatic checks monthly
 const int LOGS_TO_KEEP_IN_DB = 100;
-const String APP_VERSION = '1.0.3+11';
+const String APP_VERSION = '1.0.5+12';
