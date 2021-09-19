@@ -14,7 +14,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
   
   var model = MainModel();
-  await model.loadSettings();
+  //await model.loadSettings();
   await model.loadRecommendations();
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
@@ -36,9 +36,13 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   @override
-  void initState() { 
+  void initState() {
     super.initState();
-    widget.model.initializePlayer(onChangedMessage: (Message message) {
+    doMainSetup();
+  }
+
+  void doMainSetup() async {
+    await widget.model.initializePlayer(onChangedMessage: (Message message) {
       widget.model.updateDownloadedMessage(message);
       Logger.logEvent(event: 'Initializing: updateDownloadedMessage complete');
       widget.model.updateFavoritedMessage(message);
@@ -46,7 +50,8 @@ class _MyAppState extends State<MyApp> {
       widget.model.updateMessageInCurrentPlaylist(message);
       Logger.logEvent(event: 'Initializing: updateMessageInCurrentPlaylist complete');
     });
-    widget.model.initialize();
+    await widget.model.initialize();
+    await widget.model.loadSettings();
   }
 
   @override

@@ -17,7 +17,10 @@ mixin RecommendationsModel on Model {
       recommendationCount: 10,
       messageCount: 10,
     );
-    _recommendations = [_featured];
+    _recommendations = [];
+    if (_featured.messages.length > 0) {
+      _recommendations.add(_featured);
+    }
     if (_downloads.messages.length > 0) {
       _recommendations.add(_downloads);
     }

@@ -28,6 +28,9 @@ Future<Message> queryOne(Database db, int id) async {
 }
 
 Future<List<Message>> queryMultipleMessages({Database db, List<int> ids}) async {
+  if (ids == null || ids.length < 1) {
+    return [];
+  }
   String idList = ids.join(',');
   try {
     var result = await db.rawQuery('''

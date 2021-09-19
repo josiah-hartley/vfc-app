@@ -34,7 +34,7 @@ mixin PlayerModel on Model {
   Stream<bool> get playingStream => _audioHandler.playingStream;
   double get playbackSpeed => _playbackSpeed;
 
-  void initializePlayer({Function onChangedMessage}) async {
+  Future<void> initializePlayer({Function onChangedMessage}) async {
     _audioHandler = await AudioService.init(
       builder: () => VFCAudioHandler(),
       config: AudioServiceConfig(
@@ -49,7 +49,7 @@ mixin PlayerModel on Model {
     );
 
     await loadLastPlayedMessage();
-    loadLastPlaybackSpeed();
+    await loadLastPlaybackSpeed();
 
     _audioHandler.queue.listen((updatedQueue) async {
       _queue = updatedQueue.map((item) => messageFromMediaItem(item)).toList();
@@ -340,16 +340,16 @@ mixin PlayerModel on Model {
     _audioHandler.skipToNext();
   }
 
-  void setSpeed(double speed) async {
+  Future<void> setSpeed(double speed) async {
     _audioHandler.setSpeed(speed);
     _prefs = await SharedPreferences.getInstance();
     _prefs.setDouble('playbackSpeed', speed ?? 1.0);
   }
 
-  void loadLastPlaybackSpeed() async {
+  Future<void> loadLastPlaybackSpeed() async {
     _prefs = await SharedPreferences.getInstance();
     double speed = _prefs.getDouble('playbackSpeed') ?? 1.0;
-    setSpeed(speed);
+    await setSpeed(speed);
   }
 
   void disposePlayer() async {

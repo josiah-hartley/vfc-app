@@ -22,7 +22,7 @@ RecommendationsModel {
 
   ConnectivityResult get connection => _connection;
 
-  void initialize() async {
+  Future<void> initialize() async {
     /*await initializePlayer(onChangedMessage: (Message message) {
       updateDownloadedMessage(message);
       updateFavoritedMessage(message);
