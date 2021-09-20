@@ -172,14 +172,15 @@ class _MainScaffoldState extends State<MainScaffold> {
             right: 15.0
           ),
           decoration: BoxDecoration(
-            gradient: RadialGradient(
+            /*gradient: RadialGradient(
               center: Alignment.center,
               radius: 0.65,
               colors: [
                 Theme.of(context).dialogBackgroundColor, 
                 Theme.of(context).backgroundColor,
               ]
-            )
+            )*/
+            color: Theme.of(context).backgroundColor,
           ),
         );
       }
@@ -205,11 +206,11 @@ class _MainScaffoldState extends State<MainScaffold> {
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.download_sharp, size: 28.0),
+          icon: Icon(Icons.download_sharp, size: 26.0),
           label: 'Downloads',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.playlist_play, size: 30.0),
+          icon: Icon(Icons.playlist_play, size: 28.0),
           label: 'Playlists',
         ),
         BottomNavigationBarItem(

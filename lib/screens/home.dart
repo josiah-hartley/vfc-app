@@ -114,8 +114,43 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _recommendedMessageCard(BuildContext context, Message message) {
+  Widget _card({BuildContext context, Function onTap, Widget child}) {
     return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 4.0),
+        child: Card(
+          //color: Theme.of(context).cardColor,
+          margin: EdgeInsets.only(right: 14.0),
+          elevation: 0.5,
+          child: Container(
+            decoration: BoxDecoration(
+              /*gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).cardColor,
+                  Theme.of(context).backgroundColor.withOpacity(0.7),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),*/
+              border: Border.all(
+                color: Theme.of(context).accentColor.withOpacity(0.3),
+                width: 0.5,
+              ),
+              color: Theme.of(context).accentColor.withOpacity(0.01),
+            ),
+            padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+            width: min(MediaQuery.of(context).size.width * 0.7, Constants.MAX_RECOMMENDATION_WIDTH),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _recommendedMessageCard(BuildContext context, Message message) {
+    return _card(
+      context: context,
       onTap: () {
         showDialog(
           context: context, 
@@ -126,100 +161,58 @@ class HomePage extends StatelessWidget {
           }
         );
       },
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 4.0),
-        child: Card(
-          //color: Theme.of(context).cardColor,
-          margin: EdgeInsets.only(right: 14.0),
-          elevation: 2.0,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).cardColor,
-                  Theme.of(context).backgroundColor.withOpacity(0.7),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-            padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-            width: min(MediaQuery.of(context).size.width * 0.7, Constants.MAX_RECOMMENDATION_WIDTH),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(message.title, 
-                  style: Theme.of(context).primaryTextTheme.headline3.copyWith(fontSize: 20.0, fontWeight: FontWeight.w400),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 0.0),
-                  child: Text(speakerReversedName(message.speaker), 
-                    style: Theme.of(context).primaryTextTheme.headline4.copyWith(fontSize: 18.0),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Container(
-                  alignment: Alignment.centerRight,
-                  child: Text(message.durationinseconds == null ? '${message.approximateminutes} min' : messageDurationInMinutes(message.durationinseconds), 
-                    style: Theme.of(context).primaryTextTheme.headline4.copyWith(fontSize: 18.0),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(message.title, 
+            style: Theme.of(context).primaryTextTheme.headline3.copyWith(fontSize: 20.0, fontWeight: FontWeight.w400),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 0.0),
+            child: Text(speakerReversedName(message.speaker), 
+              style: Theme.of(context).primaryTextTheme.headline4.copyWith(fontSize: 18.0),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-        ),
+          Container(
+            alignment: Alignment.centerRight,
+            child: Text(message.durationinseconds == null ? '${message.approximateminutes} min' : messageDurationInMinutes(message.durationinseconds), 
+              style: Theme.of(context).primaryTextTheme.headline4.copyWith(fontSize: 18.0),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _loadMoreButton(BuildContext context, Function onPressed) {
-    return GestureDetector(
+    return _card(
+      context: context,
       onTap: onPressed,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 4.0),
-        child: Card(
-          margin: EdgeInsets.only(right: 14.0),
-          elevation: 2.0,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).cardColor,
-                  Theme.of(context).backgroundColor.withOpacity(0.7),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-            padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-            width: min(MediaQuery.of(context).size.width * 0.7, Constants.MAX_RECOMMENDATION_WIDTH),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  child: Icon(CupertinoIcons.add,
-                    size: 48.0,
-                    color: Theme.of(context).accentColor,
-                  ),
-                ),
-                Container(
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 0.0),
-                  child: Text('Load More', 
-                    style: Theme.of(context).primaryTextTheme.headline2.copyWith(fontSize: 22.0),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            child: Icon(CupertinoIcons.add,
+              size: 48.0,
+              color: Theme.of(context).accentColor,
             ),
           ),
-        ),
+          Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 0.0),
+            child: Text('Load More', 
+              style: Theme.of(context).primaryTextTheme.headline2.copyWith(fontSize: 22.0),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

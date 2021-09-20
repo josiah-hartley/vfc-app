@@ -106,6 +106,16 @@ mixin PlaylistsModel on Model {
     }
   }
 
+  Future<void> removeMessagesFromCurrentPlaylist({List<Message> messages}) async {
+    if (messages == null || messages.length < 1 || _selectedPlaylist == null) {
+      return;
+    }
+    await Logger.logEvent(event: 'Removing messages from selected playlist $_selectedPlaylist: $messages');
+    _selectedPlaylist.messages.removeWhere((m) => messages.indexWhere((message) => message.id == m.id) > -1);
+    notifyListeners();
+    await saveReorderingChanges();
+  }
+
   void updateMessageInCurrentPlaylist(Message message) {
     if (_selectedPlaylist == null || _selectedPlaylist.messages == null) {
       return;

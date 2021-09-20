@@ -63,9 +63,9 @@ class _SearchResultsDisplayState extends State<SearchResultsDisplay> {
                 )
                 : Container(
                   padding: EdgeInsets.only(top: 26.0, bottom: 26.0, left: 20.0, right: 20.0),
-                  decoration: BoxDecoration(
+                  /*decoration: BoxDecoration(
                     border: Border(bottom: BorderSide(color: Theme.of(context).accentColor)),
-                  ),
+                  ),*/
                   child: Text('${widget.fullSearchCount} RESULT' + (widget.fullSearchCount != 1 ? 'S' : ''),
                     style: TextStyle(
                       color: Theme.of(context).accentColor,
@@ -98,6 +98,7 @@ class _SearchResultsDisplayState extends State<SearchResultsDisplay> {
                       onSelect: () {
                         _toggleMessageSelection(message);
                       },
+                      //showDownloadButton: true,
                     );
                   },
                 ),

@@ -163,6 +163,10 @@ class _FavoritesPageState extends State<FavoritesPage> {
               value: 3,
               text: 'Sort by Title Z-A',
             ),
+            _listAction(
+              value: 4,
+              text: 'Filter by Topic or Speaker'
+            ),
           ];
         },
         onSelected: (value) {
@@ -190,6 +194,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 orderBy: 'title',
                 ascending: false,
               );
+              break;
+            case 4:
+              _toggleSearch();
               break;
           }
         },
@@ -319,7 +326,20 @@ class _FavoritesPageState extends State<FavoritesPage> {
               child: _searchOpen ? _searchBox : _countMessage,
             ),
           ),
-          GestureDetector(
+          _searchOpen ? GestureDetector(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+              color: Theme.of(context).backgroundColor.withOpacity(0.01),
+              width: 38.0,
+              child: Icon(CupertinoIcons.xmark_circle,
+                size: 30.0,
+                color: Theme.of(context).accentColor,
+              ),
+            ),
+            onTap: _toggleSearch,
+          )
+          : Container(),
+          /*GestureDetector(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
               color: Theme.of(context).backgroundColor.withOpacity(0.01),
@@ -330,7 +350,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
               ),
             ),
             onTap: _toggleSearch,
-          ),
+          ),*/
         ],
       ),
     );

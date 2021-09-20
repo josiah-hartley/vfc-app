@@ -34,7 +34,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
               sigmaY: 10.0,
             ),
             child: Container(
-              color: Theme.of(context).backgroundColor.withOpacity(0.7),
+              color: Theme.of(context).scaffoldBackgroundColor,
               padding: EdgeInsets.only(top: 40.0),
               child: ListView(
                 shrinkWrap: true,
@@ -421,7 +421,7 @@ class _MessageActionsDialogState extends State<MessageActionsDialog> {
     }
 
     return _action(
-      icon: Icons.download_sharp,
+      icon: Icons.download_rounded,
       color: Theme.of(context).accentColor,
       iconSize: 34.0,
       text: 'Download',

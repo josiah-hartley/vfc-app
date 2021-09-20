@@ -166,6 +166,10 @@ class _DownloadsPageState extends State<DownloadsPage> {
               value: 5,
               text: 'Sort by Title Z-A',
             ),
+            _listAction(
+              value: 6,
+              text: 'Filter by Topic or Speaker'
+            ),
           ];
         },
         onSelected: (value) {
@@ -205,6 +209,9 @@ class _DownloadsPageState extends State<DownloadsPage> {
                 orderBy: 'title',
                 ascending: false,
               );
+              break;
+            case 6:
+              _toggleSearch();
               break;
           }
         },
@@ -341,7 +348,20 @@ class _DownloadsPageState extends State<DownloadsPage> {
               child: _searchOpen ? _searchBox : _countMessage,
             ),
           ),
-          GestureDetector(
+          _searchOpen ? GestureDetector(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+              color: Theme.of(context).backgroundColor.withOpacity(0.01),
+              width: 38.0,
+              child: Icon(CupertinoIcons.xmark_circle,
+                size: 30.0,
+                color: Theme.of(context).accentColor,
+              ),
+            ),
+            onTap: _toggleSearch,
+          )
+          : Container(),
+          /*GestureDetector(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
               color: Theme.of(context).backgroundColor.withOpacity(0.01),
@@ -352,7 +372,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
               ),
             ),
             onTap: _toggleSearch,
-          ),
+          ),*/
         ],
       ),
     );

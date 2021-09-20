@@ -10,11 +10,12 @@ import 'package:voices_for_christ/widgets/dialogs/add_to_playlist_dialog.dart';
 import 'package:voices_for_christ/widgets/dialogs/confirm_delete_dialog.dart';
 
 class MultiSelectDisplay extends StatelessWidget {
-  const MultiSelectDisplay({Key key, this.selectedMessages, this.onDeselectAll, this.showDownloadOptions = true, this.showQueueOptions = true}) : super(key: key);
+  const MultiSelectDisplay({Key key, this.selectedMessages, this.onDeselectAll, this.showDownloadOptions = true, this.showQueueOptions = true, this.showPlaylistOptions = false}) : super(key: key);
   final LinkedHashSet<Message> selectedMessages;
   final Function onDeselectAll;
   final bool showDownloadOptions;
   final bool showQueueOptions;
+  final bool showPlaylistOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +94,7 @@ class MultiSelectDisplay extends StatelessWidget {
             right: RIGHT_POSITION,
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).dialogBackgroundColor,
+                color: Theme.of(context).backgroundColor,
                 border: Border.all(
                   color: Theme.of(context).accentColor.withOpacity(0.5),
                   width: 1.0,
@@ -102,6 +103,7 @@ class MultiSelectDisplay extends StatelessWidget {
               child: _popupMenuActions(
                 context: context,
                 messages: selectedMessages.toList(),
+                removeFromPlaylist: model.removeMessagesFromCurrentPlaylist,
                 addAllToQueue: model.addMultipleMessagesToQueue,
                 setMultiplePlayed: model.setMultiplePlayed,
                 setMultipleFavorites: model.setMultipleFavorites,
@@ -118,6 +120,7 @@ class MultiSelectDisplay extends StatelessWidget {
   Widget _popupMenuActions({
   BuildContext context,
   List<Message> messages,
+  Function removeFromPlaylist,
   Function addAllToQueue,
   Function setMultiplePlayed,
   Function setMultipleFavorites,
@@ -133,6 +136,18 @@ class MultiSelectDisplay extends StatelessWidget {
     }
 
     List<Widget> _listChildren = [];
+    if (showPlaylistOptions == true) {
+      _listChildren.add(_popupListAction(
+        context: context,
+        onPressed: () {
+          removeFromPlaylist(messages: messages);
+          onDeselectAll();
+        },
+        active: active,
+        icon: CupertinoIcons.xmark,
+        text: 'Remove from playlist',
+      ));
+    }
     if (showDownloadOptions == true) {
       _listChildren.add(_popupListAction(
         context: context,

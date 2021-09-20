@@ -82,7 +82,7 @@ class _QueueDialogState extends State<QueueDialog> {
               sigmaY: 10.0,
             ),
             child: Container(
-              color: Theme.of(context).backgroundColor.withOpacity(0.7),
+              color: Theme.of(context).scaffoldBackgroundColor,
               padding: EdgeInsets.only(bottom: 40.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

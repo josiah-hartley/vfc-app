@@ -77,7 +77,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
           sigmaY: 10.0,
         ),
         child: Container(
-          color: Theme.of(context).backgroundColor.withOpacity(0.7),
+          color: Theme.of(context).scaffoldBackgroundColor,
           child: Column(
             children: [
               _title(),

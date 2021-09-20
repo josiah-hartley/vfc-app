@@ -70,7 +70,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
               sigmaY: 10.0,
             ),
             child: Container(
-              color: Theme.of(context).backgroundColor.withOpacity(0.7),
+              color: Theme.of(context).scaffoldBackgroundColor,
               padding: EdgeInsets.symmetric(vertical: 40.0),
               child: Column(
                 children: [
@@ -80,6 +80,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
                     child: MultiSelectDisplay(
                       selectedMessages: _selectedMessages,
                       onDeselectAll: _deselectAll,
+                      showPlaylistOptions: true,
                     ),
                   )
                   : _titleAndActions(model, _reordering),

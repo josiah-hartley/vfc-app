@@ -97,7 +97,7 @@ class _ErrorReportingDialogState extends State<ErrorReportingDialog> {
           sigmaY: 10.0,
         ),
         child: Container(
-          color: Theme.of(context).backgroundColor.withOpacity(0.7),
+          color: Theme.of(context).scaffoldBackgroundColor,
           //padding: EdgeInsets.only(bottom: 10.0),
           child: Column(
             children: [
@@ -173,6 +173,7 @@ class _ErrorReportingDialogState extends State<ErrorReportingDialog> {
             key: _formKey,
             child: ListView(
               shrinkWrap: true,
+              padding: EdgeInsets.only(bottom: 200.0),
               children: [
                 _input(
                   label: 'Name',

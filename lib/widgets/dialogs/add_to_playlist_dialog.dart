@@ -66,7 +66,7 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
               sigmaY: 10.0,
             ),
             child: Container(
-              color: Theme.of(context).backgroundColor.withOpacity(0.7),
+              color: Theme.of(context).scaffoldBackgroundColor,
               padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 16.0),
               child: Column(
                 children: [

@@ -46,7 +46,7 @@ Widget initialSticker({BuildContext context, String name, bool isFavorite = fals
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: selected ?? false
-                ? Theme.of(context).highlightColor
+                ? Theme.of(context).selectedRowColor
                 : initialStickerColors(initials)['backgroundColor'] ?? Colors.black,
               shape: BoxShape.circle,
               border: Border.all(
@@ -194,20 +194,20 @@ Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color
                   overflow: truncateTitle ? TextOverflow.ellipsis : TextOverflow.visible,
                   style: TextStyle(
                     fontSize: 16.0,
-                    fontWeight: message.isdownloaded == 1 ? FontWeight.w700 : FontWeight.w400,
+                    fontWeight: message.isdownloaded == 1 ? FontWeight.w600 : FontWeight.w400,
                     color: message.isdownloaded == 1 ? textColor : textColor.withOpacity(0.9),
                     //fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              message.isplayed == 1
+              /*message.isplayed == 1
                 ? Container(
                   child: Icon(Icons.check,
                     color: textColor,
                     size: 16.0,
                   ),
                 )
-                : Container(),
+                : Container(),*/
             ],
           ),
         ),
@@ -219,19 +219,19 @@ Widget messageTitleAndSpeakerDisplay({Message message, bool truncateTitle, Color
                 child: Text(speakerReversedName(message.speaker),
                   overflow: truncateTitle ? TextOverflow.ellipsis : TextOverflow.visible,
                   style: TextStyle(
-                    fontSize: 16.0,
+                    fontSize: 14.0,
                     //fontStyle: FontStyle.italic,
-                    fontWeight: message.isdownloaded == 1 ? FontWeight.w600 : FontWeight.w400,
-                    color: message.isdownloaded == 1 ? textColor.withOpacity(1.0) : textColor.withOpacity(0.85),
+                    fontWeight: message.isdownloaded == 1 ? FontWeight.w500 : FontWeight.w400,
+                    color: message.isdownloaded == 1 ? textColor.withOpacity(1.0) : textColor.withOpacity(1.0),
                   ),
                 ),
               ),
               showTime
                 ? Text(_durationInMinutes,
                     style: TextStyle(
-                      fontSize: 16.0,
+                      fontSize: 12.0,
                       fontStyle: FontStyle.italic,
-                      color: message.isdownloaded == 1 ? textColor.withOpacity(1.0) : textColor.withOpacity(0.85),
+                      color: message.isdownloaded == 1 ? textColor.withOpacity(1.0) : textColor.withOpacity(1.0),
                     ),
                   )
                 : Container(),
