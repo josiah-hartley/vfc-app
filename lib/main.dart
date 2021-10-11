@@ -11,19 +11,22 @@ import 'package:voices_for_christ/screens/main_scaffold.dart';
 import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
+  //WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
   
   var model = MainModel();
-  //await model.loadSettings();
+  await model.loadSettings();
   await model.loadRecommendations();
 
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-  .then((_) async {
+  //SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+  //.then((_) {
+    runApp(MyApp(model: model));
+  //});
+  /*.then((_) async { // moved down to try to fix freezing bug
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration.speech());
 
     runApp(MyApp(model: model));
-  });
+  });*/
 }
 
 class MyApp extends StatefulWidget {
@@ -42,6 +45,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   void doMainSetup() async {
+    // moved here to try to fix freezing bug
+    Logger.logEvent(event: 'Starting to configure audio session');
+    final session = await AudioSession.instance;
+    Logger.logEvent(event: 'Got instance of audio session');
+    await session.configure(AudioSessionConfiguration.speech());
+    Logger.logEvent(event: 'Configured audio session');
+    // end moved block
+
     await widget.model.initializePlayer(onChangedMessage: (Message message) {
       widget.model.updateDownloadedMessage(message);
       Logger.logEvent(event: 'Initializing: updateDownloadedMessage complete');
@@ -51,7 +62,7 @@ class _MyAppState extends State<MyApp> {
       Logger.logEvent(event: 'Initializing: updateMessageInCurrentPlaylist complete');
     });
     await widget.model.initialize();
-    await widget.model.loadSettings();
+    //await widget.model.loadSettings();
   }
 
   @override

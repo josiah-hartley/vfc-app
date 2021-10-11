@@ -3,6 +3,7 @@ import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/data_models/recommendation_class.dart';
 import 'package:voices_for_christ/database/local_db.dart';
 import 'package:voices_for_christ/helpers/featured_message_ids.dart';
+import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 
 mixin RecommendationsModel on Model {
   final db = MessageDB.instance;
@@ -11,8 +12,11 @@ mixin RecommendationsModel on Model {
   List<Recommendation> get recommendations => _recommendations;
 
   Future<void> loadRecommendations() async {
+    Logger.logEvent(event: 'Starting to load recommendations');
     Recommendation _featured = await featuredMessages();
+    Logger.logEvent(event: 'Loading recommendations: loaded featured messages');
     Recommendation _downloads = await recentlyDownloaded();
+    Logger.logEvent(event: 'Loading recommendations: loaded recent downloads');
     List<Recommendation> _otherRecommendations = await db.getRecommendations(
       recommendationCount: 10,
       messageCount: 10,
@@ -26,6 +30,7 @@ mixin RecommendationsModel on Model {
     }
     _recommendations.addAll(_otherRecommendations);
     notifyListeners();
+    Logger.logEvent(event: 'Finished loading recommendations');
   }
 
   Future<void> getMoreMessagesForRecommendation(int rIndex) async {
