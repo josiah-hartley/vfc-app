@@ -22,24 +22,23 @@ RecommendationsModel {
 
   ConnectivityResult get connection => _connection;
 
-  Future<void> initialize() async {
+  Future<void> initialize(Function updateLoadingMessage) async {
     /*await initializePlayer(onChangedMessage: (Message message) {
       updateDownloadedMessage(message);
       updateFavoritedMessage(message);
       updateMessageInCurrentPlaylist(message);
     });*/
+    updateLoadingMessage('Loading playlists...');
     await loadPlaylistsMetadata();
-    await Logger.logEvent(event: 'Initializing MainModel: loadPlaylistsMetadata complete');
+    updateLoadingMessage('Loading favorites...');
     await loadFavoritesFromDB();
-    await Logger.logEvent(event: 'Initializing MainModel: loadFavoritesFromDB complete');
+    updateLoadingMessage('Loading downloads...');
     await loadDownloadedMessagesFromDB();
-    await Logger.logEvent(event: 'Initializing MainModel: loadDownloadedMessagesFromDB complete');
     await loadDownloadQueueFromDB();
-    await Logger.logEvent(event: 'Initializing MainModel: loadDownloadQueueFromDB complete');
     await loadStorageUsage();
-    await Logger.logEvent(event: 'Initializing MainModel: loadStorageUsage complete');
+    updateLoadingMessage('Removing played downloads...');
     await deletePlayedDownloads();
-    await Logger.logEvent(event: 'Initializing MainModel: deletePlayedDownloads complete');
+    await Logger.logEvent(event: 'Initializing MainModel: finished loading from db');
 
     Connectivity().onConnectivityChanged.listen((ConnectivityResult connection) {
       _connection = connection;

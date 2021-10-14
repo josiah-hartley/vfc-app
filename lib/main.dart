@@ -8,19 +8,14 @@ import 'package:voices_for_christ/scoped_models/main_model.dart';
 import 'package:voices_for_christ/ui/dark_theme.dart';
 import 'package:voices_for_christ/ui/light_theme.dart';
 import 'package:voices_for_christ/screens/main_scaffold.dart';
-import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 
 void main() async {
-  //WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
-  
-  var model = MainModel();
-  await model.loadSettings();
-  await model.loadRecommendations();
+  WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
 
-  //SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-  //.then((_) {
-    runApp(MyApp(model: model));
-  //});
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+  .then((_) {
+    runApp(MyApp());
+  });
   /*.then((_) async { // moved down to try to fix freezing bug
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration.speech());
@@ -30,45 +25,96 @@ void main() async {
 }
 
 class MyApp extends StatefulWidget {
-  MyApp({Key key, this.model}) : super(key: key);
-  final MainModel model;
+  MyApp({Key key}) : super(key: key);
 
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
+  MainModel mainModel;
+  bool _loading = true;
+  String _loadingMessage = '';
+
   @override
   void initState() {
     super.initState();
     doMainSetup();
   }
 
+  void updateLoadingMessage(String newMessage) {
+    setState(() {
+      _loadingMessage = newMessage;
+    });
+  }
+
   void doMainSetup() async {
+    mainModel = MainModel();
+    updateLoadingMessage('Loading settings...');
+    await mainModel.loadSettings();
+    updateLoadingMessage('Loading recommendations...');
+    await mainModel.loadRecommendations();
+    
     // moved here to try to fix freezing bug
-    Logger.logEvent(event: 'Starting to configure audio session');
+    updateLoadingMessage('Configuring audio session...');
     final session = await AudioSession.instance;
-    Logger.logEvent(event: 'Got instance of audio session');
     await session.configure(AudioSessionConfiguration.speech());
-    Logger.logEvent(event: 'Configured audio session');
     // end moved block
 
-    await widget.model.initializePlayer(onChangedMessage: (Message message) {
-      widget.model.updateDownloadedMessage(message);
-      Logger.logEvent(event: 'Initializing: updateDownloadedMessage complete');
-      widget.model.updateFavoritedMessage(message);
-      Logger.logEvent(event: 'Initializing: updateFavoritedMessage complete');
-      widget.model.updateMessageInCurrentPlaylist(message);
-      Logger.logEvent(event: 'Initializing: updateMessageInCurrentPlaylist complete');
+    updateLoadingMessage('Initializing audio player...');
+    await mainModel.initializePlayer(onChangedMessage: (Message message) {
+      mainModel.updateDownloadedMessage(message);
+      mainModel.updateFavoritedMessage(message);
+      mainModel.updateMessageInCurrentPlaylist(message);
     });
-    await widget.model.initialize();
+
+    await mainModel.initialize(updateLoadingMessage);
     //await widget.model.loadSettings();
+    updateLoadingMessage('');
+    setState(() {
+      _loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return MaterialApp(
+        title: 'Voices for Christ',
+        home: Scaffold(
+          body: Container(
+            color: Color(0xff002D47),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    strokeWidth: 2.0,
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 30.0),
+                  child: Text(_loadingMessage,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18.0,
+                    )
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return ScopedModel<MainModel>(
-      model: widget.model, 
+      model: mainModel, 
       child: ScopedModelDescendant<MainModel>(
         builder: (context, child, model) {
           return MaterialApp(
