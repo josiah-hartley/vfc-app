@@ -10,12 +10,12 @@ import 'package:voices_for_christ/ui/light_theme.dart';
 import 'package:voices_for_christ/screens/main_scaffold.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
+  //WidgetsFlutterBinding.ensureInitialized(); // needed because of async work in initializePlayer()
 
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-  .then((_) {
+  //SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+  //.then((_) {
     runApp(MyApp());
-  });
+  //});
   /*.then((_) async { // moved down to try to fix freezing bug
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration.speech());
