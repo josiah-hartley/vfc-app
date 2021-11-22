@@ -184,7 +184,10 @@ class _SearchWindowState extends State<SearchWindow> {
 
     try {
       _resetSearchParameters();
-      int _count = await db.searchCountSpeakerTitle(_searchController.text);
+      int _count = await db.searchCountSpeakerTitle(
+        searchTerm: _searchController.text,
+        mustContainAll: false,
+      );
       setState(() {
         _fullSearchResultCount = _count;
       });
@@ -214,6 +217,7 @@ class _SearchWindowState extends State<SearchWindow> {
       addToHistory(_searchController.text);
       result = await db.searchBySpeakerOrTitle(
         searchTerm: _searchController.text, 
+        mustContainAll: false,
         start: _currentlyLoadedMessageCount, 
         end: _currentlyLoadedMessageCount + _messageLoadingBatchSize
       );

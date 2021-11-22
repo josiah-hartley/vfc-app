@@ -1,10 +1,6 @@
-import 'dart:convert';
-
-import 'package:dio/dio.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voices_for_christ/database/local_db.dart';
-import 'package:voices_for_christ/helpers/constants.dart' as Constants;
 import 'package:voices_for_christ/helpers/logger.dart' as Logger;
 
 mixin SettingsModel on Model {
@@ -20,19 +16,6 @@ mixin SettingsModel on Model {
   bool get removePlayedDownloads => _removePlayedDownloads;
   int get cloudLastCheckedDate => _cloudLastCheckedDate;
 
-  Future<void> _submitError() async {
-    List<String> logs = await Logger.getEventLogs();
-    Map<String, dynamic> json = {
-      'name': 'Settings Page',
-      'email': '',
-      'error': 'Error loading settings',
-      'device': {},
-      'appVersion': Constants.APP_VERSION,
-      'logs': jsonEncode(logs)
-    };
-    Dio().post(Constants.CLOUD_ERROR_REPORT_URL, data: json);
-  }
-
   Future<void> loadSettings() async {
     Logger.logEvent(event: 'Initializing: in loadSettings(), starting to load preferences');
     try {
@@ -46,7 +29,6 @@ mixin SettingsModel on Model {
       notifyListeners();
     } catch(e) {
       await Logger.logEvent(type: 'error', event: 'Error loading settings: $e');
-      await _submitError();
     }
     Logger.logEvent(event: 'Initializing: in loadSettings(), finished!');
   }

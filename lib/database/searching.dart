@@ -19,20 +19,47 @@ String queryWhere(String searchArg, List<String> comparisons) {
   return query;
 }
 
-Future<List<Message>> queryArgList({Database db, String table, String searchTerm, List<String> comparisons, bool onlyUnplayed = false, int start, int end}) async {
+String columnsLike({List<String> argList, List<String> comparisons, bool mustContainAll}) {
+  String andor = mustContainAll ? 'AND' : 'OR';
+  String query = '(${queryWhere(argList[0], comparisons)})';
+
+  for (int i = 1; i < argList.length; i++) {
+    query += ' $andor (' + queryWhere(argList[i], comparisons) + ')';
+  }
+
+  return query;
+}
+
+Future<List<Message>> queryArgList({Database db, String table, String searchTerm, List<String> comparisons, bool onlyUnplayed = false, bool mustContainAll = true, int start, int end}) async {
   List<String> argList = searchArguments(searchTerm);
 
   if (argList.length < 1 || comparisons.length < 1) {
     return [];
   }
+
+  String query = 'SELECT * from $table WHERE (';
+  List<String> args = [];
   
-  String query = 'SELECT * from $table WHERE ('
-    + queryWhere(argList[0], comparisons) + ')';
-  List<String> args = List.filled(comparisons.length, argList[0], growable: true);
-  
-  for (int i = 1; i < argList.length; i++) {
-    query += ' AND (' + queryWhere(argList[i], comparisons) + ')';
+  query += columnsLike(
+    argList: argList,
+    comparisons: comparisons,
+    mustContainAll: true,
+  );
+  for (int i = 0; i < argList.length; i++) {
     args.addAll(List.filled(comparisons.length, argList[i]));
+  }
+  query += ')';
+
+  if (mustContainAll == false) {
+    query += ' OR (' + columnsLike(
+      argList: argList,
+      comparisons: comparisons,
+      mustContainAll: false,
+    );
+    for (int i = 0; i < argList.length; i++) {
+      args.addAll(List.filled(comparisons.length, argList[i]));
+    }
+    query += ')';
   }
 
   if (onlyUnplayed) {
@@ -57,20 +84,36 @@ Future<List<Message>> queryArgList({Database db, String table, String searchTerm
   }
 }
 
-Future<int> queryCountArgList ({Database db, String table, String searchTerm, List<String> comparisons, bool onlyUnplayed = false}) async {
+Future<int> queryCountArgList ({Database db, String table, String searchTerm, List<String> comparisons, bool onlyUnplayed = false, bool mustContainAll = true}) async {
   List<String> argList = searchArguments(searchTerm);
 
   if (argList.length < 1 || comparisons.length < 1) {
     return 0;
   }
+
+  String query = 'SELECT COUNT(*) from $table WHERE (';
+  List<String> args = [];
   
-  String query = 'SELECT COUNT(*) from $table WHERE ('
-    + queryWhere(argList[0], comparisons) + ')';
-  List<String> args = List.filled(comparisons.length, argList[0], growable: true);
-  
-  for (int i = 1; i < argList.length; i++) {
-    query += ' AND (' + queryWhere(argList[i], comparisons) + ')';
+  query += columnsLike(
+    argList: argList,
+    comparisons: comparisons,
+    mustContainAll: true,
+  );
+  for (int i = 0; i < argList.length; i++) {
     args.addAll(List.filled(comparisons.length, argList[i]));
+  }
+  query += ')';
+
+  if (mustContainAll == false) {
+    query += ' OR (' + columnsLike(
+      argList: argList,
+      comparisons: comparisons,
+      mustContainAll: false,
+    );
+    for (int i = 0; i < argList.length; i++) {
+      args.addAll(List.filled(comparisons.length, argList[i]));
+    }
+    query += ')';
   }
 
   if (onlyUnplayed) {
@@ -85,35 +128,38 @@ Future<int> queryCountArgList ({Database db, String table, String searchTerm, Li
   }
 }
 
-Future<int> searchCountSpeakerTitle(Database db, String searchTerm) async {
+Future<int> searchCountSpeakerTitle({Database db, String searchTerm, bool mustContainAll}) async {
   List<String> comparisons = ['speaker', 'title', 'taglist'];
   return queryCountArgList(
     db: db,
     table: messageTable,
     searchTerm: searchTerm,
     comparisons: comparisons,
+    mustContainAll: mustContainAll,
   );
 }
 
-Future<List<Message>> searchBySpeakerOrTitle({Database db, String searchTerm, int start, int end}) async {
+Future<List<Message>> searchBySpeakerOrTitle({Database db, String searchTerm, bool mustContainAll, int start, int end}) async {
   List<String> comparisons = ['speaker', 'title', 'taglist'];
   return queryArgList(
     db: db,
     table: messageTable,
     searchTerm: searchTerm,
     comparisons: comparisons,
+    mustContainAll: mustContainAll,
     start: start,
     end: end,
   );
 }
 
-Future<List<Message>> searchByColumns({Database db, String searchTerm, List<String> columns, bool onlyUnplayed, int start, int end}) async {
+Future<List<Message>> searchByColumns({Database db, String searchTerm, List<String> columns, bool onlyUnplayed, bool mustContainAll, int start, int end}) async {
   return queryArgList(
     db: db,
     table: messageTable,
     searchTerm: searchTerm,
     comparisons: columns,
     onlyUnplayed: onlyUnplayed,
+    mustContainAll: mustContainAll,
     start: start,
     end: end,
   );

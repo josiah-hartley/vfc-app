@@ -208,28 +208,34 @@ class MessageDB {
   }
 
   // SEARCHING
-  Future<int> searchCountSpeakerTitle(String searchTerm) async {
+  Future<int> searchCountSpeakerTitle({String searchTerm, bool mustContainAll = true}) async {
     Database db = await instance.database;
-    return await search.searchCountSpeakerTitle(db, searchTerm);
+    return await search.searchCountSpeakerTitle(
+      db: db, 
+      searchTerm: searchTerm,
+      mustContainAll: mustContainAll,
+    );
   }
 
-  Future<List<Message>> searchBySpeakerOrTitle({String searchTerm, int start, int end}) async {
+  Future<List<Message>> searchBySpeakerOrTitle({String searchTerm, bool mustContainAll = true, int start, int end}) async {
     Database db = await instance.database;
     return await search.searchBySpeakerOrTitle(
       db: db, 
       searchTerm: searchTerm,
+      mustContainAll: mustContainAll,
       start: start,
       end: end,
     );
   }
 
-  Future<List<Message>> searchByColumns({String searchTerm, List<String> columns, bool onlyUnplayed, int start, int end}) async {
+  Future<List<Message>> searchByColumns({String searchTerm, List<String> columns, bool onlyUnplayed, bool mustContainAll = true, int start, int end}) async {
     Database db = await instance.database;
     return await search.searchByColumns(
       db: db, 
       searchTerm: searchTerm,
       columns: columns,
       onlyUnplayed: onlyUnplayed,
+      mustContainAll: mustContainAll,
       start: start,
       end: end,
     );
