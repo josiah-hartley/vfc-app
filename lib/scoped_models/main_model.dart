@@ -34,7 +34,7 @@ RecommendationsModel {
     await loadFavoritesFromDB();
     updateLoadingMessage('Loading downloads...');
     await loadDownloadedMessagesFromDB();
-    await loadDownloadQueueFromDB();
+    await loadDownloadQueueFromDB(showPopup: false);
     await loadStorageUsage();
     updateLoadingMessage('Removing played downloads...');
     await deletePlayedDownloads();

@@ -5,7 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:voices_for_christ/data_models/download_class.dart';
 import 'package:voices_for_christ/data_models/message_class.dart';
-import 'package:voices_for_christ/helpers/toasts.dart';
+//import 'package:voices_for_christ/helpers/toasts.dart';
 
 Future<Message> downloadMessageFile({Download task, Function onReceiveProgress}) async {
   if (task == null || task.message == null) {
@@ -49,7 +49,7 @@ Future<Message> downloadMessageFile({Download task, Function onReceiveProgress})
       task.message.iscurrentlydownloading = 0;
       task.message.isdownloaded = 0;
       task.message.filepath = '';
-      showToast('Canceled download: ${task.message.title}');
+      //showToast('Canceled download: ${task.message.title}');
       return task.message;
     }
     print('Error in downloadMessageFile (downloads.dart) for ${task.message.title}: $error');

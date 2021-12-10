@@ -260,9 +260,9 @@ mixin DownloadsModel on Model {
     fillUpCurrentlyDownloadingFromQueue();
   }
 
-  Future<void> loadDownloadQueueFromDB() async {
+  Future<void> loadDownloadQueueFromDB({bool showPopup = true}) async {
     List<Message> result = await db.getDownloadQueueFromDB();
-    addMessagesToDownloadQueue(result);
+    addMessagesToDownloadQueue(result, showPopup: showPopup);
   }
 
   bool _messageIsBeingDownloaded(Message message) {
@@ -271,7 +271,7 @@ mixin DownloadsModel on Model {
     return _currentlyDownloadingList.indexWhere((download) => download?.message?.id == message?.id) > -1;
   }
 
-  void addMessagesToDownloadQueue(List<Message> messages, {bool atFront = false}) async {
+  void addMessagesToDownloadQueue(List<Message> messages, {bool atFront = false, bool showPopup = true}) async {
     Logger.logEvent(event: 'Added messages to download queue: $messages');
     if (atFront) {
       messages = messages.reversed.toList();
@@ -288,7 +288,7 @@ mixin DownloadsModel on Model {
       }
     });
 
-    await checkConnection();
+    await checkConnection(showPopup: showPopup);
 
     tasks.forEach((task) {
       if (!_downloadsPaused && _currentlyDownloading.length < Constants.ACTIVE_DOWNLOAD_QUEUE_SIZE) {
@@ -365,7 +365,7 @@ mixin DownloadsModel on Model {
 
       if (error.toString().indexOf('DioErrorType.cancel') > -1) {
         Logger.logEvent(event: 'Canceled download: ${task.message.title}');
-        showToast('Canceled download: ${task.message.title}');
+        //showToast('Canceled download: ${task.message.title}');
       } else {
         Logger.logEvent(type: 'error', event: 'Error executing download task for ${task.message.title}: $error');
         showToast('Error downloading ${task.message.title}: check connection');
@@ -426,11 +426,11 @@ mixin DownloadsModel on Model {
 
       Logger.logEvent(event: 'Deleted message downloads; storage freed: $totalStorage, messages: $messages');
       
-      if (messages.length == 1) {
+      /*if (messages.length == 1) {
         showToast('Removed ${messages[0].title} from downloads');
       } else {
         showToast('Removed ${messages.length} downloads');
-      }
+      }*/
       notifyListeners();
       return messages;
     } catch (error) {
@@ -440,7 +440,7 @@ mixin DownloadsModel on Model {
     }
   }
 
-  Future<void> checkConnection() async {
+  Future<void> checkConnection({bool showPopup = true}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool downloadOverData = prefs.getBool('downloadOverData') ?? false;
 
@@ -450,13 +450,17 @@ mixin DownloadsModel on Model {
     if (connection == ConnectivityResult.none) {
       _downloadsPaused = true;
       _downloadPauseReason = PauseReason.noConnection;
-      showToast('Cannot download: no connection (added to download queue)');
+      if (showPopup) {
+        showToast('Cannot download: no connection (added to download queue)');
+      }
       notifyListeners();
     } else {
       if (connection == ConnectivityResult.mobile && !downloadOverData) {
         _downloadsPaused = true;
         _downloadPauseReason = PauseReason.connectionType;
-        showToast('Can only download over WiFi; check settings (added to download queue)');
+        if (showPopup) {
+          showToast('Can only download over WiFi; check settings (added to download queue)');
+        }
         notifyListeners();
       } 
     }
