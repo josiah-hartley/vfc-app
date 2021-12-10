@@ -98,7 +98,7 @@ This database has 7 tables:
   * count (INTEGER): the weight of this recommendation (more messages means a higher count, so it is listed higher in the recommended categories)
 
 ## Deploying Updates to Android ([link to instructions](https://docs.flutter.dev/deployment/android))
-1. Update version number in `pubspec.yaml` and `helpers/constants.dart'
+1. Update version number in `pubspec.yaml` and `helpers/constants.dart`
 2. Run `flutter build appbundle`
 3. Upload resulting file to Google Play Console
 
