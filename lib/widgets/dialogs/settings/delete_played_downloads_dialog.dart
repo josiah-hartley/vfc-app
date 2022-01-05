@@ -18,11 +18,15 @@ class _DeletePlayedDownloadsDialogState extends State<DeletePlayedDownloadsDialo
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: Text('Remove Played Downloads?'),
+      title: Text('Remove Played Downloads?',
+        style: TextStyle(color: Theme.of(context).accentColor),
+      ),
       children: [
         Container(
           padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-          child: Text('You can remove the downloaded audio files for messages that you have listened to.')
+          child: Text('You can remove the downloaded audio files for messages that you have listened to.',
+            style: TextStyle(color: Theme.of(context).accentColor),
+          )
         ),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 12.0),

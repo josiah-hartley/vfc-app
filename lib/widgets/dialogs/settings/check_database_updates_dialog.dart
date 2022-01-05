@@ -28,7 +28,7 @@ class _CheckDatabaseUpdatesDialogState extends State<CheckDatabaseUpdatesDialog>
         title: Text('Coming Soon',
           style: TextStyle(color: Theme.of(context).accentColor),
         ),
-        content: Text('This feature is not available in the beta version',
+        content: Text('This feature will be available in a future version',
           style: TextStyle(color: Theme.of(context).accentColor),
         ),
       ),
