@@ -3,7 +3,7 @@ import 'package:voices_for_christ/data_models/message_class.dart';
 import 'package:voices_for_christ/database/table_names.dart';
 
 List<String> searchArguments(String searchTerm) {
-  List<String> searchWords = searchTerm.split(' ');
+  List<String> searchWords = searchTerm.split(' ').where((w) => w.length > 1).toList();
   return (searchWords.map((w) => '%' + w + '%')).toList();
 }
 

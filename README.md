@@ -109,3 +109,4 @@ This database has 7 tables:
 4. Open `build/ios/archive/Runner.xcarchive` in Xcode
 5. Click Validate App (fix any issues that appear)
 6. Click Distribute App
+7. In App Store Connect, click blue plus button next to iOS App (enter version number and submit for review)
