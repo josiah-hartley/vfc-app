@@ -30,6 +30,7 @@ class _SearchWindowState extends State<SearchWindow> {
   bool _hasSearched = false;
   bool _reachedEndOfList = false;
   bool _waitingForResults = false;
+  bool _runningSearch = false;
   List<String> _searchHistory = [];
 
   @override
@@ -211,6 +212,11 @@ class _SearchWindowState extends State<SearchWindow> {
   }
 
   Future<void> _search() async {
+    if (_runningSearch) {
+      return;
+    }
+    // lock the search so that two searches won't happen simultaneously
+    _runningSearch = true;
     List<Message> result = [];
 
     if (_searchController.text != '') {
@@ -234,6 +240,8 @@ class _SearchWindowState extends State<SearchWindow> {
     setState(() {
       _searchResults.addAll(result);
     });
+    // unlock search
+    _runningSearch = false;
   }
 
   void showMultiSelectTip(BuildContext context) async {
